@@ -1,66 +1,78 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Music } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-interface HeaderProps {
-  showNavigation?: boolean;
-  showAuthButtons?: boolean;
-}
+export function Header() {
+  const isMobile = useIsMobile();
 
-export function Header({
-  showNavigation = true,
-  showAuthButtons = true,
-}: HeaderProps) {
+  const navigationItems = [
+    { href: "#features", label: "Features" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ];
+
   return (
-    <div className="fixed w-full z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Link href="/" className="flex items-center justify-center">
-          <Music className="h-8 w-8 text-primary" />
-          <span className="ml-2 text-2xl font-bold">PianoFi</span>
-        </Link>
+    <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+      <Link className="flex items-center justify-center" href="/">
+        <span className="font-bold text-xl">🎹 PianoFi</span>
+      </Link>
 
-        {showNavigation && (
-          <nav className="ml-auto flex gap-4 sm:gap-6">
-            <Link
-              href="#features"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Features
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="#about"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              About
-            </Link>
-          </nav>
-        )}
-
-        <div
-          className={`${
-            showNavigation ? "ml-6" : "ml-auto"
-          } flex gap-2 items-center`}
-        >
-          <ThemeToggle />
-          {showAuthButtons && (
-            <>
-              <Button variant="ghost" asChild>
-                <Link href="/login">Login</Link>
+      {isMobile ? (
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/login">Login</Link>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Menu className="h-4 w-4" />
               </Button>
-              <Button asChild>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {navigationItems.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link href={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem asChild>
                 <Link href="/signup">Sign Up</Link>
-              </Button>
-            </>
-          )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </header>
-    </div>
+      ) : (
+        <>
+          <nav className="ml-auto flex gap-4 sm:gap-6">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                className="text-sm font-medium hover:underline underline-offset-4"
+                href={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2 ml-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
+        </>
+      )}
+    </header>
   );
 }

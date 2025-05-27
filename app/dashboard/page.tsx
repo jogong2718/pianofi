@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Upload,
   Music,
@@ -20,7 +26,7 @@ import {
   User,
   Settings,
   LogOut,
-} from "lucide-react"
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,17 +34,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Transcription {
-  id: string
-  filename: string
-  status: "processing" | "completed" | "failed"
-  progress: number
-  uploadedAt: string
-  duration: string
-  size: string
+  id: string;
+  filename: string;
+  status: "processing" | "completed" | "failed";
+  progress: number;
+  uploadedAt: string;
+  duration: string;
+  size: string;
 }
 
 export default function DashboardPage() {
@@ -70,60 +76,60 @@ export default function DashboardPage() {
       duration: "3:03",
       size: "4.8 MB",
     },
-  ])
+  ]);
 
-  const [dragActive, setDragActive] = useState(false)
+  const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files)
+      handleFiles(e.dataTransfer.files);
     }
-  }
+  };
 
   const handleFiles = (files: FileList) => {
     // Handle file upload logic here
-    console.log("Files uploaded:", files)
-  }
+    console.log("Files uploaded:", files);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "processing":
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case "failed":
-        return <AlertCircle className="h-4 w-4 text-red-500" />
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
-  }
+  };
 
   const getStatusText = (status: string) => {
     switch (status) {
       case "completed":
-        return "Completed"
+        return "Completed";
       case "processing":
-        return "Processing"
+        return "Processing";
       case "failed":
-        return "Failed"
+        return "Failed";
       default:
-        return "Unknown"
+        return "Unknown";
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,9 +144,15 @@ export default function DashboardPage() {
           <div className="ml-auto flex items-center space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+                    <AvatarImage
+                      src="/placeholder.svg?height=32&width=32"
+                      alt="User"
+                    />
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -149,7 +161,9 @@ export default function DashboardPage() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">John Doe</p>
-                    <p className="text-xs leading-none text-muted-foreground">john@example.com</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      john@example.com
+                    </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -181,12 +195,16 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Transcriptions</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Transcriptions
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-muted-foreground">+3 from last month</p>
+              <p className="text-xs text-muted-foreground">
+                +3 from last month
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -196,7 +214,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">1</div>
-              <p className="text-xs text-muted-foreground">Estimated 2 minutes remaining</p>
+              <p className="text-xs text-muted-foreground">
+                Estimated 2 minutes remaining
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -206,17 +226,23 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground">92 remaining in plan</p>
+              <p className="text-xs text-muted-foreground">
+                92 remaining in plan
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Success Rate
+              </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">98%</div>
-              <p className="text-xs text-muted-foreground">+2% from last month</p>
+              <p className="text-xs text-muted-foreground">
+                +2% from last month
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -231,12 +257,16 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Upload Audio File</CardTitle>
-                <CardDescription>Upload your audio file to convert it to piano sheet music</CardDescription>
+                <CardDescription>
+                  Upload your audio file to convert it to piano sheet music
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25"
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
@@ -244,10 +274,16 @@ export default function DashboardPage() {
                   onDrop={handleDrop}
                 >
                   <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Drop your audio file here</h3>
-                  <p className="text-muted-foreground mb-4">or click to browse files</p>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Drop your audio file here
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    or click to browse files
+                  </p>
                   <Button>Choose File</Button>
-                  <p className="text-xs text-muted-foreground mt-4">Supports MP3, WAV, FLAC up to 10MB</p>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Supports MP3, WAV, FLAC up to 10MB
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -257,17 +293,24 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Transcriptions</CardTitle>
-                <CardDescription>View and download your transcribed sheet music</CardDescription>
+                <CardDescription>
+                  View and download your transcribed sheet music
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {transcriptions.map((transcription) => (
-                    <div key={transcription.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={transcription.id}
+                      className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(transcription.status)}
                           <div>
-                            <p className="font-medium">{transcription.filename}</p>
+                            <p className="font-medium">
+                              {transcription.filename}
+                            </p>
                             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                               <span>{transcription.duration}</span>
                               <span>{transcription.size}</span>
@@ -284,8 +327,8 @@ export default function DashboardPage() {
                               transcription.status === "completed"
                                 ? "default"
                                 : transcription.status === "processing"
-                                  ? "secondary"
-                                  : "destructive"
+                                ? "secondary"
+                                : "destructive"
                             }
                           >
                             {getStatusText(transcription.status)}
@@ -314,7 +357,9 @@ export default function DashboardPage() {
                             <DropdownMenuItem>View Details</DropdownMenuItem>
                             <DropdownMenuItem>Reprocess</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -327,5 +372,5 @@ export default function DashboardPage() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
-      <Header showNavigation={true} showAuthButtons={true} />
+      <Header />
 
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
