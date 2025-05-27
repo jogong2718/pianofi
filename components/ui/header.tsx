@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Music } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,8 +23,9 @@ export function Header() {
 
   return (
     <header className="px-4 lg:px-6 h-14 flex items-center border-b">
-      <Link className="flex items-center justify-center" href="/">
-        <span className="font-bold text-xl">🎹 PianoFi</span>
+      <Link className="flex items-center justify-center space-x-4" href="/">
+        <Music className="h-8 w-8 text-primary" />
+        <span className="font-bold text-xl">PianoFi</span>
       </Link>
 
       {isMobile ? (
