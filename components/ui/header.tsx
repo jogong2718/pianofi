@@ -13,7 +13,7 @@ export function Header({
   showAuthButtons = true,
 }: HeaderProps) {
   return (
-    <div className="fixed w-full">
+    <div className="fixed w-full z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b">
         <Link href="/" className="flex items-center justify-center">
           <Music className="h-8 w-8 text-primary" />
