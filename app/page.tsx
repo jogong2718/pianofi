@@ -1,43 +1,60 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Music, Upload, FileText, Zap, Users, Star } from "lucide-react"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Music, Upload, FileText, Zap, Users, Star } from "lucide-react";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Link href="/" className="flex items-center justify-center">
-          <Music className="h-8 w-8 text-primary" />
-          <span className="ml-2 text-2xl font-bold">PianoFi</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4">
-            Features
+      <header className="h-16 border-b">
+        <div className="container mx-auto px-4 lg:px-6 h-full flex items-center">
+          <Link href="/" className="flex items-center justify-center">
+            <Music className="h-8 w-8 text-primary" />
+            <span className="ml-2 text-2xl font-bold">PianoFi</span>
           </Link>
-          <Link href="#pricing" className="text-sm font-medium hover:underline underline-offset-4">
-            Pricing
-          </Link>
-          <Link href="#about" className="text-sm font-medium hover:underline underline-offset-4">
-            About
-          </Link>
-        </nav>
-        <div className="ml-6 flex gap-2">
-          <Button variant="ghost" asChild>
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup">Sign Up</Link>
-          </Button>
+          <nav className="ml-auto flex gap-4 sm:gap-6">
+            <Link
+              href="#features"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
+              Features
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="#about"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
+              About
+            </Link>
+          </nav>
+          <div className="ml-6 flex gap-2">
+            <Button variant="ghost" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
@@ -49,8 +66,9 @@ export default function LandingPage() {
                     <span className="text-primary"> Piano Sheet Music</span>
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Upload any audio file - pop songs, instrumentals, classical pieces - and get professional piano
-                    sheet music in minutes. Powered by advanced AI models.
+                    Upload any audio file - pop songs, instrumentals, classical
+                    pieces - and get professional piano sheet music in minutes.
+                    Powered by advanced AI models.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -81,12 +99,16 @@ export default function LandingPage() {
                         <Upload className="h-5 w-5" />
                         Upload Your Music
                       </CardTitle>
-                      <CardDescription>Drag and drop any audio file to get started</CardDescription>
+                      <CardDescription>
+                        Drag and drop any audio file to get started
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                         <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">MP3, WAV, FLAC supported</p>
+                        <p className="text-sm text-muted-foreground">
+                          MP3, WAV, FLAC supported
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -98,12 +120,15 @@ export default function LandingPage() {
 
         {/* Features Section */}
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">How PianoFi Works</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  How PianoFi Works
+                </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Our AI-powered platform makes music transcription simple and accurate
+                  Our AI-powered platform makes music transcription simple and
+                  accurate
                 </p>
               </div>
             </div>
@@ -112,7 +137,9 @@ export default function LandingPage() {
                 <CardHeader>
                   <Upload className="h-10 w-10 text-primary" />
                   <CardTitle>1. Upload Audio</CardTitle>
-                  <CardDescription>Upload any audio file - from pop songs to classical pieces</CardDescription>
+                  <CardDescription>
+                    Upload any audio file - from pop songs to classical pieces
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-muted-foreground space-y-1">
@@ -126,7 +153,9 @@ export default function LandingPage() {
                 <CardHeader>
                   <Zap className="h-10 w-10 text-primary" />
                   <CardTitle>2. AI Processing</CardTitle>
-                  <CardDescription>Our advanced models analyze and transcribe your music</CardDescription>
+                  <CardDescription>
+                    Our advanced models analyze and transcribe your music
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-muted-foreground space-y-1">
@@ -140,7 +169,9 @@ export default function LandingPage() {
                 <CardHeader>
                   <FileText className="h-10 w-10 text-primary" />
                   <CardTitle>3. Get Sheet Music</CardTitle>
-                  <CardDescription>Download professional piano sheet music instantly</CardDescription>
+                  <CardDescription>
+                    Download professional piano sheet music instantly
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-muted-foreground space-y-1">
@@ -155,11 +186,16 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6">
+        <section
+          id="pricing"
+          className="w-full py-12 md:py-24 lg:py-32 bg-muted/50"
+        >
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Simple Pricing</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Simple Pricing
+                </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Choose the plan that works for you
                 </p>
@@ -169,7 +205,9 @@ export default function LandingPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Starter</CardTitle>
-                  <CardDescription>Perfect for trying out PianoFi</CardDescription>
+                  <CardDescription>
+                    Perfect for trying out PianoFi
+                  </CardDescription>
                   <div className="text-3xl font-bold">
                     $9<span className="text-sm font-normal">/month</span>
                   </div>
@@ -188,7 +226,9 @@ export default function LandingPage() {
                 <CardHeader>
                   <Badge className="w-fit">Most Popular</Badge>
                   <CardTitle>Pro</CardTitle>
-                  <CardDescription>For serious musicians and teachers</CardDescription>
+                  <CardDescription>
+                    For serious musicians and teachers
+                  </CardDescription>
                   <div className="text-3xl font-bold">
                     $29<span className="text-sm font-normal">/month</span>
                   </div>
@@ -207,7 +247,9 @@ export default function LandingPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Enterprise</CardTitle>
-                  <CardDescription>For music schools and studios</CardDescription>
+                  <CardDescription>
+                    For music schools and studios
+                  </CardDescription>
                   <div className="text-3xl font-bold">
                     $99<span className="text-sm font-normal">/month</span>
                   </div>
@@ -229,14 +271,15 @@ export default function LandingPage() {
 
         {/* CTA Section */}
         <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                   Ready to Transform Your Music?
                 </h2>
                 <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join thousands of musicians who trust PianoFi for accurate music transcription
+                  Join thousands of musicians who trust PianoFi for accurate
+                  music transcription
                 </p>
               </div>
               <div className="space-x-4">
@@ -253,20 +296,33 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">© 2024 PianoFi. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4">
-            Terms of Service
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4">
-            Privacy Policy
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4">
-            Contact
-          </Link>
-        </nav>
+      <footer className="w-full shrink-0 border-t">
+        <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row items-center gap-2">
+          <p className="text-xs text-muted-foreground">
+            © 2024 PianoFi. All rights reserved.
+          </p>
+          <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+            <Link
+              href="#"
+              className="text-xs hover:underline underline-offset-4"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="#"
+              className="text-xs hover:underline underline-offset-4"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="#"
+              className="text-xs hover:underline underline-offset-4"
+            >
+              Contact
+            </Link>
+          </nav>
+        </div>
       </footer>
     </div>
-  )
+  );
 }
