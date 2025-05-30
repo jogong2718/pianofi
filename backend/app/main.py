@@ -43,6 +43,7 @@ async def create_upload_file(
     """
     content = await file.read()
 
+    # Eventually replace with S3 or other storage solution
     file_path = UPLOAD_DIR / file.filename
     with open(file_path, "wb") as f:
         f.write(content)
