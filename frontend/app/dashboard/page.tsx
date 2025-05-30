@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import "@/styles/globals.css";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +38,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 interface Transcription {
   id: string;
@@ -101,95 +104,45 @@ export default function DashboardPage() {
     }
   };
 
-  const [uploading, setUploading] = useState(false);
+  const { handleFileUpload, uploading, validateFile } = useFileUpload();
 
   const handleFiles = async (files: FileList) => {
     const file = files[0];
 
-    // Validate file
-    const allowedTypes = ["audio/mp3", "audio/wav", "audio/flac", "audio/mpeg"];
-    const maxSize = 10 * 1024 * 1024; // 10MB
-
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload an MP3, WAV, or FLAC file.");
-      return;
-    }
-
-    if (file.size > maxSize) {
-      alert("File size must be less than 10MB.");
-      return;
-    }
-
-    setUploading(true);
-
     try {
-      // Create new transcription entry
-      const newTranscription: Transcription = {
-        id: Date.now().toString(),
-        filename: file.name,
-        status: "processing",
-        progress: 0,
-        uploadedAt: new Date().toISOString().split("T")[0],
-        duration: "0:00",
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      };
-
-      // Add to transcriptions list immediately
-      setTranscriptions((prev) => [newTranscription, ...prev]);
-
-      // Create FormData for upload to FastAPI
-      const formData = new FormData();
-      formData.append("file", file); // FastAPI expects 'file' parameter
-
-      // Get backend URL from environment or default to localhost
-      const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
-      // Upload to FastAPI separation endpoint
-      const response = await fetch(`${backendUrl}/uploadfile`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Upload failed");
-      }
-
-      const result = await response.json();
-      console.log("Upload successful:", result);
-
-      // Update transcription status
-      setTranscriptions((prev) =>
-        prev.map((t) =>
-          t.id === newTranscription.id
-            ? { ...t, progress: 100, status: "completed" }
-            : t
-        )
+      await handleFileUpload(
+        file,
+        // onProgress - called when upload starts
+        (transcription) => {
+          setTranscriptions((prev) => [transcription, ...prev]);
+        },
+        // onComplete - called when upload succeeds
+        (transcription) => {
+          setTranscriptions((prev) =>
+            prev.map((t) => (t.id === transcription.id ? transcription : t))
+          );
+        },
+        // onError - called when upload fails
+        (error, transcriptionId) => {
+          setTranscriptions((prev) =>
+            prev.map((t) =>
+              t.id === transcriptionId
+                ? { ...t, status: "failed", progress: 0 }
+                : t
+            )
+          );
+          alert(`Upload failed: ${error.message}`);
+        }
       );
     } catch (error) {
-      console.error("Upload error:", error);
-
-      // Update transcription with failure
-      setTranscriptions((prev) =>
-        prev.map((t) =>
-          t.id === Date.now().toString()
-            ? { ...t, status: "failed", progress: 0 }
-            : t
-        )
-      );
-
+      // Handle validation errors or other errors before upload starts
       if (error instanceof Error) {
-        alert(`Upload failed: ${error.message}`);
-      } else {
-        alert("Upload failed: An unknown error occurred.");
+        alert(error.message);
       }
-    } finally {
-      setUploading(false);
     }
   };
 
-  const handleFileUpload = () => {
+  const handleFileInput = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.onchange = (e) => {
@@ -379,7 +332,7 @@ export default function DashboardPage() {
                   </p>
                   <Button
                     onClick={() => {
-                      handleFileUpload();
+                      handleFileInput();
                     }}
                   >
                     Choose File

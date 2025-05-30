@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
-# from app.routers import separation, transcription, midi_ops
+from app.routers import separation
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +15,7 @@ UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 # mount routers
-# app.include_router(separation.router, prefix="/separate", tags=["separation"])
+app.include_router(separation.router, prefix="/separate", tags=["separation"])
 # app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
 # app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
 
