@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
   const isMobile = useIsMobile();
@@ -30,6 +31,7 @@ export function Header() {
 
       {isMobile ? (
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Login</Link>
           </Button>
@@ -65,6 +67,7 @@ export function Header() {
             ))}
           </nav>
           <div className="flex items-center gap-2 ml-4">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link href="/login">Login</Link>
             </Button>

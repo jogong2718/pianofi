@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface Transcription {
   id: string;
@@ -105,6 +106,18 @@ export default function DashboardPage() {
     console.log("Files uploaded:", files);
   };
 
+  const handleFileUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files) {
+        handleFiles(target.files);
+      }
+    };
+    input.click();
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -142,6 +155,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="ml-auto flex items-center space-x-4">
+            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -280,7 +294,13 @@ export default function DashboardPage() {
                   <p className="text-muted-foreground mb-4">
                     or click to browse files
                   </p>
-                  <Button>Choose File</Button>
+                  <Button
+                    onClick={() => {
+                      handleFileUpload();
+                    }}
+                  >
+                    Choose File
+                  </Button>
                   <p className="text-xs text-muted-foreground mt-4">
                     Supports MP3, WAV, FLAC up to 10MB
                   </p>
