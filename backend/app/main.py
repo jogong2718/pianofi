@@ -1,21 +1,19 @@
 from typing import Union
 from dotenv import load_dotenv
-load_dotenv()
 import os
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
-from app.routers import separation
-from pydantic import BaseModel
+from app.routers import uploadUrl  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
 
 app = FastAPI()
 
-UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
-
 # mount routers
-app.include_router(separation.router, prefix="/separate", tags=["separation"])
+app.include_router(uploadUrl.router, prefix="", tags=["uploadUrl"])
+# app.include_router(separation.router, prefix="/separate", tags=["separation"])
 # app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
 # app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
 
@@ -33,7 +31,7 @@ app.add_middleware(
 async def root():
     return {"message": "Audio→MIDI service is online"}
 
-@app.post("/uploadfile")
+@app.post("/uploadLocal")
 async def create_upload_file(
     file: UploadFile
 ): 
@@ -42,7 +40,7 @@ async def create_upload_file(
     This is just a placeholder to demonstrate file upload handling.
     """
     content = await file.read()
-
+    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
     # Eventually replace with S3 or other storage solution
     file_path = UPLOAD_DIR / file.filename
     with open(file_path, "wb") as f:

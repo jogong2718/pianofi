@@ -39,7 +39,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-import { useFileUpload } from "@/hooks/use-file-upload";
+import { useUploadUrl } from "@/hooks/useUploadUrl";
+import { uploadToS3 } from "@/lib/utils";
 
 interface Transcription {
   id: string;
@@ -84,6 +85,12 @@ export default function DashboardPage() {
 
   const [dragActive, setDragActive] = useState(false);
 
+  const {
+    callUploadUrl,
+    loading: loadingUploadUrl,
+    error: uploadUrlError,
+  } = useUploadUrl();
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -104,41 +111,43 @@ export default function DashboardPage() {
     }
   };
 
-  const { handleFileUpload, uploading, validateFile } = useFileUpload();
-
   const handleFiles = async (files: FileList) => {
     const file = files[0];
 
     try {
-      await handleFileUpload(
-        file,
-        // onProgress - called when upload starts
-        (transcription) => {
-          setTranscriptions((prev) => [transcription, ...prev]);
-        },
-        // onComplete - called when upload succeeds
-        (transcription) => {
-          setTranscriptions((prev) =>
-            prev.map((t) => (t.id === transcription.id ? transcription : t))
-          );
-        },
-        // onError - called when upload fails
-        (error, transcriptionId) => {
-          setTranscriptions((prev) =>
-            prev.map((t) =>
-              t.id === transcriptionId
-                ? { ...t, status: "failed", progress: 0 }
-                : t
-            )
-          );
-          alert(`Upload failed: ${error.message}`);
+      // 1) Get pre-signed upload URL + jobId + fileKey from backend
+      const { uploadUrl, jobId: newJobId, fileKey } = await callUploadUrl();
+
+      if (uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin")) {
+        // Local mode: upload using FormData to a local endpoint
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+        const response = await fetch(`${backendUrl}/uploadLocal`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
         }
-      );
-    } catch (error) {
-      // Handle validation errors or other errors before upload starts
-      if (error instanceof Error) {
-        alert(error.message);
+
+        const result = await response.json();
+        console.log("Local upload successful:", result);
+      } else {
+        // S3 mode: upload directly to S3
+        await uploadToS3(uploadUrl, file);
       }
+
+      // // 3) Tell backend “file is in S3; enqueue job”
+      // await callCreateJob({ jobId: newJobId, fileKey });
+
+      // // 4) Now that the job is enqueued, store jobId so we can start polling
+      // setJobId(newJobId);
+    } catch (err) {
+      console.error("Upload/Enqueue failed:", err);
     }
   };
 
