@@ -264,7 +264,7 @@ export default function LandingPage() {
       <footer className="w-full shrink-0 border-t">
         <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row items-center gap-2">
           <p className="text-xs text-muted-foreground">
-            © 2024 PianoFi. All rights reserved.
+            © {new Date().getFullYear()} PianoFi. All rights reserved.
           </p>
           <nav className="sm:ml-auto flex gap-4 sm:gap-6">
             <Link
