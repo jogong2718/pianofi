@@ -41,6 +41,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { uploadToS3 } from "@/lib/utils";
 import { useCreateJob } from "@/hooks/useCreateJob";
+import { set } from "date-fns";
 
 interface Transcription {
   id: string;
@@ -124,29 +125,30 @@ export default function DashboardPage() {
       // 1) Get pre-signed upload URL + jobId + fileKey from backend
       const { uploadUrl, jobId: newJobId, fileKey } = await callUploadUrl();
 
-      if (uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin")) {
-        // Local mode: upload using FormData to a local endpoint
-        const formData = new FormData();
-        formData.append("file", file);
+      const newTranscription = {
+        id: newJobId,
+        filename: file.name,
+        status: "processing" as const,
+        progress: 0,
+        uploadedAt: new Date().toISOString().split("T")[0],
+        duration: "N/A",
+        size: "", // Will be set below
+      };
 
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const isLocalMode =
+        uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin");
 
-        const response = await fetch(`${backendUrl}/uploadLocal`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log("Local upload successful:", result);
+      if (isLocalMode) {
+        await uploadFileLocally(file);
+        newTranscription.size = "local_test MB";
+        console.log("Local file upload successful");
       } else {
-        // S3 mode: upload directly to S3
         await uploadToS3(uploadUrl, file);
-        console.log("S3 upload successful");
+        newTranscription.size = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        console.log("S3 file upload successful");
       }
+
+      setTranscriptions((prev) => [newTranscription, ...prev]);
 
       // 3) Tell backend “file is in S3; enqueue job”
       await callCreateJob({ jobId: newJobId, fileKey });
@@ -157,6 +159,25 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Upload/Enqueue failed:", err);
     }
+  };
+
+  const uploadFileLocally = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const response = await fetch(`${backendUrl}/uploadLocal`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log("Local upload successful:", result);
+    return result;
   };
 
   const handleFileInput = () => {
