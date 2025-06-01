@@ -29,3 +29,5 @@ next-env.d.ts
 # python
 __pycache__/
 venv/
+newvenv/
+pvenv/
