@@ -41,6 +41,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { uploadToS3 } from "@/lib/utils";
+import { useCreateJob } from "@/hooks/useCreateJob";
 
 interface Transcription {
   id: string;
@@ -91,6 +92,12 @@ export default function DashboardPage() {
     error: uploadUrlError,
   } = useUploadUrl();
 
+  const {
+    callCreateJob,
+    loading: loadingCreateJob,
+    error: CreateJobError,
+  } = useCreateJob();
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -139,10 +146,12 @@ export default function DashboardPage() {
       } else {
         // S3 mode: upload directly to S3
         await uploadToS3(uploadUrl, file);
+        console.log("S3 upload successful");
       }
 
-      // // 3) Tell backend “file is in S3; enqueue job”
-      // await callCreateJob({ jobId: newJobId, fileKey });
+      // 3) Tell backend “file is in S3; enqueue job”
+      await callCreateJob({ jobId: newJobId, fileKey });
+      console.log("Job enqueued successfully");
 
       // // 4) Now that the job is enqueued, store jobId so we can start polling
       // setJobId(newJobId);

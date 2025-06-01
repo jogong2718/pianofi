@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
-from app.routers import uploadUrl  # , transcription, midi_ops
+from app.routers import uploadUrl, createJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -13,6 +13,7 @@ app = FastAPI()
 
 # mount routers
 app.include_router(uploadUrl.router, prefix="", tags=["uploadUrl"])
+app.include_router(createJob.router, prefix="", tags=["createJob"])
 # app.include_router(separation.router, prefix="/separate", tags=["separation"])
 # app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
 # app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
