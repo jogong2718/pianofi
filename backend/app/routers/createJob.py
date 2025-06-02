@@ -2,8 +2,16 @@ from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from app.schemas.createJob import CreateJobPayload
 from app.schemas.createJob import CreateJobResponse
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 router = APIRouter()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 @router.post("/createJob", response_model=CreateJobResponse)
 async def create_job(payload: CreateJobPayload):
