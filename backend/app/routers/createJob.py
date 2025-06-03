@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 import os
 from app.config import Config
+import time
 
 router = APIRouter()
 
@@ -38,6 +39,35 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
     try:
         if not payload.jobId or not payload.fileKey:
             raise HTTPException(status_code=400, detail="jobId and fileKey are required")
+        
+        sql = text("""
+            SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id = :jobId)
+        """)
+
+        result = db.execute(sql, {"jobId": payload.jobId}).fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        current_time = time.time()
+        
+        update_sql = text("""
+            UPDATE jobs
+            SET status = 'queued', queued_at = NOW()
+            WHERE job_id = :jobId AND file_key = :fileKey
+        """)
+
+        update_result = db.execute(update_sql, {"jobId": payload.jobId, "fileKey": payload.fileKey})
+
+        if update_result.rowcount == 0:
+            raise HTTPException(status_code=400, detail="Job not found or fileKey mismatch")
+        
+        db.commit()
+        # Here you would typically add the job to a queue for processing
+
+        # Enqueue the job in redis
+        
+
+
 
         # Simulate saving the job (e.g., to a database)
         # In a real application, you would save this to your database here
@@ -46,4 +76,5 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
         return CreateJobResponse(success=True)
     
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
