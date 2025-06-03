@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pathlib import Path
 from app.schemas.createJob import CreateJobPayload
 from app.schemas.createJob import CreateJobResponse
@@ -6,15 +6,31 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 import os
-from dotenv import load_dotenv
-load_dotenv()
+from app.config import Config
 
 router = APIRouter()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = Config.DATABASE_URL
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=10,
+    max_overflow=20
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.post("/createJob", response_model=CreateJobResponse)
-async def create_job(payload: CreateJobPayload):
+async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
     """
     Create a job with a unique jobId and fileKey.
     This endpoint is used to initiate a job for processing an audio file.
@@ -31,4 +47,3 @@ async def create_job(payload: CreateJobPayload):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-

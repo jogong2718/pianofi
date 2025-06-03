@@ -1,6 +1,9 @@
 # Use Python 3.12 base image
 FROM python:3.12.7-slim
 
+ENV ENVIRONMENT=production
+ENV AWS_REGION=us-east-1
+
 # Set working directory inside the container
 WORKDIR /app
 

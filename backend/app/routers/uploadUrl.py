@@ -2,7 +2,6 @@
 
 import os
 import uuid
-from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import boto3
@@ -12,22 +11,19 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
-load_dotenv()
 # app/schemas/uploadUrl.py
+from app.config import Config
 from app.schemas.uploadUrl import UploadUrlResponse
 
 router = APIRouter()
 
 # 2) Grab S3 settings from environment
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_REGION = os.getenv("AWS_REGION")
-S3_BUCKET = os.getenv("S3_BUCKET")
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = Config.DATABASE_URL
+aws_creds = Config.AWS_CREDENTIALS
 
 local = False
-
-if not (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_REGION and S3_BUCKET):
+if not all([aws_creds["aws_access_key_id"], aws_creds["aws_secret_access_key"], 
+           aws_creds["aws_region"], aws_creds["s3_bucket"]]):
     local = True
     UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
@@ -53,9 +49,9 @@ def get_db():
 if not local:
     s3_client = boto3.client(
         "s3",
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION,
+        aws_access_key_id=aws_creds["aws_access_key_id"],
+        aws_secret_access_key=aws_creds["aws_secret_access_key"],
+        region_name=aws_creds["aws_region"],
     )
 
 
@@ -82,7 +78,7 @@ def create_upload_url(db: Session = Depends(get_db)):
             upload_url: str = s3_client.generate_presigned_url(
                 ClientMethod="put_object",
                 Params={
-                    "Bucket": S3_BUCKET,
+                    "Bucket": aws_creds["s3_bucket"],
                     "Key": file_key,
                     # If you want the client to set content‐type themselves, omit ContentType here.
                     # Otherwise, you can force a content type:
@@ -93,7 +89,7 @@ def create_upload_url(db: Session = Depends(get_db)):
             )
 
         db.commit()
-        
+
         return UploadUrlResponse(
             uploadUrl=upload_url,
             jobId=job_id,
