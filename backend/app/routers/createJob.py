@@ -48,8 +48,6 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
         if not result:
             raise HTTPException(status_code=404, detail="Job not found")
         
-        current_time = time.time()
-        
         update_sql = text("""
             UPDATE jobs
             SET status = 'queued', queued_at = NOW()
