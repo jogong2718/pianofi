@@ -1,9 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
 import Link from "next/link";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,25 +17,82 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Music, Github, Mail } from "lucide-react";
 import { Header } from "@/components/ui/header";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
+// ✅ Server Component - no bundling issues
 export default function SignupPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const supabase = createClient();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const passwordsMatch = password === confirmPassword;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!acceptTerms) {
-      alert("Please accept the terms and conditions");
+      toast.error("Please accept the terms and conditions");
       return;
     }
+    if (!passwordsMatch) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     setIsLoading(true);
-    // Handle signup logic here
-    setTimeout(() => setIsLoading(false), 2000);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success(
+          "Account created! Please check your email to verify your account."
+        );
+        router.push("/email?message=Check your email to continue");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleOAuthSignup = (provider: string) => {
-    // Handle OAuth signup
-    console.log(`Sign up with ${provider}`);
+  const handleOAuthSignup = async (provider: "google" | "github") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        toast.error(`Failed to sign up with ${provider}: ${error.message}`);
+      }
+    } catch (error) {
+      toast.error("Failed to sign up with OAuth provider. Please try again.");
+    }
   };
 
   return (
@@ -96,16 +152,27 @@ export default function SignupPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First name</Label>
-                    <Input id="firstName" placeholder="John" required />
+                    <Input
+                      name="firstName"
+                      id="firstName"
+                      placeholder="John"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Last name</Label>
-                    <Input id="lastName" placeholder="Doe" required />
+                    <Input
+                      name="lastName"
+                      id="lastName"
+                      placeholder="Doe"
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
+                    name="email"
                     id="email"
                     type="email"
                     placeholder="m@example.com"
@@ -115,20 +182,29 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
+                    name="password"
                     id="password"
                     type="password"
                     placeholder="Create a strong password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <Input
+                    name="confirmPassword"
                     id="confirmPassword"
                     type="password"
                     placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
+                  {!passwordsMatch && confirmPassword && (
+                    <p className="text-sm text-red-600">Passwords must match</p>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -160,7 +236,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading || !acceptTerms}
+                  disabled={isLoading || !acceptTerms || !passwordsMatch}
                 >
                   {isLoading ? "Creating account..." : "Create account"}
                 </Button>
@@ -169,7 +245,7 @@ export default function SignupPage() {
               <div className="text-center text-sm">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline">
-                  Sign in
+                  Login
                 </Link>
               </div>
             </CardContent>

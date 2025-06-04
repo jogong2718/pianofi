@@ -1,8 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,11 +37,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { createClient } from "@/lib/supabase/client";
 
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { uploadToS3 } from "@/lib/utils";
 import { useCreateJob } from "@/hooks/useCreateJob";
-import { set } from "date-fns";
 
 interface Transcription {
   id: string;
@@ -54,6 +54,45 @@ interface Transcription {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        router.push("/login");
+        return;
+      }
+
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    const confirmed = searchParams.get("confirmed");
+    if (confirmed === "true") {
+      toast.success("Email verified successfully!");
+    }
+  }, [searchParams, router, supabase.auth]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Logout failed: " + error.message);
+    } else {
+      router.push("/");
+    }
+  };
+
   const [transcriptions, setTranscriptions] = useState<Transcription[]>([
     {
       id: "1",
@@ -119,11 +158,17 @@ export default function DashboardPage() {
   };
 
   const handleFiles = async (files: FileList) => {
+    if (!user) return;
+
     const file = files[0];
 
     try {
       // 1) Get pre-signed upload URL + jobId + fileKey from backend
-      const { uploadUrl, jobId: newJobId, fileKey } = await callUploadUrl();
+      const {
+        uploadUrl,
+        jobId: newJobId,
+        fileKey,
+      } = await callUploadUrl({ user_id: user.id });
 
       const newTranscription = {
         id: newJobId,
@@ -151,7 +196,7 @@ export default function DashboardPage() {
       setTranscriptions((prev) => [newTranscription, ...prev]);
 
       // 3) Tell backend “file is in S3; enqueue job”
-      await callCreateJob({ jobId: newJobId, fileKey });
+      await callCreateJob({ jobId: newJobId, fileKey: fileKey });
       console.log("Job enqueued successfully");
 
       // // 4) Now that the job is enqueued, store jobId so we can start polling
@@ -218,6 +263,17 @@ export default function DashboardPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-8 w-8 text-primary mx-auto mb-4" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -241,16 +297,25 @@ export default function DashboardPage() {
                       src="/placeholder.svg?height=32&width=32"
                       alt="User"
                     />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>
+                      {user?.user_metadata?.first_name?.[0] ||
+                        user?.email?.[0] ||
+                        "U"}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">John Doe</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user?.user_metadata?.first_name &&
+                      user?.user_metadata?.last_name
+                        ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                        : user?.email}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      john@example.com
+                      {user?.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -264,7 +329,7 @@ export default function DashboardPage() {
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>

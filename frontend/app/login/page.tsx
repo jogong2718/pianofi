@@ -1,9 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,20 +16,64 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Music, Github, Mail } from "lucide-react";
 import { Header } from "@/components/ui/header";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message) {
+      toast.error(message);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // Handle login logic here
-    setTimeout(() => setIsLoading(false), 2000);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error("Login failed: " + error.message);
+      } else {
+        toast.success("Login successful! Redirecting...");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleOAuthLogin = (provider: string) => {
-    // Handle OAuth login
-    console.log(`Login with ${provider}`);
+  const handleOAuthLogin = async (provider: "google" | "github") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        toast.error("OAuth login failed: " + error.message);
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred during OAuth login.");
+    }
   };
 
   return (
@@ -90,6 +133,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
+                    name="email"
                     id="email"
                     type="email"
                     placeholder="m@example.com"
@@ -106,10 +150,15 @@ export default function LoginPage() {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input
+                    name="password"
+                    id="password"
+                    type="password"
+                    required
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign in"}
+                  {isLoading ? "Logging in..." : "Log in"}
                 </Button>
               </form>
 

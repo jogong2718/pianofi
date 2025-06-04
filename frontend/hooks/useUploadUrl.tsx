@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+interface CreateUrlProps {
+  user_id: string;
+}
+
 interface UploadUrlResponse {
   uploadUrl: string;
   jobId: string;
@@ -12,16 +16,22 @@ export function useUploadUrl() {
 
   /**
    * callUploadUrl()
-   * └─ Sends POST /api/upload-url (no body)
+   * └─ Sends POST /api/upload-url (user_id)
    * └─ Returns { uploadUrl, jobId, fileKey }
    */
-  async function callUploadUrl(): Promise<UploadUrlResponse> {
+  async function callUploadUrl({
+    user_id,
+  }: CreateUrlProps): Promise<UploadUrlResponse> {
     setLoading(true);
     setError(null);
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const res = await fetch(`${backendUrl}/uploadUrl`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id }),
       });
 
       if (!res.ok) {

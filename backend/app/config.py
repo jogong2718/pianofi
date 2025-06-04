@@ -14,10 +14,17 @@ def get_database_url() -> str:
     env = get_environment()
     
     if env == "development":
-        # Local development - use .env file
-        from dotenv import load_dotenv
-        load_dotenv()
-        return os.getenv("DATABASE_URL")
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        # Use Supabase session pooler URI
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            raise Exception("DATABASE_URL not found in environment")
+        return db_url
     
     # Production/Staging - use AWS Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
