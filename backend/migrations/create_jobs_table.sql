@@ -20,4 +20,4 @@ CREATE INDEX idx_jobs_status ON jobs(status);
 
 -- (Optional) If you want to enforce that `file_key` is unique per job:
 ALTER TABLE jobs
-  ADD CONSTRAINT unique_file_key UNIQUE (file_key);
+  ADD CONSTRAINT unique_job_id UNIQUE (job_id);
