@@ -40,6 +40,8 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    // Implement additional validation
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

@@ -33,6 +33,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isLoading) return;
 
     if (!acceptTerms) {
       toast.error("Please accept the terms and conditions");
@@ -42,6 +43,8 @@ export default function SignupPage() {
       toast.error("Passwords do not match");
       return;
     }
+
+    // Implement additional validation
 
     setIsLoading(true);
 
