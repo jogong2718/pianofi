@@ -14,7 +14,7 @@ import {
 import { Mail, CheckCircle, Clock, RefreshCw } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { createClient } from "@/lib/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function ConfirmEmailPage() {
   const [isResending, setIsResending] = useState(false);
@@ -34,11 +34,7 @@ export default function ConfirmEmailPage() {
 
   const handleResendEmail = async () => {
     if (!email) {
-      toast({
-        title: "Error",
-        description: "Email address not found. Please sign up again.",
-        variant: "destructive",
-      });
+      toast.error("Email address is required to resend confirmation.");
       return;
     }
 
@@ -52,24 +48,14 @@ export default function ConfirmEmailPage() {
       });
 
       if (error) {
-        toast({
-          title: "Resend Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error("Failed to resend confirmation email: " + error.message);
       } else {
-        toast({
-          title: "Email Sent",
-          description: "A new confirmation email has been sent.",
-        });
+        toast.success("Confirmation email resent successfully!");
         setResendCooldown(60); // 60 second cooldown
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to resend email. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred while resending the email.");
+      console.error("Error resending email:", error);
     } finally {
       setIsResending(false);
     }

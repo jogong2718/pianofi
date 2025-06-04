@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -80,21 +80,14 @@ export default function DashboardPage() {
 
     const confirmed = searchParams.get("confirmed");
     if (confirmed === "true") {
-      toast({
-        title: "Email Verified!",
-        description: "Your account has been successfully confirmed.",
-      });
+      toast.success("Email verified successfully!");
     }
   }, [searchParams, router, supabase.auth]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Logout failed: " + error.message);
     } else {
       router.push("/");
     }

@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Music, Github, Mail } from "lucide-react";
 import { Header } from "@/components/ui/header";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -28,10 +28,7 @@ export default function LoginPage() {
   useEffect(() => {
     const message = searchParams.get("message");
     if (message) {
-      toast({
-        title: "Information",
-        description: message,
-      });
+      toast.error(message);
     }
   }, [searchParams]);
 
@@ -50,24 +47,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error("Login failed: " + error.message);
       } else {
-        toast({
-          title: "Welcome Back",
-          description: "Successfully logged in. Redirecting...",
-        });
+        toast.success("Login successful! Redirecting...");
         router.push("/dashboard");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -83,18 +69,10 @@ export default function LoginPage() {
       });
 
       if (error) {
-        toast({
-          title: "OAuth Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error("OAuth login failed: " + error.message);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign in with OAuth provider.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred during OAuth login.");
     }
   };
 
