@@ -45,7 +45,7 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
         """)
 
         result = db.execute(sql, {"jobId": payload.jobId}).fetchone()
-        if not result:
+        if not result[0]:
             raise HTTPException(status_code=404, detail="Job not found")
         
         update_sql = text("""
