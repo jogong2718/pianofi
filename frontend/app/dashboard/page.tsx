@@ -157,10 +157,47 @@ export default function DashboardPage() {
     }
   };
 
+  const validateFile = (file: File): string | null => {
+    // File existence
+    if (!file) {
+      return "No file selected";
+    }
+
+    // File type validation
+    const allowedTypes = ["audio/mpeg", "audio/wav", "audio/flac"];
+    if (!allowedTypes.includes(file.type)) {
+      return "Unsupported file type. Please upload MP3, WAV, or FLAC.";
+    }
+
+    // File size validation (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      return "File too large. Maximum size is 10MB.";
+    }
+
+    // File name validation
+    const allowedExtensions = [".mp3", ".wav", ".flac"];
+    const hasValidExtension = allowedExtensions.some((ext) =>
+      file.name.toLowerCase().endsWith(ext)
+    );
+    if (!hasValidExtension) {
+      return "Invalid file extension. Please use .mp3, .wav, or .flac files.";
+    }
+
+    return null; // Valid file
+  };
+
   const handleFiles = async (files: FileList) => {
     if (!user) return;
 
     const file = files[0];
+
+    // Validate file type and size
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
 
     try {
       // 1) Get pre-signed upload URL + jobId + fileKey from backend
@@ -168,7 +205,12 @@ export default function DashboardPage() {
         uploadUrl,
         jobId: newJobId,
         fileKey,
-      } = await callUploadUrl({ user_id: user.id });
+      } = await callUploadUrl({
+        user_id: user.id,
+        file_name: file.name,
+        file_size: file.size,
+        content_type: file.type,
+      });
 
       const newTranscription = {
         id: newJobId,
@@ -203,6 +245,7 @@ export default function DashboardPage() {
       // setJobId(newJobId);
     } catch (err) {
       console.error("Upload/Enqueue failed:", err);
+      toast.error("Upload failed: " + (err as Error).message);
     }
   };
 
@@ -294,7 +337,7 @@ export default function DashboardPage() {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="/placeholder.svg?height=32&width=32"
+                      src="/middlegura.svg?height=32&width=32"
                       alt="User"
                     />
                     <AvatarFallback>

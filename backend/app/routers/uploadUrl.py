@@ -63,6 +63,15 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db)):
     Generate a presigned PUT URL for S3, plus a jobId and fileKey.
     The client will PUT its file directly to S3 at this URL.
     """
+    # Validate the upload request parameters
+    validation_error = validate_upload_request(
+        file_name=payload.file_name,
+        file_size=payload.file_size,
+        content_type=payload.content_type
+    )
+    if validation_error:
+        raise HTTPException(status_code=400, detail=validation_error)
+    
     try:
         job_id = str(uuid.uuid4())
         file_key = f"{job_id}.bin"
@@ -83,7 +92,7 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db)):
                     "Key": file_key,
                     # If you want the client to set content‐type themselves, omit ContentType here.
                     # Otherwise, you can force a content type:
-                    # "ContentType": "audio/mpeg"
+                    "ContentType": "audio/mpeg"
                 },
                 ExpiresIn=3600,
                 HttpMethod="PUT",
@@ -105,3 +114,24 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+def validate_upload_request(file_name: str, file_size: int, content_type: str) -> str | None:
+    """Validate upload parameters before generating pre-signed URL"""
+    
+    # File size validation (10MB limit)
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+    if file_size > MAX_FILE_SIZE:
+        return f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
+    
+    # File extension validation
+    ALLOWED_EXTENSIONS = {'.mp3', '.wav', '.flac'}
+    file_ext = '.' + file_name.lower().split('.')[-1] if '.' in file_name else ''
+    if file_ext not in ALLOWED_EXTENSIONS:
+        return f"Invalid file extension: {file_ext}"
+    
+    # MIME type validation
+    ALLOWED_MIME_TYPES = {'audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-wav', 'audio/x-flac'}
+    if content_type not in ALLOWED_MIME_TYPES:
+        return f"Invalid file type: {content_type}"
+    
+    return None  # Valid
