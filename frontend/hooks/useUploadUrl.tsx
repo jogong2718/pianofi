@@ -2,6 +2,9 @@ import { useState } from "react";
 
 interface CreateUrlProps {
   user_id: string;
+  file_name: string;
+  file_size: number;
+  content_type: string;
 }
 
 interface UploadUrlResponse {
@@ -21,9 +24,13 @@ export function useUploadUrl() {
    */
   async function callUploadUrl({
     user_id,
+    file_name,
+    file_size,
+    content_type,
   }: CreateUrlProps): Promise<UploadUrlResponse> {
     setLoading(true);
     setError(null);
+    let errorMessage = "bruh, something went wrong";
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const res = await fetch(`${backendUrl}/uploadUrl`, {
@@ -31,11 +38,15 @@ export function useUploadUrl() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id }),
+        body: JSON.stringify({ user_id, file_name, file_size, content_type }),
       });
 
       if (!res.ok) {
-        throw new Error(`Upload-URL request failed: ${res.statusText}`);
+        const errorData = await res.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail; // This gets the real backend error
+        }
+        throw new Error(errorMessage);
       }
 
       const data: UploadUrlResponse = await res.json();

@@ -64,6 +64,7 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
 
         # Enqueue the job in redis
         
+        
 
 
 

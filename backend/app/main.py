@@ -41,6 +41,7 @@ async def create_upload_file(
     This is just a placeholder to demonstrate file upload handling.
     """
     content = await file.read()
+
     UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
     # Eventually replace with S3 or other storage solution
     file_path = UPLOAD_DIR / file.filename
