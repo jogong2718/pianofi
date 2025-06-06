@@ -4,6 +4,7 @@ import { useState } from "react";
 interface CreateJobProps {
   jobId: string;
   fileKey: string;
+  userId: string;
 }
 
 interface CreateJobResponse {
@@ -22,6 +23,7 @@ export function useCreateJob() {
   async function callCreateJob({
     jobId,
     fileKey,
+    userId,
   }: CreateJobProps): Promise<CreateJobResponse> {
     setLoading(true);
     setError(null);
@@ -32,7 +34,7 @@ export function useCreateJob() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ jobId, fileKey }),
+        body: JSON.stringify({ jobId, fileKey, userId }),
       });
 
       if (!res.ok) {

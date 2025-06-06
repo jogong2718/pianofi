@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 import os
 from app.config import Config
 import time
+import redis
+import json
 
 router = APIRouter()
 
@@ -29,6 +31,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+r = redis.from_url(Config.REDIS_URL, decode_responses=True)
 
 @router.post("/createJob", response_model=CreateJobResponse)
 async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
@@ -63,10 +67,16 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
         # Here you would typically add the job to a queue for processing
 
         # Enqueue the job in redis
-        
-        
+        job_data = {
+            "jobId": payload.jobId,
+            "fileKey": payload.fileKey,
+            "userId": payload.userId,
+            "createdAt": time.time()
+        }
 
-
+        r.lpush("job_queue", json.dumps(job_data))  # Push job data to Redis list
+        # Log the job creation
+        print(f"Job created: {payload.jobId}, fileKey: {payload.fileKey}, userId: {payload.userId}")
 
         # Simulate saving the job (e.g., to a database)
         # In a real application, you would save this to your database here
