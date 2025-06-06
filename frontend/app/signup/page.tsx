@@ -72,7 +72,7 @@ export default function SignupPage() {
         toast.success(
           "Account created! Please check your email to verify your account."
         );
-        router.push("/email?message=Check your email to continue");
+        router.push("/email?email=" + encodeURIComponent(email));
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");

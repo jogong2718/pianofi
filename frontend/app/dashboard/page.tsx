@@ -206,7 +206,6 @@ export default function DashboardPage() {
         jobId: newJobId,
         fileKey,
       } = await callUploadUrl({
-        user_id: user.id,
         file_name: file.name,
         file_size: file.size,
         content_type: file.type,
@@ -238,7 +237,10 @@ export default function DashboardPage() {
       setTranscriptions((prev) => [newTranscription, ...prev]);
 
       // 3) Tell backend “file is in S3; enqueue job”
-      await callCreateJob({ jobId: newJobId, fileKey: fileKey });
+      await callCreateJob({
+        jobId: newJobId,
+        fileKey: fileKey,
+      });
       console.log("Job enqueued successfully");
 
       // // 4) Now that the job is enqueued, store jobId so we can start polling

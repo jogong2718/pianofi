@@ -1,5 +1,6 @@
 // hooks/useCreateJob.ts
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface CreateJobProps {
   jobId: string;
@@ -13,6 +14,7 @@ interface CreateJobResponse {
 export function useCreateJob() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
 
   /**
    * callCreateJob({ jobId, fileKey })
@@ -25,12 +27,22 @@ export function useCreateJob() {
   }: CreateJobProps): Promise<CreateJobResponse> {
     setLoading(true);
     setError(null);
+
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("No authentication token found");
+      }
+
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       const res = await fetch(`${backendUrl}/createJob`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ jobId, fileKey }),
       });

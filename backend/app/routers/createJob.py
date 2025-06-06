@@ -2,12 +2,17 @@ from fastapi import APIRouter, HTTPException, Depends
 from pathlib import Path
 from app.schemas.createJob import CreateJobPayload
 from app.schemas.createJob import CreateJobResponse
+from app.schemas.user import User
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 import os
 from app.config import Config
 import time
+import redis
+import json
+import logging
+from app.auth import get_current_user
 
 router = APIRouter()
 
@@ -30,23 +35,32 @@ def get_db():
     finally:
         db.close()
 
+r = redis.from_url(Config.REDIS_URL, decode_responses=True)
+
 @router.post("/createJob", response_model=CreateJobResponse)
-async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
+async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Create a job with a unique jobId and fileKey.
     This endpoint is used to initiate a job for processing an audio file.
     """
     try:
+        authenticated_user_id = current_user.id
+
         if not payload.jobId or not payload.fileKey:
             raise HTTPException(status_code=400, detail="jobId and fileKey are required")
         
         sql = text("""
-            SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id = :jobId)
+            SELECT EXISTS(SELECT 1 FROM jobs 
+                         WHERE job_id = :jobId AND user_id = :userId)
         """)
 
-        result = db.execute(sql, {"jobId": payload.jobId}).fetchone()
+        result = db.execute(sql, {
+            "jobId": payload.jobId, 
+            "userId": authenticated_user_id  # Use server-side user ID
+        }).fetchone()
+        
         if not result[0]:
-            raise HTTPException(status_code=404, detail="Job not found")
+            raise HTTPException(status_code=404, detail="Job not found or access denied")
         
         update_sql = text("""
             UPDATE jobs
@@ -63,10 +77,16 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db)):
         # Here you would typically add the job to a queue for processing
 
         # Enqueue the job in redis
-        
-        
+        job_data = {
+            "jobId": payload.jobId,
+            "fileKey": payload.fileKey,
+            "userId": authenticated_user_id,
+            "createdAt": time.time()
+        }
 
-
+        r.lpush("job_queue", json.dumps(job_data))  # Push job data to Redis list
+        # Log the job creation
+        logging.info(f"Job created: {payload.jobId}, fileKey: {payload.fileKey}, userId: {authenticated_user_id}")
 
         # Simulate saving the job (e.g., to a database)
         # In a real application, you would save this to your database here

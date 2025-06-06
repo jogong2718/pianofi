@@ -99,6 +99,73 @@ def get_cors_origins() -> list:
     except Exception as e:
         # Fallback to restrictive CORS in production
         return ["https://yourdomain.com"]
+    
+@lru_cache()
+def get_redis_url() -> str:
+    """Get Redis URL from Parameter Store in production, .env in development"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        redis_url = os.getenv("REDIS_URL")
+        if not redis_url:
+            raise Exception("REDIS_URL not found in environment")
+        return redis_url
+    
+    # Production/Staging - use AWS Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameter(
+            Name=f'/pianofi/{env}/redis/url',
+            WithDecryption=True
+        )
+        return response['Parameter']['Value']
+    except Exception as e:
+        raise Exception(f"Failed to get Redis URL from Parameter Store: {e}")
+    
+@lru_cache()
+def get_supabase_config() -> Dict[str, str]:
+    """Get Supabase configuration from Parameter Store or environment"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        return {
+            "url": os.getenv("SUPABASE_URL", ""),
+            "anon_key": os.getenv("SUPABASE_ANON_KEY", "")
+        }
+    
+    # Production - get from Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameters(
+            Names=[
+                f'/pianofi/{env}/supabase/url',
+                f'/pianofi/{env}/supabase/anon_key'
+            ],
+            WithDecryption=True
+        )
+        
+        params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
+        
+        return {
+            "url": params.get("url", ""),
+            "anon_key": params.get("anon_key", "")
+        }
+    except Exception as e:
+        raise Exception(f"Failed to get Supabase config from Parameter Store: {e}")
 
 # Configuration class for easy access
 class Config:
@@ -106,3 +173,5 @@ class Config:
     AWS_CREDENTIALS = get_aws_credentials()
     CORS_ORIGINS = get_cors_origins()
     ENVIRONMENT = get_environment()
+    REDIS_URL = get_redis_url()
+    SUPABASE_CONFIG = get_supabase_config()
