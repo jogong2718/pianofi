@@ -206,7 +206,6 @@ export default function DashboardPage() {
         jobId: newJobId,
         fileKey,
       } = await callUploadUrl({
-        user_id: user.id,
         file_name: file.name,
         file_size: file.size,
         content_type: file.type,
@@ -241,7 +240,6 @@ export default function DashboardPage() {
       await callCreateJob({
         jobId: newJobId,
         fileKey: fileKey,
-        userId: user.id,
       });
       console.log("Job enqueued successfully");
 

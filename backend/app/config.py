@@ -128,6 +128,44 @@ def get_redis_url() -> str:
         return response['Parameter']['Value']
     except Exception as e:
         raise Exception(f"Failed to get Redis URL from Parameter Store: {e}")
+    
+@lru_cache()
+def get_supabase_config() -> Dict[str, str]:
+    """Get Supabase configuration from Parameter Store or environment"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        return {
+            "url": os.getenv("SUPABASE_URL", ""),
+            "anon_key": os.getenv("SUPABASE_ANON_KEY", "")
+        }
+    
+    # Production - get from Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameters(
+            Names=[
+                f'/pianofi/{env}/supabase/url',
+                f'/pianofi/{env}/supabase/anon_key'
+            ],
+            WithDecryption=True
+        )
+        
+        params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
+        
+        return {
+            "url": params.get("url", ""),
+            "anon_key": params.get("anon_key", "")
+        }
+    except Exception as e:
+        raise Exception(f"Failed to get Supabase config from Parameter Store: {e}")
 
 # Configuration class for easy access
 class Config:
@@ -136,3 +174,4 @@ class Config:
     CORS_ORIGINS = get_cors_origins()
     ENVIRONMENT = get_environment()
     REDIS_URL = get_redis_url()
+    SUPABASE_CONFIG = get_supabase_config()
