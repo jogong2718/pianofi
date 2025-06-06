@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pathlib import Path
 from app.schemas.createJob import CreateJobPayload
 from app.schemas.createJob import CreateJobResponse
+from app.schemas.user import User
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
@@ -37,7 +38,7 @@ def get_db():
 r = redis.from_url(Config.REDIS_URL, decode_responses=True)
 
 @router.post("/createJob", response_model=CreateJobResponse)
-async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Create a job with a unique jobId and fileKey.
     This endpoint is used to initiate a job for processing an audio file.

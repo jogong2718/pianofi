@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.config import Config
 from app.schemas.uploadUrl import UploadUrlResponse
 from app.schemas.uploadUrl import CreateUrlPayload
+from app.schemas.user import User
 from app.auth import get_current_user
 
 router = APIRouter()
@@ -56,10 +57,8 @@ if not local:
         region_name=aws_creds["aws_region"],
     )
 
-
-
 @router.post("/uploadUrl", response_model=UploadUrlResponse)
-def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Generate a presigned PUT URL for S3, plus a jobId and fileKey.
     The client will PUT its file directly to S3 at this URL.

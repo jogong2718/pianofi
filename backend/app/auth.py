@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
 from app.config import Config
 import os
+from app.schemas.user import User
 
 security = HTTPBearer()
 
@@ -15,7 +16,7 @@ def get_supabase_client():
     
     return create_client(supabase_config["url"], supabase_config["anon_key"])
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
     """
     Extract and validate user from JWT token
     Returns the authenticated user's data
