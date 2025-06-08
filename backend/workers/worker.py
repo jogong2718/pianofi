@@ -88,7 +88,7 @@ def process_job(job):
         logging.info(f"Downloaded {local_raw}")
 
     # 3) Stem separation
-    stems = separate_stems(str(local_raw), f"/tmp/{job_id}_stems")
+    stems = separate_stems(str(local_raw), f"/tmp/{job_id}_stems")  
 
     if local:
         logging.info(f"Using local stems for job {job_id}")
