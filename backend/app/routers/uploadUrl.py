@@ -23,11 +23,10 @@ router = APIRouter()
 # 2) Grab S3 settings from environment
 DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
+local = Config.ENVIRONMENT == "development"
 
-local = False
 if not all([aws_creds["aws_access_key_id"], aws_creds["aws_secret_access_key"], 
            aws_creds["aws_region"], aws_creds["s3_bucket"]]):
-    local = True
     UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
 

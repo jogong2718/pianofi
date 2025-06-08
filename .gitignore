@@ -31,3 +31,5 @@ __pycache__/
 venv/
 newvenv/
 pvenv/
+
+backend/uploads/tmp/

@@ -20,7 +20,6 @@ import { Header } from "@/components/ui/header";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
-// ✅ Server Component - no bundling issues
 export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
