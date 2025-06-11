@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
-from app.config import Config
+from packages.pianofi_config.config import Config
 import os
 from app.schemas.user import User
 

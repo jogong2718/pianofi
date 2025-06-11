@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 import os
-from app.config import Config
+from packages.pianofi_config.config import Config
 import time
 import redis
 import json

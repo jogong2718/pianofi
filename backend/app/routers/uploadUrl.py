@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 # app/schemas/uploadUrl.py
-from app.config import Config
+from packages.pianofi_config.config import Config
 from app.schemas.uploadUrl import UploadUrlResponse
 from app.schemas.uploadUrl import CreateUrlPayload
 from app.schemas.user import User

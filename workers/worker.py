@@ -2,7 +2,7 @@ import os, json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from app.config import Config
+from packages.pianofi_config.config import Config
 from workers.tasks.audio_separation import separate_stems
 from workers.tasks.transcription import transcribe_accompaniment, transcribe_vocals
 from workers.tasks.reduction import reduce_to_piano
