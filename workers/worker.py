@@ -3,9 +3,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from packages.pianofi_config.config import Config
-from workers.tasks.audio_separation import separate_stems
-from workers.tasks.transcription import transcribe_accompaniment, transcribe_vocals
-from workers.tasks.reduction import reduce_to_piano
+from workers.tasks.picogen import run_picogen
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -87,35 +85,15 @@ def process_job(job):
         )
         logging.info(f"Downloaded {local_raw}")
 
-    # 3) Stem separation
-    stems = separate_stems(str(local_raw), f"/tmp/{job_id}_stems")  
-
-    if local:
-        logging.info(f"Using local stems for job {job_id}")
-    else:
-        # Upload stems to S3
-        for stem_name, stem_path in stems.items():
-            s3_key = f"stems/{job_id}/{stem_name}.wav"
-            logging.info(f"Uploading {stem_path} to s3://{bucket}/{s3_key}")
-            s3_client.upload_file(stem_path, bucket, s3_key)
-            stems[stem_name] = s3_key
-
-
-    # 4) Transcription
-    acc_mid = f"/tmp/{job_id}_acc.mid"
-    voc_mid = f"/tmp/{job_id}_voc.mid"
-    transcribe_accompaniment(stems["accompaniment"], acc_mid)
-    transcribe_vocals(stems["vocals"], voc_mid)
-
-    # 5) Reduction
-    final_mid = f"/tmp/{job_id}_final.mid"
-    reduce_to_piano([acc_mid, voc_mid], final_mid)
-
-    # 6) Upload result
+    # 3) picogen processing
+    logging.info(f"Running picogen for job {job_id} on {local_raw}")
+    midi_path = run_picogen(str(local_raw), f"/tmp/{job_id}_midi")  
+    final_mid = midi_path
+    # 4) Upload result
     result_key = f"results/{job_id}.mid"
     s3_client.upload_file(final_mid, bucket, result_key)
 
-    # 7) DB → done
+    # 5) DB → done
     db.execute(text("""UPDATE jobs SET status='done', finished_at=NOW(), result_key=:rk
                        WHERE job_id=:id"""), {"id":job_id,"rk":result_key})
     db.commit()
