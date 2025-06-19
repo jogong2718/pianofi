@@ -63,21 +63,25 @@ def process_job(job):
     logging.info(f"Job {job_id} is now processing.")
 
     db.commit()
+    
+    # Prepare local paths
+    temp_dir = Path("/tmp") / f"pianofi_{job_id}"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    local_raw = temp_dir / f"{job_id}.mp3"
 
     # 2) Download raw audio
     if local:
         # Local development - use a local file
-        UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
-        local_raw = UPLOAD_DIR / f"{job_id}.mp3"
+        UPLOAD_DIR = Path(__file__).parent / "backend" / "uploads" / "Ash Again  Gawr Gura x Casey Edwards.mp3"
         if not local_raw.exists():
             raise FileNotFoundError(f"Local file {local_raw} does not exist.")
+        
+        os.cp(UPLOAD_DIR / f"{job_id}.mp3", local_raw)
         logging.info(f"Using local file {local_raw} for job {job_id}")
     else:
         # Production - download from S3
         if not s3_client:
             raise Exception("S3 client not configured for production.")
-        
-        local_raw = Path(f"/tmp/{job_id}.mp3")
         
         logging.info(f"Downloading s3://{bucket}/{file_key} to {local_raw}")
         s3_client.download_file(
@@ -88,28 +92,21 @@ def process_job(job):
         logging.info(f"Downloaded {local_raw}")
 
     # 3) Stem separation
-    stems = separate_stems(str(local_raw), f"/tmp/{job_id}_stems")  
+    stems = separate_stems(str(local_raw), f"{temp_dir}/stems")  
 
-    if local:
-        logging.info(f"Using local stems for job {job_id}")
-    else:
-        # Upload stems to S3
-        for stem_name, stem_path in stems.items():
-            s3_key = f"stems/{job_id}/{stem_name}.wav"
-            logging.info(f"Uploading {stem_path} to s3://{bucket}/{s3_key}")
-            s3_client.upload_file(stem_path, bucket, s3_key)
-            stems[stem_name] = s3_key
-
+    logging.info(f"Using local stems for job {job_id}")
 
     # 4) Transcription
-    acc_mid = f"/tmp/{job_id}_acc.mid"
-    voc_mid = f"/tmp/{job_id}_voc.mid"
-    transcribe_accompaniment(stems["accompaniment"], acc_mid)
+    bass_mid = f"{temp_dir}/bass.mid"
+    other_mid = f"{temp_dir}/other.mid"
+    voc_mid = f"{temp_dir}/voc.mid"
+    transcribe_bass(stems["bass"], bass_mid)
+    transcribe_other(stems["other"], other_mid)
     transcribe_vocals(stems["vocals"], voc_mid)
 
     # 5) Reduction
     final_mid = f"/tmp/{job_id}_final.mid"
-    reduce_to_piano([acc_mid, voc_mid], final_mid)
+    reduce_to_piano([bass_mid, other_mid, voc_mid], final_mid)
 
     # 6) Upload result
     result_key = f"results/{job_id}.mid"
