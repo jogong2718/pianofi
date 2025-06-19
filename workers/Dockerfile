@@ -1,22 +1,29 @@
 FROM tanchihpin0517/picogen2:latest-full
 
-RUN conda run -n picogen2
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir redis==5.0 \
-    rq==1.15 \
+# replace with requirements.txt when it gets made
+RUN --mount=type=cache,target=/root/.cache/pip \
+    conda run -n picogen2 /bin/bash -c "\
+    pip install --upgrade pip && \
+    pip install --no-cache-dir \
+    redis \
+    rq \
     boto3 \
-    sqlalchemy
+    sqlalchemy \
+    " && \
+    conda clean -afy
 
+ARG UID=10001
+ARG USERNAME=appuser
+RUN useradd -m -u ${UID} ${USERNAME}
+USER ${USERNAME}
 
 WORKDIR /app
-COPY worker.py .
-COPY . /app/workers/
-RUN mkdir -p /app/packages/
+COPY workers/ ./workers
 
-USER 10001
+COPY packages/ ./packages
 
-# replace with your actual environment variables when i get home
-ENV CUDA_VISIBLE_DEVICES=0 \
-    ENVIRONMENT=development
+ENV PYTHONUNBUFFERED=1 \
+    ENVIRONMENT=development \
+    PATH=/opt/conda/envs/picogen2/bin:$PATH
 
-ENTRYPOINT ["conda", "run", "-n", "picogen2", "python", "worker.py"]
+CMD ["python", "-m", "workers/worker.py"]

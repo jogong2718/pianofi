@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
 from app.routers import uploadUrl, createJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -34,7 +34,9 @@ async def root():
 
 @app.post("/uploadLocal")
 async def create_upload_file(
-    file: UploadFile
+    file: UploadFile,
+    fileKey: str = Form(...),
+    uploadUrl: str = Form(...)
 ): 
     """
     Endpoint to upload a file.
@@ -42,9 +44,10 @@ async def create_upload_file(
     """
     content = await file.read()
 
-    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
-    # Eventually replace with S3 or other storage solution
-    file_path = UPLOAD_DIR / file.filename
+    UPLOAD_DIR = uploadUrl
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    file_path = UPLOAD_DIR / fileKey
     with open(file_path, "wb") as f:
         f.write(content)
         

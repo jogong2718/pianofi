@@ -225,7 +225,7 @@ export default function DashboardPage() {
         uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin");
 
       if (isLocalMode) {
-        await uploadFileLocally(file);
+        await uploadFileLocally(uploadUrl, fileKey, file);
         newTranscription.size = "local_test MB";
         console.log("Local file upload successful");
       } else {
@@ -251,9 +251,15 @@ export default function DashboardPage() {
     }
   };
 
-  const uploadFileLocally = async (file: File) => {
+  const uploadFileLocally = async (
+    uploadUrl: string,
+    fileKey: string,
+    file: File
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("uploadUrl", uploadUrl);
+    formData.append("fileKey", fileKey);
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     const response = await fetch(`${backendUrl}/uploadLocal`, {

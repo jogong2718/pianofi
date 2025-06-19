@@ -43,7 +43,7 @@ def process_job(job):
     job_id   = job["jobId"]
     file_key = job["fileKey"]
     user_id  = job["userId"]
-    bucket   = Config.AWS_CREDENTIALS["s3_bucket"]
+    bucket   = aws_creds["s3_bucket"]
     db       = next(get_db())
 
     # 1) DB → status=processing
@@ -66,7 +66,7 @@ def process_job(job):
     if local:
         # Local development - use a local file
         UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
-        local_raw = UPLOAD_DIR / f"{job_id}.mp3"
+        local_raw = UPLOAD_DIR / file_key
         if not local_raw.exists():
             raise FileNotFoundError(f"Local file {local_raw} does not exist.")
         logging.info(f"Using local file {local_raw} for job {job_id}")
@@ -91,7 +91,24 @@ def process_job(job):
     final_mid = midi_path
     # 4) Upload result
     result_key = f"results/{job_id}.mid"
-    s3_client.upload_file(final_mid, bucket, result_key)
+
+    if local:
+        UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
+        final_mid = UPLOAD_DIR / result_key
+
+        if not final_mid.parent.exists():
+            final_mid.parent.mkdir(parents=True, exist_ok=True)
+        logging.info(f"Saving result to local {final_mid}")
+
+        # Save the MIDI file locally
+        with open(final_mid, "wb") as f:
+            with open(midi_path, "rb") as midi_file:
+                f.write(midi_file.read())
+
+    else:
+        # Production - upload to S3
+        logging.info(f"Uploading result to s3://{bucket}/{result_key}")
+        s3_client.upload_file(final_mid, bucket, result_key)
 
     # 5) DB → done
     db.execute(text("""UPDATE jobs SET status='done', finished_at=NOW(), result_key=:rk
@@ -102,17 +119,20 @@ def process_job(job):
 
 def main():
     logging.info("Worker started, waiting for jobs…")
-    while True:
-        item = r.brpop("job_queue", timeout=5)
-        if not item:
-            continue
-        _, raw = item
-        try:
-            job = json.loads(raw)
-            logging.info(f"Dequeued {job['jobId']}")
-            process_job(job)
-        except Exception:
-            logging.exception("Error processing job; will continue.")
+    try:
+        while True:
+            item = r.brpop("job_queue", timeout=5)
+            if not item:
+                continue
+            _, raw = item
+            try:
+                job = json.loads(raw)
+                logging.info(f"Dequeued {job['jobId']}")
+                process_job(job)
+            except Exception:
+                logging.exception("Error processing job; will continue.")
+    except KeyboardInterrupt:
+        logging.info("Worker stopped by user.")
 
 if __name__=="__main__":
     main()

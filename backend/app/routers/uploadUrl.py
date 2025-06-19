@@ -27,7 +27,7 @@ local = Config.ENVIRONMENT == "development"
 
 if not all([aws_creds["aws_access_key_id"], aws_creds["aws_secret_access_key"], 
            aws_creds["aws_region"], aws_creds["s3_bucket"]]):
-    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
+    UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
 
 engine = create_engine(
@@ -73,7 +73,7 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
     
     try:
         job_id = str(uuid.uuid4())
-        file_key = f"{job_id}.bin"
+        file_key = f"{job_id}.mp3"
         authenticated_user_id = current_user.id
 
         sql = text("""
@@ -83,7 +83,7 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
 
         db.execute(sql, {"job_id": job_id, "file_key": file_key, "user_id": authenticated_user_id})
         if local:
-            upload_url = str(UPLOAD_DIR / f"{job_id}.bin")
+            upload_url = str(UPLOAD_DIR / job_id)
         else:
             upload_url: str = s3_client.generate_presigned_url(
                 ClientMethod="put_object",
