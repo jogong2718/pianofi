@@ -26,4 +26,4 @@ ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=development \
     PATH=/opt/conda/envs/picogen2/bin:$PATH
 
-CMD ["python", "-m", "workers/worker.py"]
+CMD ["python", "-m", "watchdog", "--patterns", "*.py", "--recursive", ".", "python", "workers/worker.py"]

@@ -31,7 +31,10 @@ next-env.d.ts
 # python
 __pycache__/
 venv/
+tmpvenv/
 newvenv/
 pvenv/
 
 backend/uploads/tmp/
+
+uploads/

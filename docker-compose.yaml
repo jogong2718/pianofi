@@ -1,7 +1,0 @@
-services:
-  worker:
-    build:
-      context: .
-      dockerfile: workers/Dockerfile
-    volumes:
-      - ./uploads:/app/uploads     # host:container

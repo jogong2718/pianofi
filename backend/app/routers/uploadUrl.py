@@ -1,6 +1,5 @@
 # app/routers/upload.py
 
-import os
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -12,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 # app/schemas/uploadUrl.py
-from packages.pianofi_config.config import Config
+from app.config_loader import Config 
 from app.schemas.uploadUrl import UploadUrlResponse
 from app.schemas.uploadUrl import CreateUrlPayload
 from app.schemas.user import User

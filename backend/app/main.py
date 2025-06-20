@@ -2,7 +2,7 @@ from typing import Union
 from dotenv import load_dotenv
 import os
 from pathlib import Path
-
+import time
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
 from app.routers import uploadUrl, createJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,13 +12,16 @@ load_dotenv()
 app = FastAPI()
 
 # mount routers
-app.include_router(uploadUrl.router, prefix="", tags=["uploadUrl"])
-app.include_router(createJob.router, prefix="", tags=["createJob"])
 # app.include_router(separation.router, prefix="/separate", tags=["separation"])
 # app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
 # app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
 
-origins = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
+cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
+if cors_origins:
+    origins = [origin.strip() for origin in cors_origins.split(",")]
+else:
+    # Fallback origins for development
+    origins = ["*"]  # or ["http://localhost:3000", "http://frontend:3000"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,9 +31,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "service": "pianofi-backend",
+        "version": "1.0.0"
+    }
+
 @app.get("/")
 async def root():
     return {"message": "Audio→MIDI service is online"}
+
+app.include_router(uploadUrl.router, prefix="", tags=["uploadUrl"])
+app.include_router(createJob.router, prefix="", tags=["createJob"])
 
 @app.post("/uploadLocal")
 async def create_upload_file(
@@ -44,7 +59,7 @@ async def create_upload_file(
     """
     content = await file.read()
 
-    UPLOAD_DIR = uploadUrl
+    UPLOAD_DIR = Path(uploadUrl)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
     file_path = UPLOAD_DIR / fileKey

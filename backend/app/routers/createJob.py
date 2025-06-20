@@ -6,8 +6,7 @@ from app.schemas.user import User
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
-import os
-from packages.pianofi_config.config import Config
+from app.config_loader import Config 
 import time
 import redis
 import json
