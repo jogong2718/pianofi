@@ -1,50 +1,20 @@
+print("starting worker...")
+
 import os, json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from packages.pianofi_config.config import Config
+from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+print("starting worker...")
 
-# Redis & DB
-r = redis.from_url(Config.REDIS_URL, decode_responses=True)
-
-DATABASE_URL = Config.DATABASE_URL
-aws_creds = Config.AWS_CREDENTIALS
-local = Config.ENVIRONMENT == "development"
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-if not local:
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=aws_creds["aws_access_key_id"],
-        aws_secret_access_key=aws_creds["aws_secret_access_key"],
-        region_name=aws_creds["aws_region"],
-    )
-
-def process_job(job):
+def process_job(job, db, s3_client, aws_creds, local):
     job_id   = job["jobId"]
     file_key = job["fileKey"]
     user_id  = job["userId"]
     bucket   = aws_creds["s3_bucket"]
-    db       = next(get_db())
+    # db       = next(get_db())
 
     # 1) DB → status=processing
     update_sql = text("""
@@ -65,8 +35,8 @@ def process_job(job):
     # 2) Download raw audio
     if local:
         # Local development - use a local file
-        UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
-        local_raw = UPLOAD_DIR / file_key
+        UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
+        local_raw = UPLOAD_DIR / job_id / file_key
         if not local_raw.exists():
             raise FileNotFoundError(f"Local file {local_raw} does not exist.")
         logging.info(f"Using local file {local_raw} for job {job_id}")
@@ -118,19 +88,76 @@ def process_job(job):
     logging.info(f"Job {job_id} completed.")
 
 def main():
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    logging.info("Worker starting up...")
+
+    aws_creds = Config.AWS_CREDENTIALS
+    local = Config.ENVIRONMENT == "development"
+
+    try:
+        logging.info("Loading configuration for redis...")
+        # Redis & DB
+        r = redis.from_url(Config.REDIS_URL, decode_responses=True)
+        r.ping()  # Test connection
+        logging.info("Connected to Redis successfully.")
+
+        DATABASE_URL = Config.DATABASE_URL
+        logging.info(f"Using database URL: {DATABASE_URL}")
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_size=10,
+            max_overflow=20
+        )
+
+        # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+        # def get_db():
+        #     db = SessionLocal()
+        #     try:
+        #         yield db
+        #     finally:
+        #         db.close()
+
+        s3_client = None
+        if not local:
+            s3_client = boto3.client(
+                "s3",
+                aws_access_key_id=aws_creds["aws_access_key_id"],
+                aws_secret_access_key=aws_creds["aws_secret_access_key"],
+                region_name=aws_creds["aws_region"],
+            )
+
+    except Exception as e:
+        logging.error(f"FATAL Error initializing worker: {e}")
+        return
+
     logging.info("Worker started, waiting for jobs…")
+    loop_count = 0
     try:
         while True:
-            item = r.brpop("job_queue", timeout=5)
-            if not item:
-                continue
-            _, raw = item
+            loop_count += 1
+            logging.info(f"Loop iteration {loop_count}")
             try:
-                job = json.loads(raw)
-                logging.info(f"Dequeued {job['jobId']}")
-                process_job(job)
-            except Exception:
-                logging.exception("Error processing job; will continue.")
+                item = r.brpop("job_queue", timeout=50)
+                if item:
+                    logging.info(f"Got job: {item}")
+                    _, raw = item
+                    try:
+                        job = json.loads(raw)
+                        logging.info(f"Dequeued {job['jobId']}")
+                        with engine.connect() as db:
+                            process_job(job, db, s3_client, aws_creds, local)
+                    except Exception:
+                        logging.exception("Error processing job; will continue.")
+                else:
+                    logging.info("No jobs in queue, waiting…")
+                    time.sleep(1)
+            except redis.exceptions.ConnectionError as e:
+                logging.error(f"Redis connection error: {e}")
+
     except KeyboardInterrupt:
         logging.info("Worker stopped by user.")
 

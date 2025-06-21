@@ -14,7 +14,7 @@ def run_picogen(audio_file, output_dir):
     output_dir = output_dir # output directory
 
     tokenizer = picogen2.Tokenizer()
-    model = picogen2.PiCoGenDecoder.from_pretrained(device="cuda")
+    model = picogen2.PiCoGenDecoder.from_pretrained(device="cpu")
 
     beats, downbeats = beat_this.detect(audio_file)
     beat_information = {"beats": beats.tolist(), "downbeats": downbeats.tolist()}
