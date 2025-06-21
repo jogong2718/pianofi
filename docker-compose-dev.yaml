@@ -35,9 +35,19 @@ services:
     image: pianofi-worker:dev
     env_file:
       - packages/pianofi_config/.env
+    # environment:
+    #   - CUDA_VISIBLE_DEVICES=""
     volumes:
       - ./uploads:/app/uploads     # host:container
       - ./workers:/app/workers:ro
     # entrypoint: ""
     # command: tail -f /dev/null
     restart: unless-stopped
+    # needs gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

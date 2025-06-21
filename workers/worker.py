@@ -9,7 +9,7 @@ from workers.tasks.picogen import run_picogen
 
 print("starting worker...")
 
-def process_job(job, db, s3_client, aws_creds, local):
+def process_job(job, engine, s3_client, aws_creds, local):
     job_id   = job["jobId"]
     file_key = job["fileKey"]
     user_id  = job["userId"]
@@ -17,21 +17,20 @@ def process_job(job, db, s3_client, aws_creds, local):
     # db       = next(get_db())
 
     # 1) DB → status=processing
-    update_sql = text("""
-        UPDATE jobs
-        SET status='processing', started_at=NOW() 
-        WHERE job_id=:jobId AND file_key=:fileKey AND user_id=:userId
-    """)
+    with engine.connect() as db:
+        update_sql = text("""
+            UPDATE jobs
+            SET status='processing', started_at=NOW() 
+            WHERE job_id=:jobId AND file_key=:fileKey AND user_id=:userId
+        """)
 
-    update_result = db.execute(update_sql, {"jobId":job_id, "fileKey":file_key, "userId":user_id})
+        update_result = db.execute(update_sql, {"jobId":job_id, "fileKey":file_key, "userId":user_id})
 
-    if update_result.rowcount == 0:
-        logging.error(f"Job {job_id} not found or already processed.")
-        return
-    logging.info(f"Job {job_id} is now processing.")
-
-    db.commit()
-
+        if update_result.rowcount == 0:
+            logging.error(f"Job {job_id} not found or already processed.")
+            return
+        db.commit()
+    logging.info(f"Job {job_id} status updated to processing.")
     # 2) Download raw audio
     if local:
         # Local development - use a local file
@@ -63,7 +62,7 @@ def process_job(job, db, s3_client, aws_creds, local):
     result_key = f"results/{job_id}.mid"
 
     if local:
-        UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
+        UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
         final_mid = UPLOAD_DIR / result_key
 
         if not final_mid.parent.exists():
@@ -81,10 +80,10 @@ def process_job(job, db, s3_client, aws_creds, local):
         s3_client.upload_file(final_mid, bucket, result_key)
 
     # 5) DB → done
-    db.execute(text("""UPDATE jobs SET status='done', finished_at=NOW(), result_key=:rk
-                       WHERE job_id=:id"""), {"id":job_id,"rk":result_key})
-    db.commit()
-    db.close()
+    with engine.connect() as db:
+        db.execute(text("""UPDATE jobs SET status='done', finished_at=NOW(), result_key=:rk
+                        WHERE job_id=:id"""), {"id":job_id,"rk":result_key})
+        db.commit()
     logging.info(f"Job {job_id} completed.")
 
 def main():
@@ -148,8 +147,7 @@ def main():
                     try:
                         job = json.loads(raw)
                         logging.info(f"Dequeued {job['jobId']}")
-                        with engine.connect() as db:
-                            process_job(job, db, s3_client, aws_creds, local)
+                        process_job(job, engine, s3_client, aws_creds, local)
                     except Exception:
                         logging.exception("Error processing job; will continue.")
                 else:
