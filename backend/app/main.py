@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import time
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
-from app.routers import uploadUrl, createJob  # , transcription, midi_ops
+from app.routers import uploadUrl, createJob, getJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -46,6 +46,7 @@ async def root():
 
 app.include_router(uploadUrl.router, prefix="", tags=["uploadUrl"])
 app.include_router(createJob.router, prefix="", tags=["createJob"])
+app.include_router(getJob.router, prefix="", tags=["getJob"])
 
 @app.post("/uploadLocal")
 async def create_upload_file(

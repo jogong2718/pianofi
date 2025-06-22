@@ -42,16 +42,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { uploadToS3 } from "@/lib/utils";
 import { useCreateJob } from "@/hooks/useCreateJob";
-
-interface Transcription {
-  id: string;
-  filename: string;
-  status: "processing" | "completed" | "failed";
-  progress: number;
-  uploadedAt: string;
-  duration: string;
-  size: string;
-}
+import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
+import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -59,6 +51,15 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const { getDownloadUrl } = useDownloadUrl();
+  
+  const {
+    transcriptions,
+    handleJobCompletion,
+    updateTranscriptionStatus,
+    addTranscription,
+  } = useTranscriptionManager({ getDownloadUrl });
 
   useEffect(() => {
     const getUser = async () => {
@@ -84,6 +85,45 @@ export default function DashboardPage() {
     }
   }, [searchParams, router, supabase.auth]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to job changes for the current user
+    const channel = supabase
+      .channel('job-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'jobs',
+          filter: `user_id=eq.${user.id}` // Only listen to jobs for current user
+        },
+        async (payload) => {
+          console.log('Job change detected:', payload);
+          
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const jobData = payload.new;
+            
+            // Update transcription status based on job status
+            if (jobData.status === 'done') {
+              // Job completed - fetch download URL from backend
+              await handleJobCompletion(jobData.job_id, jobData.result_key);
+            } else {
+              // Update status for processing/failed jobs
+              updateTranscriptionStatus(jobData.job_id, jobData.status);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, handleJobCompletion, updateTranscriptionStatus]);
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -92,36 +132,6 @@ export default function DashboardPage() {
       router.push("/");
     }
   };
-
-  const [transcriptions, setTranscriptions] = useState<Transcription[]>([
-    {
-      id: "1",
-      filename: "bohemian-rhapsody.mp3",
-      status: "completed",
-      progress: 100,
-      uploadedAt: "2024-01-15",
-      duration: "5:55",
-      size: "8.2 MB",
-    },
-    {
-      id: "2",
-      filename: "moonlight-sonata.wav",
-      status: "processing",
-      progress: 65,
-      uploadedAt: "2024-01-15",
-      duration: "3:20",
-      size: "12.1 MB",
-    },
-    {
-      id: "3",
-      filename: "imagine.mp3",
-      status: "completed",
-      progress: 100,
-      uploadedAt: "2024-01-14",
-      duration: "3:03",
-      size: "4.8 MB",
-    },
-  ]);
 
   const [dragActive, setDragActive] = useState(false);
 
@@ -234,7 +244,7 @@ export default function DashboardPage() {
         console.log("S3 file upload successful");
       }
 
-      setTranscriptions((prev) => [newTranscription, ...prev]);
+      addTranscription(newTranscription);
 
       // 3) Tell backend “file is in S3; enqueue job”
       await callCreateJob({
