@@ -44,6 +44,7 @@ import { uploadToS3 } from "@/lib/utils";
 import { useCreateJob } from "@/hooks/useCreateJob";
 import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
+import { useGetUserJobs } from "@/hooks/useGetUserJobs";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,15 +52,33 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [dragActive, setDragActive] = useState(false);
 
   const { getDownloadUrl } = useDownloadUrl();
+  const { getUserJobs } = useGetUserJobs();
+
+  const {
+    callUploadUrl,
+    loading: loadingUploadUrl,
+    error: uploadUrlError,
+  } = useUploadUrl();
+
+  const {
+    callCreateJob,
+    loading: loadingCreateJob,
+    error: CreateJobError,
+  } = useCreateJob();
 
   const {
     transcriptions,
     handleJobCompletion,
     updateTranscriptionStatus,
     addTranscription,
-  } = useTranscriptionManager({ getDownloadUrl });
+    initialLoading,
+  } = useTranscriptionManager({ 
+    getDownloadUrl, 
+    getUserJobs,
+    user });
 
   useEffect(() => {
     const getUser = async () => {
@@ -125,7 +144,18 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, handleJobCompletion, updateTranscriptionStatus]);
+  }, [user]);
+
+  if (loading || initialLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-8 w-8 text-primary mx-auto mb-4" />
+          <p>Loading recent transcriptions...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -135,20 +165,6 @@ export default function DashboardPage() {
       router.push("/");
     }
   };
-
-  const [dragActive, setDragActive] = useState(false);
-
-  const {
-    callUploadUrl,
-    loading: loadingUploadUrl,
-    error: uploadUrlError,
-  } = useUploadUrl();
-
-  const {
-    callCreateJob,
-    loading: loadingCreateJob,
-    error: CreateJobError,
-  } = useCreateJob();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -302,18 +318,20 @@ export default function DashboardPage() {
   };
 
   const handleDownload = async (transcription: any) => {
-    if (!transcription.downloadUrl) {
+    if (!transcription.download_url) {
+      console.error("Download URL not available for transcription:", transcription);
       toast.error("Download URL not available");
       return;
     }
 
     try {
       // For S3 presigned URLs or external URLs, open in new tab to trigger download
-      if (transcription.downloadUrl.startsWith("http")) {
-        window.open(transcription.downloadUrl, "_blank");
+      if (transcription.download_url.startsWith("http")) {
+        window.open(transcription.download_url, "_blank");
       } else {
         // For local API endpoints, use fetch and create blob
-        const response = await fetch(transcription.downloadUrl);
+        console.log("Downloading locally from:", transcription.download_url);
+        const response = await fetch(transcription.download_url);
 
         if (!response.ok) {
           throw new Error(`Download failed: ${response.statusText}`);
@@ -366,17 +384,6 @@ export default function DashboardPage() {
         return "Unknown";
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Music className="h-8 w-8 text-primary mx-auto mb-4" />
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">

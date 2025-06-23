@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class GetJobResponse(BaseModel):
-    jobId: str
+    job_id: str
     status: str
-    downloadUrl: Optional[str] = None
+    download_url: Optional[str] = None

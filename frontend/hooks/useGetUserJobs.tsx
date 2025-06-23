@@ -1,19 +1,19 @@
 import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-interface GetJobResponse {
-  jobId: string;
+interface Job {
+  job_id: string;
   status: string;
-  download_url?: string;
+  created_at: string;
   result_key?: string;
 }
 
-export function useDownloadUrl() {
+export function useGetUserJobs() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  const getDownloadUrl = useCallback(async (jobId: string) => {
+  const getUserJobs = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -27,43 +27,29 @@ export function useDownloadUrl() {
       }
 
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-      const res = await fetch(`${backendUrl}/getJob/${jobId}`, {
+      const res = await fetch(`${backendUrl}/getUserJobs`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
-      console.log("Fetching job details for jobId:", jobId);
-      console.log(res);
 
       if (!res.ok) {
-        throw new Error(`Get job request failed: ${res.statusText}`);
+        throw new Error(`Get user jobs failed: ${res.statusText}`);
       }
 
-      const data: GetJobResponse = await res.json();
-
-      console.log("Job details received:", data);
-      
-      // Check if job is completed and has download URL
-      if (data.status !== 'done' && data.status !== 'completed') {
-        throw new Error("Job is not completed yet");
-      }
-
-      if (!data.download_url) {
-        throw new Error("Download URL not available");
-      }
-
-      return { download_url: data.download_url };
+      const jobs: Job[] = await res.json();
+      return jobs;
     } catch (err: any) {
       setError(err.message || "Unknown error");
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []);
 
   return {
-    getDownloadUrl,
+    getUserJobs,
     loading,
     error,
   };

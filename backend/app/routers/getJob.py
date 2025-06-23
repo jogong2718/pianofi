@@ -63,8 +63,8 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
             
             return GetJobResponse(
                 job_id=job_id,
+                status="completed",
                 download_url=download_url,
-                filename=f"{job_id}.mid"
             )
         
         else:
@@ -90,13 +90,16 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
             
             return GetJobResponse(
                 job_id=job_id,
+                status="completed",
                 download_url=presigned_url,
-                filename=f"{job_id}.mid"
             )
 
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching job: {str(e)}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in getJob: {str(e)}\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Error getting download link: {str(e)}")
     
 @router.get("/download/{job_id}")
 def download_file(job_id: str, db: Session = Depends(get_db)):
@@ -104,7 +107,7 @@ def download_file(job_id: str, db: Session = Depends(get_db)):
     if not local:
         raise HTTPException(status_code=404, detail="Endpoint not available in production")
     
-    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
+    UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
     file_path = UPLOAD_DIR / "results" / f"{job_id}.mid"
     
     if not file_path.exists():
