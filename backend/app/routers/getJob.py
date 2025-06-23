@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
@@ -8,6 +9,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from typing import List
+import os
 
 # app/schemas/uploadUrl.py
 from app.config_loader import Config 
@@ -48,30 +50,68 @@ if not local:
     )
 
 @router.get("/getJob/{job_id}", response_model=GetJobResponse, tags=["jobs"])
-def get_user_jobs(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     """
-    Fetch all jobs for the authenticated user.
+    Fetch a job by its unique jobId.
+    This endpoint retrieves the downloadlink of a job based on the provided jobId.
     """
-    sql = text("""
-        SELECT job_id, file_key as filename, status, progress, created_at as uploaded_at, output_file_key
-        FROM jobs WHERE user_id = :user_id ORDER BY created_at DESC
-    """)
-    results = db.execute(sql, {"user_id": current_user.id}).mappings().all()
-    
-    jobs = []
-    for row in results:
-        job_data = dict(row)
-        if row['status'] == 'completed' and row['output_file_key'] and s3_client:
+    try:
+        if local:
+            # Use absolute URL with your backend base URL
+            backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
+            download_url = f"{backend_base}/download/{job_id}"
+            
+            return GetJobResponse(
+                job_id=job_id,
+                download_url=download_url,
+                filename=f"{job_id}.mid"
+            )
+        
+        else:
+            # Production: Generate S3 presigned URL
+            bucket_name = aws_creds["s3_bucket"]
+            s3_key = f"results/{job_id}.mid"  # This matches the worker pattern
+            
             try:
-                url = s3_client.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': aws_creds["s3_bucket"], 'Key': row['output_file_key']},
-                    ExpiresIn=3600 # 1 hour
-                )
-                job_data['download_url'] = url
+                # Check if file exists in S3
+                s3_client.head_object(Bucket=bucket_name, Key=s3_key)
             except ClientError as e:
-                print(f"Error generating presigned URL: {e}")
-                job_data['download_url'] = None
-        jobs.append(JobStatus.model_validate(job_data))
+                if e.response['Error']['Code'] == '404':
+                    raise HTTPException(status_code=404, detail="Result file not found in S3")
+                else:
+                    raise HTTPException(status_code=500, detail="Error checking S3 file")
+            
+            # Generate presigned URL (valid for 1 hour)
+            presigned_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket_name, 'Key': s3_key},
+                ExpiresIn=3600  # 1 hour
+            )
+            
+            return GetJobResponse(
+                job_id=job_id,
+                download_url=presigned_url,
+                filename=f"{job_id}.mid"
+            )
 
-    return jobs
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching job: {str(e)}")
+    
+@router.get("/download/{job_id}")
+def download_file(job_id: str, db: Session = Depends(get_db)):
+    """Serve file for download in local development"""
+    if not local:
+        raise HTTPException(status_code=404, detail="Endpoint not available in production")
+    
+    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
+    file_path = UPLOAD_DIR / "results" / f"{job_id}.mid"
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=f"{job_id}.mid",
+        media_type='application/octet-stream'
+    )

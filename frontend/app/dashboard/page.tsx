@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const { getDownloadUrl } = useDownloadUrl();
-  
+
   const {
     transcriptions,
     handleJobCompletion,
@@ -90,23 +90,26 @@ export default function DashboardPage() {
 
     // Subscribe to job changes for the current user
     const channel = supabase
-      .channel('job-changes')
+      .channel("job-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'jobs',
-          filter: `user_id=eq.${user.id}` // Only listen to jobs for current user
+          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: "public",
+          table: "jobs",
+          filter: `user_id=eq.${user.id}`, // Only listen to jobs for current user
         },
         async (payload) => {
-          console.log('Job change detected:', payload);
-          
-          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+          console.log("Job change detected:", payload);
+
+          if (
+            payload.eventType === "UPDATE" ||
+            payload.eventType === "INSERT"
+          ) {
             const jobData = payload.new;
-            
+
             // Update transcription status based on job status
-            if (jobData.status === 'done') {
+            if (jobData.status === "done") {
               // Job completed - fetch download URL from backend
               await handleJobCompletion(jobData.job_id, jobData.result_key);
             } else {
@@ -296,6 +299,46 @@ export default function DashboardPage() {
       }
     };
     input.click();
+  };
+
+  const handleDownload = async (transcription: any) => {
+    if (!transcription.downloadUrl) {
+      toast.error("Download URL not available");
+      return;
+    }
+
+    try {
+      // For S3 presigned URLs or external URLs, open in new tab to trigger download
+      if (transcription.downloadUrl.startsWith("http")) {
+        window.open(transcription.downloadUrl, "_blank");
+      } else {
+        // For local API endpoints, use fetch and create blob
+        const response = await fetch(transcription.downloadUrl);
+
+        if (!response.ok) {
+          throw new Error(`Download failed: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // Create temporary link and trigger download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = transcription.filename.replace(/\.[^/.]+$/, ".mid"); // Change extension to .mid
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the blob URL
+        window.URL.revokeObjectURL(url);
+      }
+
+      toast.success("Download started successfully!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error(`Download failed: ${(error as Error).message}`);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -561,7 +604,11 @@ export default function DashboardPage() {
                         </div>
 
                         {transcription.status === "completed" && (
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownload(transcription)}
+                          >
                             <Download className="h-4 w-4 mr-2" />
                             Download
                           </Button>
