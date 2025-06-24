@@ -105,7 +105,6 @@ export function useTranscriptionManager({ getDownloadUrl, getUserJobs, user }: U
             return 'completed';
             case 'processing':
             return 'processing';
-            case 'failed':
             case 'error':
             return 'failed';
             case 'queued':
@@ -113,7 +112,7 @@ export function useTranscriptionManager({ getDownloadUrl, getUserJobs, user }: U
             case 'initialized':
             return 'initialized';
             default:
-            return 'processing';
+            return 'initialized';
         }
         };
 

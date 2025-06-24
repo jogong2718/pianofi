@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
+  const [activeTab, setActiveTab] = useState("upload");
 
   const { getDownloadUrl } = useDownloadUrl();
   const { getUserJobs } = useGetUserJobs();
@@ -80,6 +81,11 @@ export default function DashboardPage() {
     getUserJobs,
     user });
 
+  // useEffect(() => {
+  //   // Set Supabase client logging to debug level
+  //   supabase.realtime.setLogger((log) => console.log(log));
+  // }, []);
+
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -106,10 +112,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-
+    console.log("Auth user ID:", user.id, typeof user.id);
     // Subscribe to job changes for the current user
     const channel = supabase
       .channel("job-changes")
+
       .on(
         "postgres_changes",
         {
@@ -138,7 +145,9 @@ export default function DashboardPage() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
 
     // Cleanup subscription on unmount
     return () => {
@@ -271,6 +280,8 @@ export default function DashboardPage() {
         fileKey: fileKey,
       });
       console.log("Job enqueued successfully");
+
+      setActiveTab("transcriptions");
 
       // // 4) Now that the job is enqueued, store jobId so we can start polling
       // setJobId(newJobId);
@@ -511,7 +522,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Tabs defaultValue="upload" className="space-y-4">
+        <Tabs defaultValue="upload" onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="upload">Upload</TabsTrigger>
             <TabsTrigger value="transcriptions">My Transcriptions</TabsTrigger>
