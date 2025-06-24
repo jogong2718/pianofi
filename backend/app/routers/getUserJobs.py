@@ -36,6 +36,8 @@ async def get_user_jobs(
 ):
     """Get all jobs for the current user"""
     try:
+        print(f"Fetching jobs for user: {current_user.id}")
+
         sql = text("""
             SELECT job_id, status, created_at, result_key
             FROM jobs 
@@ -47,12 +49,16 @@ async def get_user_jobs(
         
         jobs = []
         for row in result:
-            jobs.append(UserJobResponse(
-                job_id=str(row[0]),
-                status=row[1],
-                created_at=row[2].isoformat() if row[2] else "",
-                result_key=row[3] if row[3] is not None else "",
-            ))
+            try:
+                created_at_str = row[2].isoformat() if row[2] else ""
+                jobs.append(UserJobResponse(
+                    job_id=str(row[0]),
+                    status=row[1],
+                    created_at=created_at_str,
+                    result_key=row[3] if row[3] is not None else "",
+                ))
+            except Exception as row_error:
+                print(f"Error processing row {row}: {str(row_error)}")
         
         return jobs
         
