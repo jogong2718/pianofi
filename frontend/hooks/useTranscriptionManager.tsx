@@ -14,12 +14,12 @@ type TranscriptionStatus =
 
 interface Transcription {
   id: string;
-  filename: string; // You might want to store this in your backend
+  filename: string;
   status: TranscriptionStatus;
   progress: number;
   uploadedAt: string;
-  duration: string; // You might want to store this in your backend
-  size: string; // You might want to store this in your backend
+  duration: string;
+  size: string;
   download_url?: string;
 }
 
@@ -137,14 +137,18 @@ export function useTranscriptionManager({
         console.log("Fetched jobs:", jobs);
         const transcriptionsList: Transcription[] = jobs.map((job) => ({
           id: job.job_id,
-          filename: "N/A", // You might want to store this in your backend
+          filename: job.file_name || "Unknown File",
           status: mapBackendStatusToFrontend(job.status),
           progress: mapStatusToProgress(job.status),
           uploadedAt: new Date(job.created_at).toISOString().split("T")[0],
-          duration: "N/A", // You might want to store this in your backend
-          size: "N/A", // You might want to store this in your backend
+          duration: job.file_duration
+            ? `${Math.round(job.file_duration)}s`
+            : "N/A",
+          size: job.file_size
+            ? `${(job.file_size / (1024 * 1024)).toFixed(2)} MB`
+            : "N/A",
           download_url:
-            job.status === "done" && job.result_key ? "pending" : undefined, // Will be fetched when needed
+            job.status === "done" && job.result_key ? "pending" : undefined,
         }));
 
         setTranscriptions(transcriptionsList);

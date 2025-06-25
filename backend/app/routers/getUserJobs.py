@@ -39,7 +39,7 @@ async def get_user_jobs(
         print(f"Fetching jobs for user: {current_user.id}")
 
         sql = text("""
-            SELECT job_id, status, created_at, result_key
+            SELECT job_id, status, created_at, result_key, file_name, file_size, file_duration
             FROM jobs 
             WHERE user_id = :user_id 
             ORDER BY created_at DESC
@@ -56,6 +56,9 @@ async def get_user_jobs(
                     status=row[1],
                     created_at=created_at_str,
                     result_key=row[3] if row[3] is not None else "",
+                    file_name=row[4] if row[4] is not None else "Unknown",
+                    file_size=row[5] if row[5] is not None else 0,
+                    file_duration=row[6] if row[6] is not None else 0
                 ))
             except Exception as row_error:
                 print(f"Error processing row {row}: {str(row_error)}")

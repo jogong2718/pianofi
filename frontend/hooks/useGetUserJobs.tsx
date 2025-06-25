@@ -6,6 +6,9 @@ interface Job {
   status: string;
   created_at: string;
   result_key?: string;
+  file_name?: string;
+  file_size?: number;
+  file_duration?: number;
 }
 
 export function useGetUserJobs() {

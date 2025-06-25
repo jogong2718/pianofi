@@ -76,11 +76,19 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
         authenticated_user_id = current_user.id
 
         sql = text("""
-            INSERT INTO jobs (job_id, file_key, status, user_id)
-            VALUES (:job_id, :file_key, 'initialized', :user_id)
+            INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration)
+            VALUES (:job_id, :file_key, 'initialized', :user_id, :file_name, :file_size, :file_duration)
         """)
 
-        db.execute(sql, {"job_id": job_id, "file_key": file_key, "user_id": authenticated_user_id})
+        db.execute(sql, {
+            "job_id": job_id, 
+            "file_key": file_key, 
+            "user_id": authenticated_user_id, 
+            "file_name": payload.file_name, 
+            "file_size": payload.file_size, 
+            "file_duration": None
+        })
+        
         if local:
             upload_url = str(UPLOAD_DIR / job_id)
         else:

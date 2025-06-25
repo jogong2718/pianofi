@@ -207,8 +207,8 @@ export default function DashboardPage() {
         status: "processing" as const,
         progress: 0,
         uploadedAt: new Date().toISOString().split("T")[0],
-        duration: "N/A",
-        size: "", // Will be set below
+        duration: "Processing...", // Placeholder until we get actual duration
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
       };
 
       const isLocalMode =

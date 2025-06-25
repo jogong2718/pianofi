@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
+import librosa
 
 print("starting worker...")
 
@@ -53,6 +54,22 @@ def process_job(job, engine, s3_client, aws_creds, local):
             str(local_raw) # Local file path where to save
         )
         logging.info(f"Downloaded {local_raw}")
+
+    # Extract audio duration
+    try:
+        # Load audio file to get duration
+        duration = librosa.get_duration(filename=str(local_raw))
+        
+        # Update job with file duration
+        with engine.connect() as db:
+            db.execute(text("""
+                UPDATE jobs 
+                SET file_duration = :duration 
+                WHERE job_id = :job_id
+            """), {"duration": duration, "job_id": job_id})
+            db.commit()
+    except Exception as e:
+        logging.warning(f"Could not extract duration for {job_id}: {e}")
 
     # 3) picogen processing
     logging.info(f"Running picogen for job {job_id} on {local_raw}")
