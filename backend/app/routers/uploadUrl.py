@@ -1,6 +1,5 @@
 # app/routers/upload.py
 
-import os
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -12,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 # app/schemas/uploadUrl.py
-from app.config import Config
+from app.config_loader import Config 
 from app.schemas.uploadUrl import UploadUrlResponse
 from app.schemas.uploadUrl import CreateUrlPayload
 from app.schemas.user import User
@@ -23,12 +22,11 @@ router = APIRouter()
 # 2) Grab S3 settings from environment
 DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
+local = Config.ENVIRONMENT == "development"
 
-local = False
 if not all([aws_creds["aws_access_key_id"], aws_creds["aws_secret_access_key"], 
            aws_creds["aws_region"], aws_creds["s3_bucket"]]):
-    local = True
-    UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
+    UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
 
 engine = create_engine(
@@ -74,17 +72,25 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
     
     try:
         job_id = str(uuid.uuid4())
-        file_key = f"{job_id}.bin"
+        file_key = f"{job_id}.mp3"
         authenticated_user_id = current_user.id
 
         sql = text("""
-            INSERT INTO jobs (job_id, file_key, status, user_id)
-            VALUES (:job_id, :file_key, 'initialized', :user_id)
+            INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration)
+            VALUES (:job_id, :file_key, 'initialized', :user_id, :file_name, :file_size, :file_duration)
         """)
 
-        db.execute(sql, {"job_id": job_id, "file_key": file_key, "user_id": authenticated_user_id})
+        db.execute(sql, {
+            "job_id": job_id, 
+            "file_key": file_key, 
+            "user_id": authenticated_user_id, 
+            "file_name": payload.file_name, 
+            "file_size": payload.file_size, 
+            "file_duration": None
+        })
+        
         if local:
-            upload_url = str(UPLOAD_DIR / f"{job_id}.bin")
+            upload_url = str(UPLOAD_DIR / job_id)
         else:
             upload_url: str = s3_client.generate_presigned_url(
                 ClientMethod="put_object",

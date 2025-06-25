@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, Music } from "lucide-react";
 import {
@@ -13,7 +15,29 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
+  const router = useRouter();
   const isMobile = useIsMobile();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleNavigation = (path: string) => {
+    setIsRedirecting(true);
+    router.push(path);
+
+    setTimeout(() => {
+      setIsRedirecting(false);
+    }, 10000);
+  };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const navigationItems = [
     { href: "#features", label: "Features" },
@@ -32,8 +56,12 @@ export function Header() {
       {isMobile ? (
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">Login</Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleNavigation("/login")}
+          >
+            Login
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -47,8 +75,8 @@ export function Header() {
                   <Link href={item.href}>{item.label}</Link>
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuItem asChild>
-                <Link href="/signup">Sign Up</Link>
+              <DropdownMenuItem onClick={() => handleNavigation("/signup")}>
+                Sign Up
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -68,11 +96,15 @@ export function Header() {
           </nav>
           <div className="flex items-center gap-2 ml-4">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Login</Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigation("/login")}
+            >
+              Login
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup">Sign Up</Link>
+            <Button size="sm" onClick={() => handleNavigation("/signup")}>
+              Sign Up
             </Button>
           </div>
         </>

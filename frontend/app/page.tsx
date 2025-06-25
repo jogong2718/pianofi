@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +16,29 @@ import { Music, Upload, FileText, Zap, Users, Star } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const handleNavigation = (path: string) => {
+    setIsRedirecting(true);
+    router.push(path);
+
+    setTimeout(() => {
+      setIsRedirecting(false);
+    }, 10000);
+  };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -37,8 +64,8 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" asChild>
-                    <Link href="/signup">Start Converting Music</Link>
+                  <Button size="lg" onClick={() => handleNavigation("/signup")}>
+                    Start Converting Music
                   </Button>
                   <Button variant="outline" size="lg">
                     Watch Demo
@@ -248,8 +275,8 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="space-x-4">
-                <Button size="lg" asChild>
-                  <Link href="/signup">Start Free Trial</Link>
+                <Button size="lg" onClick={() => handleNavigation("/signup")}>
+                  Start Free Trial
                 </Button>
                 <Button variant="outline" size="lg">
                   Schedule Demo

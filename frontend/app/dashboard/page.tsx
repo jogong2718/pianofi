@@ -42,16 +42,9 @@ import { createClient } from "@/lib/supabase/client";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { uploadToS3 } from "@/lib/utils";
 import { useCreateJob } from "@/hooks/useCreateJob";
-
-interface Transcription {
-  id: string;
-  filename: string;
-  status: "processing" | "completed" | "failed";
-  progress: number;
-  uploadedAt: string;
-  duration: string;
-  size: string;
-}
+import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
+import { useDownloadUrl } from "@/hooks/useDownloadUrl";
+import { useGetUserJobs } from "@/hooks/useGetUserJobs";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -59,6 +52,36 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [dragActive, setDragActive] = useState(false);
+  const [activeTab, setActiveTab] = useState("upload");
+
+  const { getDownloadUrl } = useDownloadUrl();
+  const { getUserJobs } = useGetUserJobs();
+
+  const {
+    callUploadUrl,
+    loading: loadingUploadUrl,
+    error: uploadUrlError,
+  } = useUploadUrl();
+
+  const {
+    callCreateJob,
+    loading: loadingCreateJob,
+    error: CreateJobError,
+  } = useCreateJob();
+
+  const {
+    transcriptions,
+    handleJobCompletion,
+    updateTranscriptionStatus,
+    addTranscription,
+    initialLoading,
+  } = useTranscriptionManager({
+    getDownloadUrl,
+    getUserJobs,
+    user,
+    supabase,
+  });
 
   useEffect(() => {
     const getUser = async () => {
@@ -84,6 +107,17 @@ export default function DashboardPage() {
     }
   }, [searchParams, router, supabase.auth]);
 
+  if (loading || initialLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-8 w-8 text-primary mx-auto mb-4" />
+          <p>Loading recent transcriptions...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -92,50 +126,6 @@ export default function DashboardPage() {
       router.push("/");
     }
   };
-
-  const [transcriptions, setTranscriptions] = useState<Transcription[]>([
-    {
-      id: "1",
-      filename: "bohemian-rhapsody.mp3",
-      status: "completed",
-      progress: 100,
-      uploadedAt: "2024-01-15",
-      duration: "5:55",
-      size: "8.2 MB",
-    },
-    {
-      id: "2",
-      filename: "moonlight-sonata.wav",
-      status: "processing",
-      progress: 65,
-      uploadedAt: "2024-01-15",
-      duration: "3:20",
-      size: "12.1 MB",
-    },
-    {
-      id: "3",
-      filename: "imagine.mp3",
-      status: "completed",
-      progress: 100,
-      uploadedAt: "2024-01-14",
-      duration: "3:03",
-      size: "4.8 MB",
-    },
-  ]);
-
-  const [dragActive, setDragActive] = useState(false);
-
-  const {
-    callUploadUrl,
-    loading: loadingUploadUrl,
-    error: uploadUrlError,
-  } = useUploadUrl();
-
-  const {
-    callCreateJob,
-    loading: loadingCreateJob,
-    error: CreateJobError,
-  } = useCreateJob();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -217,24 +207,22 @@ export default function DashboardPage() {
         status: "processing" as const,
         progress: 0,
         uploadedAt: new Date().toISOString().split("T")[0],
-        duration: "N/A",
-        size: "", // Will be set below
+        duration: "Processing...", // Placeholder until we get actual duration
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
       };
 
       const isLocalMode =
         uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin");
 
       if (isLocalMode) {
-        await uploadFileLocally(file);
-        newTranscription.size = "local_test MB";
+        await uploadFileLocally(uploadUrl, fileKey, file);
         console.log("Local file upload successful");
       } else {
         await uploadToS3(uploadUrl, file);
-        newTranscription.size = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
         console.log("S3 file upload successful");
       }
 
-      setTranscriptions((prev) => [newTranscription, ...prev]);
+      addTranscription(newTranscription);
 
       // 3) Tell backend “file is in S3; enqueue job”
       await callCreateJob({
@@ -242,6 +230,8 @@ export default function DashboardPage() {
         fileKey: fileKey,
       });
       console.log("Job enqueued successfully");
+
+      setActiveTab("transcriptions");
 
       // // 4) Now that the job is enqueued, store jobId so we can start polling
       // setJobId(newJobId);
@@ -251,9 +241,15 @@ export default function DashboardPage() {
     }
   };
 
-  const uploadFileLocally = async (file: File) => {
+  const uploadFileLocally = async (
+    uploadUrl: string,
+    fileKey: string,
+    file: File
+  ) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("uploadUrl", uploadUrl);
+    formData.append("fileKey", fileKey);
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     const response = await fetch(`${backendUrl}/uploadLocal`, {
@@ -282,6 +278,51 @@ export default function DashboardPage() {
     input.click();
   };
 
+  const handleDownload = async (transcription: any) => {
+    if (!transcription.download_url) {
+      console.error(
+        "Download URL not available for transcription:",
+        transcription
+      );
+      toast.error("Download URL not available");
+      return;
+    }
+
+    try {
+      // For S3 presigned URLs or external URLs, open in new tab to trigger download
+      if (transcription.download_url.startsWith("http")) {
+        window.open(transcription.download_url, "_blank");
+      } else {
+        // For local API endpoints, use fetch and create blob
+        console.log("Downloading locally from:", transcription.download_url);
+        const response = await fetch(transcription.download_url);
+
+        if (!response.ok) {
+          throw new Error(`Download failed: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // Create temporary link and trigger download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = transcription.filename.replace(/\.[^/.]+$/, ".mid"); // Change extension to .mid
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the blob URL
+        window.URL.revokeObjectURL(url);
+      }
+
+      toast.success("Download started successfully!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error(`Download failed: ${(error as Error).message}`);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -307,17 +348,6 @@ export default function DashboardPage() {
         return "Unknown";
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Music className="h-8 w-8 text-primary mx-auto mb-4" />
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -445,7 +475,11 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Tabs defaultValue="upload" className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="upload">Upload</TabsTrigger>
             <TabsTrigger value="transcriptions">My Transcriptions</TabsTrigger>
@@ -545,7 +579,11 @@ export default function DashboardPage() {
                         </div>
 
                         {transcription.status === "completed" && (
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownload(transcription)}
+                          >
                             <Download className="h-4 w-4 mr-2" />
                             Download
                           </Button>

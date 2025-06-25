@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    image: pianofi-backend:dev
+    ports:
+      - "8000:8000"
+    env_file:
+      - packages/pianofi_config/.env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backend:/app/backend:ro
+    restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    image: pianofi-frontend:dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - frontend/.env.local
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000  # ✅ Use service name
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Prevent overwriting node_modules
+    depends_on:
+      - backend
+  worker:
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
+    image: pianofi-worker:dev
+    env_file:
+      - packages/pianofi_config/.env
+    # environment:
+    #   - CUDA_VISIBLE_DEVICES=""
+    volumes:
+      - ./uploads:/app/uploads     # host:container
+      - ./workers:/app/workers:ro
+    # entrypoint: ""
+    # command: tail -f /dev/null
+    restart: unless-stopped
+    # needs gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

@@ -23,6 +23,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -52,14 +53,29 @@ export default function LoginPage() {
         toast.error("Login failed: " + error.message);
       } else {
         toast.success("Login successful! Redirecting...");
+        setIsRedirecting(true);
         router.push("/dashboard");
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        setIsRedirecting(false);
+      }, 10000);
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <p>Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleOAuthLogin = async (provider: "google" | "github") => {
     try {

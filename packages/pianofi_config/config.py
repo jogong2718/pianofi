@@ -166,6 +166,30 @@ def get_supabase_config() -> Dict[str, str]:
         }
     except Exception as e:
         raise Exception(f"Failed to get Supabase config from Parameter Store: {e}")
+    
+@lru_cache()
+def get_backend_base_url() -> str:
+    """Get backend base URL from environment"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        return os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
+    
+    # Production - get from Parameter Store or environment
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameter(Name=f'/pianofi/{env}/backend/base_url')
+        return response['Parameter']['Value']
+    except Exception as e:
+        # Fallback to environment variable or default
+        return os.getenv("BACKEND_BASE_URL", "https://api.yourdomain.com")
 
 # Configuration class for easy access
 class Config:
@@ -175,3 +199,4 @@ class Config:
     ENVIRONMENT = get_environment()
     REDIS_URL = get_redis_url()
     SUPABASE_CONFIG = get_supabase_config()
+    BACKEND_BASE_URL = get_backend_base_url()
