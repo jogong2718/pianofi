@@ -76,15 +76,12 @@ export default function DashboardPage() {
     updateTranscriptionStatus,
     addTranscription,
     initialLoading,
-  } = useTranscriptionManager({ 
-    getDownloadUrl, 
+  } = useTranscriptionManager({
+    getDownloadUrl,
     getUserJobs,
-    user });
-
-  // useEffect(() => {
-  //   // Set Supabase client logging to debug level
-  //   supabase.realtime.setLogger((log) => console.log(log));
-  // }, []);
+    user,
+    supabase,
+  });
 
   useEffect(() => {
     const getUser = async () => {
@@ -109,51 +106,6 @@ export default function DashboardPage() {
       toast.success("Email verified successfully!");
     }
   }, [searchParams, router, supabase.auth]);
-
-  useEffect(() => {
-    if (!user) return;
-    console.log("Auth user ID:", user.id, typeof user.id);
-    // Subscribe to job changes for the current user
-    const channel = supabase
-      .channel("job-changes")
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: "public",
-          table: "jobs",
-          filter: `user_id=eq.${user.id}`, // Only listen to jobs for current user
-        },
-        async (payload) => {
-          console.log("Job change detected:", payload);
-
-          if (
-            payload.eventType === "UPDATE" ||
-            payload.eventType === "INSERT"
-          ) {
-            const jobData = payload.new;
-
-            // Update transcription status based on job status
-            if (jobData.status === "done") {
-              // Job completed - fetch download URL from backend
-              await handleJobCompletion(jobData.job_id, jobData.result_key);
-            } else {
-              // Update status for processing/failed jobs
-              updateTranscriptionStatus(jobData.job_id, jobData.status);
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Subscription status:", status);
-      });
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
 
   if (loading || initialLoading) {
     return (
@@ -330,7 +282,10 @@ export default function DashboardPage() {
 
   const handleDownload = async (transcription: any) => {
     if (!transcription.download_url) {
-      console.error("Download URL not available for transcription:", transcription);
+      console.error(
+        "Download URL not available for transcription:",
+        transcription
+      );
       toast.error("Download URL not available");
       return;
     }
@@ -522,7 +477,11 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Tabs defaultValue="upload" onValueChange={setActiveTab} className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="upload">Upload</TabsTrigger>
             <TabsTrigger value="transcriptions">My Transcriptions</TabsTrigger>

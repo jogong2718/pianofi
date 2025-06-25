@@ -5,9 +5,9 @@ WORKDIR /app
 
 # Install system dependencies gpt generated not sure if its needed
 RUN apt-get update && apt-get install -y \
+    lilypond \
     curl \
     && rm -rf /var/lib/apt/lists/*
-
 
 # Copy backend code and shared config
 COPY backend/app/ ./app/

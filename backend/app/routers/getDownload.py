@@ -13,7 +13,7 @@ import os
 
 # app/schemas/uploadUrl.py
 from app.config_loader import Config 
-from app.schemas.getJob import GetJobResponse
+from app.schemas.getDownload import getDownloadResponse
 from app.schemas.user import User
 from app.auth import get_current_user
 
@@ -49,7 +49,7 @@ if not local:
         region_name=aws_creds["aws_region"],
     )
 
-@router.get("/getJob/{job_id}", response_model=GetJobResponse, tags=["jobs"])
+@router.get("/getDownload/{job_id}", response_model=getDownloadResponse, tags=["jobs"])
 def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     """
     Fetch a job by its unique jobId.
@@ -61,7 +61,7 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
             backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
             download_url = f"{backend_base}/download/{job_id}"
             
-            return GetJobResponse(
+            return getDownloadResponse(
                 job_id=job_id,
                 status="completed",
                 download_url=download_url,
@@ -88,7 +88,7 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
                 ExpiresIn=3600  # 1 hour
             )
             
-            return GetJobResponse(
+            return getDownloadResponse(
                 job_id=job_id,
                 status="completed",
                 download_url=presigned_url,
@@ -98,7 +98,7 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"Error in getJob: {str(e)}\n{error_details}")
+        print(f"Error in getDownload: {str(e)}\n{error_details}")
         raise HTTPException(status_code=500, detail=f"Error getting download link: {str(e)}")
     
 @router.get("/download/{job_id}")
