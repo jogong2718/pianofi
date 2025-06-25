@@ -91,7 +91,7 @@ export function useTranscriptionManager({
   );
 
   const updateTranscriptionStatus = useCallback(
-    (jobId: string, status: string) => {
+    (jobId: string, status: string, file_duration: number, file_size: number) => {
       const typedStatus = status as TranscriptionStatus;
       setTranscriptions((prev) =>
         prev.map((t) =>
@@ -100,6 +100,12 @@ export function useTranscriptionManager({
                 ...t,
                 status: typedStatus,
                 progress: mapStatusToProgress(status),
+                duration: file_duration
+                  ? `${Math.round(file_duration)}s`
+                  : "N/A",
+                size: file_size
+                  ? `${(file_size / (1024 * 1024)).toFixed(2)} MB`
+                  : "N/A",
               }
             : t
         )
@@ -225,7 +231,7 @@ export function useTranscriptionManager({
               if (jobData.status === "done") {
                 await handleJobCompletion(jobData.job_id, jobData.result_key);
               } else {
-                updateTranscriptionStatus(jobData.job_id, jobData.status);
+                updateTranscriptionStatus(jobData.job_id, jobData.status, jobData.file_duration ?? 0, jobData.file_size ?? 0);
               }
             }
           }

@@ -216,11 +216,9 @@ export default function DashboardPage() {
 
       if (isLocalMode) {
         await uploadFileLocally(uploadUrl, fileKey, file);
-        newTranscription.size = "local_test MB";
         console.log("Local file upload successful");
       } else {
         await uploadToS3(uploadUrl, file);
-        newTranscription.size = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
         console.log("S3 file upload successful");
       }
 
