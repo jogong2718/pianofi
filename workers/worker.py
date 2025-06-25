@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
-import librosa
+from mutagen import File
 
 print("starting worker...")
 
@@ -58,7 +58,8 @@ def process_job(job, engine, s3_client, aws_creds, local):
     # Extract audio duration
     try:
         # Load audio file to get duration
-        duration = librosa.get_duration(filename=str(local_raw))
+        audio = File(local_raw)
+        duration = audio.info.length
         
         # Update job with file duration
         with engine.connect() as db:
