@@ -540,7 +540,10 @@ export default function DashboardPage() {
                   {transcriptions.map((transcription) => (
                     <div
                       key={transcription.id}
-                      className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg"
+                      className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg hover:bg-muted cursor-pointer"
+                      onClick={() =>
+                        router.push(`/dashboard/transcription/${transcription.id}`)
+                      }
                     >
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
