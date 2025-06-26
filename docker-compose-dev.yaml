@@ -11,6 +11,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./backend:/app/backend:ro
+      - ./project-aws:/root/.aws
     restart: unless-stopped
   frontend:
     build:
@@ -40,6 +41,7 @@ services:
     volumes:
       - ./uploads:/app/uploads     # host:container
       - ./workers:/app/workers:ro
+      - ./project-aws:/root/.aws
     # entrypoint: ""
     # command: tail -f /dev/null
     restart: unless-stopped
