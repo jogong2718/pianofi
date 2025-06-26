@@ -110,7 +110,7 @@ def main():
     logging.info("Worker starting up...")
 
     aws_creds = Config.AWS_CREDENTIALS
-    local = Config.ENVIRONMENT == "development"
+    local = Config.USE_LOCAL_STORAGE == "true"
 
     try:
         logging.info("Loading configuration for redis...")
@@ -142,8 +142,8 @@ def main():
         if not local:
             s3_client = boto3.client(
                 "s3",
-                aws_access_key_id=aws_creds["aws_access_key_id"],
-                aws_secret_access_key=aws_creds["aws_secret_access_key"],
+                # aws_access_key_id=aws_creds["aws_access_key_id"],
+                # aws_secret_access_key=aws_creds["aws_secret_access_key"],
                 region_name=aws_creds["aws_region"],
             )
 

@@ -22,10 +22,9 @@ router = APIRouter()
 # 2) Grab S3 settings from environment
 DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
-local = Config.ENVIRONMENT == "development"
+local = Config.USE_LOCAL_STORAGE == "true"
 
-if not all([aws_creds["aws_access_key_id"], aws_creds["aws_secret_access_key"], 
-           aws_creds["aws_region"], aws_creds["s3_bucket"]]):
+if local:
     UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -50,8 +49,8 @@ def get_db():
 if not local:
     s3_client = boto3.client(
         "s3",
-        aws_access_key_id=aws_creds["aws_access_key_id"],
-        aws_secret_access_key=aws_creds["aws_secret_access_key"],
+        # aws_access_key_id=aws_creds["aws_access_key_id"],
+        # aws_secret_access_key=aws_creds["aws_secret_access_key"],
         region_name=aws_creds["aws_region"],
     )
 

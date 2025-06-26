@@ -38,3 +38,6 @@ pvenv/
 backend/uploads/tmp/
 
 uploads/
+
+project-aws/
+dev-start.sh
