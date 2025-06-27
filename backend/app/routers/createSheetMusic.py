@@ -35,7 +35,7 @@ router = APIRouter()
 
 DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
-local = Config.ENVIRONMENT == "development"
+local = Config.USE_LOCAL_STORAGE == "true"
 
 engine = create_engine(
     DATABASE_URL,
@@ -58,8 +58,8 @@ s3_client = None
 if not local:
     s3_client = boto3.client(
         "s3",
-        aws_access_key_id=aws_creds["aws_access_key_id"],
-        aws_secret_access_key=aws_creds["aws_secret_access_key"],
+        # aws_access_key_id=aws_creds["aws_access_key_id"],
+        # aws_secret_access_key=aws_creds["aws_secret_access_key"],
         region_name=aws_creds["aws_region"],
     )
 

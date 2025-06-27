@@ -10,7 +10,7 @@ CREATE TABLE jobs (
   queued_at     TIMESTAMPTZ,
   started_at    TIMESTAMPTZ,
   finished_at   TIMESTAMPTZ,
-  result_key    TEXT,      -- e.g. "results/<job_id>.mid"
+  result_key    TEXT,      -- e.g. "midi/<job_id>.mid"
   error_msg     TEXT,      -- non‐null only if status='error'
   CONSTRAINT file_key_format CHECK (file_key <> '')
 );

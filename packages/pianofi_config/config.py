@@ -9,6 +9,11 @@ def get_environment() -> str:
     return os.getenv("ENVIRONMENT", "development")
 
 @lru_cache()
+def get_storage() -> str:
+    """Get storage type (local, s3)"""
+    return os.getenv("USE_LOCAL_STORAGE", "false")
+
+@lru_cache()
 def get_database_url() -> str:
     """Get database URL from Parameter Store in production, .env in development"""
     env = get_environment()
@@ -47,8 +52,8 @@ def get_aws_credentials() -> Dict[str, str]:
         from dotenv import load_dotenv
         load_dotenv()
         return {
-            "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID", ""),
-            "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
+            # "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID", ""),
+            # "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
             "aws_region": os.getenv("AWS_REGION", ""),
             "s3_bucket": os.getenv("S3_BUCKET", "")
         }
@@ -60,8 +65,8 @@ def get_aws_credentials() -> Dict[str, str]:
         # Get multiple parameters at once
         response = ssm.get_parameters(
             Names=[
-                f'/pianofi/{env}/aws/access_key_id',
-                f'/pianofi/{env}/aws/secret_access_key',
+                # f'/pianofi/{env}/aws/access_key_id',
+                # f'/pianofi/{env}/aws/secret_access_key',
                 f'/pianofi/{env}/aws/region',
                 f'/pianofi/{env}/s3/bucket'
             ],
@@ -71,8 +76,8 @@ def get_aws_credentials() -> Dict[str, str]:
         params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
         
         return {
-            "aws_access_key_id": params.get("access_key_id", ""),
-            "aws_secret_access_key": params.get("secret_access_key", ""),
+            # "aws_access_key_id": params.get("access_key_id", ""),
+            # "aws_secret_access_key": params.get("secret_access_key", ""),
             "aws_region": params.get("region", ""),
             "s3_bucket": params.get("bucket", "")
         }
@@ -200,3 +205,4 @@ class Config:
     REDIS_URL = get_redis_url()
     SUPABASE_CONFIG = get_supabase_config()
     BACKEND_BASE_URL = get_backend_base_url()
+    USE_LOCAL_STORAGE = get_storage()

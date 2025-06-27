@@ -10,6 +10,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 from typing import List
 import os
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 # app/schemas/uploadUrl.py
 from app.config_loader import Config 
@@ -21,7 +24,7 @@ router = APIRouter()
 
 DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
-local = Config.ENVIRONMENT == "development"
+local = Config.USE_LOCAL_STORAGE == "true"
 
 engine = create_engine(
     DATABASE_URL,
@@ -44,8 +47,8 @@ s3_client = None
 if not local:
     s3_client = boto3.client(
         "s3",
-        aws_access_key_id=aws_creds["aws_access_key_id"],
-        aws_secret_access_key=aws_creds["aws_secret_access_key"],
+        # aws_access_key_id=aws_creds["aws_access_key_id"],
+        # aws_secret_access_key=aws_creds["aws_secret_access_key"],
         region_name=aws_creds["aws_region"],
     )
 
@@ -70,14 +73,19 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
         else:
             # Production: Generate S3 presigned URL
             bucket_name = aws_creds["s3_bucket"]
-            s3_key = f"results/{job_id}.mid"  # This matches the worker pattern
+            s3_key = f"midi/{job_id}.mid"  # This matches the worker pattern
+
+            print(bucket_name, s3_key)
             
             try:
                 # Check if file exists in S3
                 s3_client.head_object(Bucket=bucket_name, Key=s3_key)
             except ClientError as e:
                 if e.response['Error']['Code'] == '404':
-                    raise HTTPException(status_code=404, detail="Result file not found in S3")
+                    logger.error(f"File not found in S3: {s3_key}")
+                    logger.error(f"Bucket: {bucket_name}")
+                    logger.error(f"Error details: {e}")
+                    raise HTTPException(status_code=404, detail="Result file not found in S3 nigga")
                 else:
                     raise HTTPException(status_code=500, detail="Error checking S3 file")
             
@@ -108,7 +116,7 @@ def download_file(job_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Endpoint not available in production")
     
     UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
-    file_path = UPLOAD_DIR / "results" / f"{job_id}.mid"
+    file_path = UPLOAD_DIR / "midi" / f"{job_id}.mid"
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
