@@ -36,12 +36,10 @@ services:
     image: pianofi-worker:dev
     env_file:
       - packages/pianofi_config/.env
-    # environment:
-    #   - CUDA_VISIBLE_DEVICES=""
     volumes:
       - ./uploads:/app/uploads     # host:container
       - ./workers:/app/workers:ro
-      - ./project-aws:/root/.aws
+      - ./project-aws:/home/picogen2/.aws
     # entrypoint: ""
     # command: tail -f /dev/null
     restart: unless-stopped

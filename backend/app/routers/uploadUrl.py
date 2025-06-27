@@ -71,7 +71,7 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
     
     try:
         job_id = str(uuid.uuid4())
-        file_key = f"{job_id}.mp3"
+        file_key = f"mp3/{job_id}.mp3"
         authenticated_user_id = current_user.id
 
         sql = text("""
@@ -89,7 +89,7 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
         })
         
         if local:
-            upload_url = str(UPLOAD_DIR / job_id)
+            upload_url = str(UPLOAD_DIR / "mp3" / job_id)
         else:
             upload_url: str = s3_client.generate_presigned_url(
                 ClientMethod="put_object",

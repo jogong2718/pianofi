@@ -77,7 +77,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
     midi_path = run_picogen(str(local_raw), f"/tmp/{job_id}_midi")  
     final_mid = midi_path
     # 4) Upload result
-    result_key = f"results/{job_id}.mid"
+    result_key = f"midi/{job_id}.mid"
 
     if local:
         UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
