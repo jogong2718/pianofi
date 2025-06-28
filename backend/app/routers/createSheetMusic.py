@@ -12,7 +12,6 @@ from typing import List
 import subprocess
 import os
 
-# Music processing libraries
 try:
     from music21 import converter, stream, meter, key, tempo, pitch
     from music21.musicxml import m21ToXml
@@ -20,9 +19,8 @@ try:
 except ImportError:
     raise ImportError("music21 not installed. Run: pip install music21")
 
-# For sheet music rendering
 try:
-    import abjad  # Alternative: lilypond wrapper
+    import abjad
 except ImportError:
     pass
 
@@ -58,68 +56,87 @@ s3_client = None
 if not local:
     s3_client = boto3.client(
         "s3",
-        # aws_access_key_id=aws_creds["aws_access_key_id"],
-        # aws_secret_access_key=aws_creds["aws_secret_access_key"],
         region_name=aws_creds["aws_region"],
     )
 
-def convert_midi_to_sheet_music(
-    midi_file_path: str, 
-    output_path: str, 
-    format: str = "pdf",
-    title: str = None,
-    composer: str = None
-) -> str:
-    """
-    Convert MIDI file to sheet music using music21 and LilyPond
-    """
+def convert_midi_to_xml(midi_file_path: str, output_path: str) -> str:
     try:
-        # Load MIDI file
         score = converter.parse(midi_file_path)
         
-        # Add metadata if provided
+        if not score.analyze('key'):
+            score.insert(0, key.KeySignature(0))
+        
+        output_file = f"{output_path}.musicxml"
+        score.write('musicxml', fp=output_file)
+        return output_file
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"XML conversion failed: {str(e)}")
+
+def convert_midi_to_visual(midi_file_path: str, output_path: str, format: str, title: str = None, composer: str = None) -> str:
+    try:
+        score = converter.parse(midi_file_path)
+        
         if title:
             score.insert(0, meter.MetronomeMark(title))
         if composer:
             score.insert(0, tempo.TempoIndication(composer))
         
-        # Extract piano parts
-        piano_score = score
+        if not score.analyze('key'):
+            score.insert(0, key.KeySignature(0))
         
-        # Add key signature and time signature if missing
-        if not piano_score.analyze('key'):
-            piano_score.insert(0, key.KeySignature(0))  # C major
+        output_file = f"{output_path}.{format.lower()}"
+        lily_file = f"{output_path}.ly"
         
-        # Generate output based on format
-        if format.lower() == "musicxml":
-            output_file = f"{output_path}.musicxml"
-            piano_score.write('musicxml', fp=output_file)
-            
-        elif format.lower() in ["pdf", "png", "svg"]:
-            # Use LilyPond for high-quality sheet music rendering
-            output_file = f"{output_path}.{format.lower()}"
-            
-            # First convert to LilyPond format
-            lily_file = f"{output_path}.ly"
-            piano_score.write('lily', fp=lily_file)
-            
-            # Then use LilyPond to render
-            subprocess.run([
-                "lilypond", 
-                f"--{format.lower()}", 
-                "-o", output_path.replace(f".{format.lower()}", ""),
-                lily_file
-            ], check=True)
-            
-            # Clean up intermediate file
-            if os.path.exists(lily_file):
-                os.remove(lily_file)
+        score.write('lily', fp=lily_file)
         
-        else:
-            raise ValueError(f"Unsupported format: {format}")
+        subprocess.run([
+            "lilypond", 
+            f"--{format.lower()}", 
+            "-o", output_path.replace(f".{format.lower()}", ""),
+            lily_file
+        ], check=True)
+        
+        if os.path.exists(lily_file):
+            os.remove(lily_file)
         
         return output_file
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"MIDI conversion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Visual conversion failed: {str(e)}")
 
+@router.post("/convertToXml")
+async def convert_to_xml_endpoint(
+    midi_file_path: str,
+    output_path: str
+):
+    try:
+        result_file = convert_midi_to_xml(midi_file_path, output_path)
+        return {
+            "success": True,
+            "output_file": result_file,
+            "format": "musicxml"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/convertToVisual")
+async def convert_to_visual_endpoint(
+    midi_file_path: str,
+    output_path: str,
+    format: str,
+    title: str = None,
+    composer: str = None
+):
+    if format.lower() not in ["pdf", "png", "svg"]:
+        raise HTTPException(status_code=400, detail="Format must be pdf, png, or svg")
+    
+    try:
+        result_file = convert_midi_to_visual(midi_file_path, output_path, format, title, composer)
+        return {
+            "success": True,
+            "output_file": result_file,
+            "format": format.lower()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
