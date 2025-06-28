@@ -105,6 +105,44 @@ def convert_midi_to_visual(midi_file_path: str, output_path: str, format: str, t
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Visual conversion failed: {str(e)}")
 
+def get_xml_for_job(job_id: str, user_id: str, db: Session) -> str:
+    try:
+        sql = text("""
+            SELECT file_key, status FROM jobs 
+            WHERE job_id = :jobId AND user_id = :userId
+        """)
+        
+        result = db.execute(sql, {
+            "jobId": job_id, 
+            "userId": user_id
+        }).fetchone()
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="Job not found or access denied")
+        
+        file_key, status = result
+        
+        if status != 'completed':
+            raise HTTPException(status_code=400, detail=f"Job not completed. Current status: {status}")
+        
+        s3_key = f"pianofi/midi/{job_id}.xml"
+        xml_file_path = f"uploads/xml/{job_id}.xml"
+        try:
+            response = s3_client.get_object(
+                Bucket=aws_creds["s3_bucket"],
+                Key=s3_key
+            )
+            xml_content = response['Body'].read()
+            return xml_content
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                raise HTTPException(status_code=404, detail="MIDI file not found in S3")
+            else:
+                raise HTTPException(status_code=500, detail=f"S3 download failed: {str(e)}")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"XML generation failed: {str(e)}")
+
 @router.post("/convertToXml")
 async def convert_to_xml_endpoint(
     midi_file_path: str,
@@ -138,5 +176,51 @@ async def convert_to_visual_endpoint(
             "output_file": result_file,
             "format": format.lower()
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/getXML/{job_id}")
+async def get_xml_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        authenticated_user_id = current_user.id
+        
+        xml_file_path = get_xml_for_job(job_id, authenticated_user_id, db)
+        
+        if not os.path.exists(xml_file_path):
+            raise HTTPException(status_code=404, detail="XML file not found")
+        
+        return FileResponse(
+            path=xml_file_path,
+            media_type='application/xml',
+            filename=f"{job_id}.musicxml"
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/getXML/{job_id}")
+async def get_xml_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        authenticated_user_id = current_user.id
+        
+        xml_content = get_xml_for_job(job_id, authenticated_user_id, db)
+        
+        from fastapi.responses import Response
+        return Response(
+            content=xml_content,
+            media_type='application/xml',
+            headers={
+                'Content-Disposition': f'attachment; filename="{job_id}.musicxml"'
+            }
+        )
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
