@@ -10,8 +10,13 @@ services:
       - packages/pianofi_config/.env
     volumes:
       - ./uploads:/app/uploads
-      - ./backend:/app/backend:ro
+      - ./backend:/app/backend
       - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - path: ./backend
+          target: /app/backend
+          action: sync
     restart: unless-stopped
   frontend:
     build:
@@ -27,6 +32,11 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
+    develop:
+      watch:
+        - path: ./frontend
+          target: /app
+          action: sync
     depends_on:
       - backend
   worker:
@@ -38,8 +48,13 @@ services:
       - packages/pianofi_config/.env
     volumes:
       - ./uploads:/app/uploads     # host:container
-      - ./workers:/app/workers:ro
+      - ./workers:/app/workers
       - ./project-aws:/home/picogen2/.aws
+    develop:
+      watch:
+        - path: ./workers
+          target: /app/workers
+          action: sync
     # entrypoint: ""
     # command: tail -f /dev/null
     restart: unless-stopped
