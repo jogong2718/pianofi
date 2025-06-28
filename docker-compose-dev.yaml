@@ -10,7 +10,7 @@ services:
       - packages/pianofi_config/.env
     volumes:
       - ./uploads:/app/uploads
-      - ./backend:/app/backend:ro
+      - ./backend:/app/backend
       - ./project-aws:/root/.aws
     restart: unless-stopped
   frontend:
