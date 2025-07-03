@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UpgradeModal } from "@/components/ui/upgradeModal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 
@@ -54,6 +55,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const { getDownloadUrl } = useDownloadUrl();
   const { getUserJobs } = useGetUserJobs();
@@ -351,6 +353,10 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+      />
       {/* Header */}
       <header className="border-b">
         <div className="flex h-16 items-center px-4 lg:px-6">
@@ -361,6 +367,13 @@ export default function DashboardPage() {
 
           <div className="ml-auto flex items-center space-x-4">
             <ThemeToggle />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowUpgradeModal(true)}
+            >
+              Upgrade
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
