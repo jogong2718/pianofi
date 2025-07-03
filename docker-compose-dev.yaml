@@ -12,6 +12,13 @@ services:
       - ./uploads:/app/uploads
       - ./backend:/app/backend
       - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: app/backend
+        - action: rebuild
+          path: ./Dockerfile
     restart: unless-stopped
   frontend:
     build:
@@ -27,6 +34,13 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: app
+        - action: rebuild
+          path: ./Dockerfile
     depends_on:
       - backend
   worker:
