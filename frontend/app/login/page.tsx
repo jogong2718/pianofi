@@ -77,7 +77,7 @@ export default function LoginPage() {
     );
   }
 
-  const handleOAuthLogin = async (provider: "google" | "github") => {
+  const handleOAuthLogin = async (provider: "google") => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -117,7 +117,7 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <Button
                   variant="outline"
                   onClick={() => handleOAuthLogin("google")}
@@ -125,14 +125,6 @@ export default function LoginPage() {
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Google
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleOAuthLogin("github")}
-                  className="w-full"
-                >
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
                 </Button>
               </div>
 

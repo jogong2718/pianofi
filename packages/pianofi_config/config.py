@@ -195,6 +195,47 @@ def get_backend_base_url() -> str:
     except Exception as e:
         # Fallback to environment variable or default
         return os.getenv("BACKEND_BASE_URL", "https://api.yourdomain.com")
+    
+@lru_cache()
+def get_stripe_keys() -> str:
+    """Get Stripe keys from environment or Parameter Store"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        return {
+            "secret_key": os.getenv("STRIPE_SECRET_KEY", ""),
+            "publishable_key": os.getenv("STRIPE_PUBLISHABLE_KEY", ""),
+            "webhook_secret": os.getenv("STRIPE_WEBHOOK_SECRET", "")
+        }
+    
+    # Production - get from Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameters(
+            Names=[
+                f'/pianofi/{env}/stripe/secret_key',
+                f'/pianofi/{env}/stripe/publishable_key',
+                f'/pianofi/{env}/stripe/webhook_secret'
+            ],
+            WithDecryption=True
+        )
+        
+        params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
+        
+        return {
+            "secret_key": params.get("secret_key", ""),
+            "publishable_key": params.get("publishable_key", ""),
+            "webhook_secret": params.get("webhook_secret", "")
+        }
+    except Exception as e:
+        raise Exception(f"Failed to get Stripe keys from Parameter Store: {e}")
 
 # Configuration class for easy access
 class Config:
@@ -206,3 +247,4 @@ class Config:
     SUPABASE_CONFIG = get_supabase_config()
     BACKEND_BASE_URL = get_backend_base_url()
     USE_LOCAL_STORAGE = get_storage()
+    STRIPE_KEYS = get_stripe_keys()
