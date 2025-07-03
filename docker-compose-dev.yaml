@@ -10,7 +10,7 @@ services:
       - packages/pianofi_config/.env
     volumes:
       - ./uploads:/app/uploads
-      - ./backend/app:/app/app
+      # - ./backend/app:/app/app
       - ./project-aws:/root/.aws
     develop:
       watch:
@@ -32,7 +32,7 @@ services:
     environment:
       - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000  # ✅ Use service name
     volumes:
-      - ./frontend:/app
+      # - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
       - /app/.next
     develop:
