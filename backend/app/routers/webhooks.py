@@ -351,6 +351,21 @@ async def create_or_update_price(db: Session, price_data: dict):
         trial_period_days = recurring.get('trial_period_days') if recurring else None
         
         metadata = json.dumps(price_data.get('metadata', {}))
+
+        price_metadata = price_data.get('metadata', {})
+        monthly_transcription_limit = None
+
+        # Try to get the limit from metadata
+        if 'monthly_transcription_limit' in price_metadata:
+            limit_value = price_metadata['monthly_transcription_limit']
+            if limit_value == 'unlimited' or limit_value == '':
+                monthly_transcription_limit = None  # NULL for unlimited
+            else:
+                try:
+                    monthly_transcription_limit = int(limit_value)
+                except (ValueError, TypeError):
+                    logging.warning(f"Invalid monthly_transcription_limit value in metadata: {limit_value}")
+                    monthly_transcription_limit = None
         
         # Check if price already exists
         result = db.execute(
@@ -372,6 +387,7 @@ async def create_or_update_price(db: Session, price_data: dict):
                         interval_count = :interval_count,
                         trial_period_days = :trial_period_days,
                         metadata = :metadata
+                        monthly_transcription_limit = :monthly_transcription_limit
                     WHERE id = :price_id
                 """),
                 {
@@ -383,7 +399,8 @@ async def create_or_update_price(db: Session, price_data: dict):
                     "interval": interval,
                     "interval_count": interval_count,
                     "trial_period_days": trial_period_days,
-                    "metadata": metadata
+                    "metadata": metadata,
+                    "monthly_transcription_limit": monthly_transcription_limit
                 }
             )
             logging.info(f"Updated price {price_id}")
@@ -393,10 +410,10 @@ async def create_or_update_price(db: Session, price_data: dict):
                 text("""
                     INSERT INTO prices (
                         id, active, currency, unit_amount, type, interval, 
-                        interval_count, trial_period_days, metadata
+                        interval_count, trial_period_days, metadata, monthly_transcription_limit
                     ) VALUES (
                         :price_id, :active, :currency, :unit_amount, :type, :interval,
-                        :interval_count, :trial_period_days, :metadata
+                        :interval_count, :trial_period_days, :metadata, :monthly_transcription_limit
                     )
                 """),
                 {
@@ -408,7 +425,8 @@ async def create_or_update_price(db: Session, price_data: dict):
                     "interval": interval,
                     "interval_count": interval_count,
                     "trial_period_days": trial_period_days,
-                    "metadata": metadata
+                    "metadata": metadata,
+                    "monthly_transcription_limit": monthly_transcription_limit
                 }
             )
             logging.info(f"Created price {price_id}")
