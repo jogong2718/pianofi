@@ -46,6 +46,7 @@ import { useCreateJob } from "@/hooks/useCreateJob";
 import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useGetUserJobs } from "@/hooks/useGetUserJobs";
+import { useDashboardMetrics } from "@/hooks/useGetDashboardMetrics";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -59,6 +60,7 @@ export default function DashboardPage() {
 
   const { getDownloadUrl } = useDownloadUrl();
   const { getUserJobs } = useGetUserJobs();
+  const { metrics, loading: metricsLoading } = useDashboardMetrics();
 
   const {
     callUploadUrl,
@@ -181,6 +183,35 @@ export default function DashboardPage() {
 
   const handleFiles = async (files: FileList) => {
     if (!user) return;
+
+    if (metricsLoading) {
+      toast.error("Please wait while we check your subscription limits...");
+      return;
+    }
+
+    if (
+      metrics?.transcriptions_left !== undefined &&
+      metrics.transcriptions_left !== null &&
+      metrics.transcriptions_left <= 0
+    ) {
+      toast.error(
+        "You have reached your monthly transcription limit. Please upgrade your plan."
+      );
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    if (
+      metrics?.transcriptions_left !== null &&
+      metrics?.transcriptions_left !== undefined &&
+      metrics?.transcriptions_left <= 2
+    ) {
+      toast.warning(
+        `Only ${metrics.transcriptions_left} transcription${
+          metrics.transcriptions_left === 1 ? "" : "s"
+        } left this month.`
+      );
+    }
 
     const file = files[0];
 
@@ -442,9 +473,11 @@ export default function DashboardPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
+              <div className="text-2xl font-bold">
+                {metricsLoading ? "..." : metrics?.total_transcriptions || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +3 from last month
+                All time transcriptions
               </p>
             </CardContent>
           </Card>
@@ -454,9 +487,11 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1</div>
+              <div className="text-2xl font-bold">
+                {metricsLoading ? "..." : metrics?.processing_count || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Estimated 2 minutes remaining
+                Currently being processed
               </p>
             </CardContent>
           </Card>
@@ -466,23 +501,33 @@ export default function DashboardPage() {
               <Music className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold">
+                {metricsLoading ? "..." : metrics?.this_month_count || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                92 remaining in plan
+                Transcriptions this month
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Success Rate
+                Transcriptions Left this Month
               </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">98%</div>
+              <div className="text-2xl font-bold">
+                {metricsLoading
+                  ? "..."
+                  : metrics?.transcriptions_left === null
+                  ? "∞"
+                  : metrics?.transcriptions_left || 0}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +2% from last month
+                {metrics?.transcriptions_left === null
+                  ? "Unlimited plan"
+                  : "Remaining this month"}
               </p>
             </CardContent>
           </Card>
@@ -503,7 +548,22 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle>Upload Audio File</CardTitle>
                 <CardDescription>
-                  Upload your audio file to convert it to piano sheet music
+                  {metrics?.transcriptions_left !== undefined &&
+                  metrics.transcriptions_left !== null &&
+                  metrics.transcriptions_left <= 2 ? (
+                    <span className="text-yellow-600 font-medium">
+                      You have only {metrics.transcriptions_left} transcription
+                      {metrics.transcriptions_left === 1 ? "" : "s"} left this
+                      month.
+                    </span>
+                  ) : metrics?.transcriptions_left === 0 ? (
+                    <span className="text-red-600 font-medium">
+                      You have reached your monthly limit. Please upgrade to
+                      continue.
+                    </span>
+                  ) : (
+                    "Upload your audio file to convert it to piano sheet music"
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
