@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import { NotificationManager } from "@/lib/notifications";
 
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -43,19 +44,24 @@ export function useTranscriptionManager({
 
   const handleJobCompletion = useCallback(
     async (jobId: string, resultKey: string) => {
+      let shouldSkip = false;
+
       const existingJob = transcriptions.find((t) => t.id === jobId);
       if (existingJob?.download_url === "error") {
         console.log(`Skipping repeated download URL attempt for job ${jobId}`);
+        shouldSkip = true;
         return;
       }
+
+      if (shouldSkip) return;
 
       try {
         // Get download URL from backend
         const { download_url } = await getDownloadUrl(jobId);
 
         // Update transcription with download URL
-        setTranscriptions((prev) =>
-          prev.map((t) =>
+        setTranscriptions((prev) => {
+          const updatedTranscriptions = prev.map((t) =>
             t.id === jobId
               ? {
                   ...t,
@@ -64,8 +70,21 @@ export function useTranscriptionManager({
                   download_url: download_url,
                 }
               : t
-          )
-        );
+          );
+
+          const notificationsEnabled =
+            localStorage.getItem("notifications-enabled") === "true";
+          const completedJob = updatedTranscriptions.find(
+            (t) => t.id === jobId
+          );
+          if (notificationsEnabled && completedJob) {
+            NotificationManager.showTranscriptionComplete(
+              completedJob.filename
+            );
+          }
+
+          return updatedTranscriptions;
+        });
 
         toast.success("Transcription completed!");
       } catch (error) {
@@ -91,10 +110,16 @@ export function useTranscriptionManager({
   );
 
   const updateTranscriptionStatus = useCallback(
-    (jobId: string, status: string, file_duration: number, file_size: number) => {
+    (
+      jobId: string,
+      status: string,
+      file_duration: number,
+      file_size: number
+    ) => {
       const typedStatus = status as TranscriptionStatus;
-      setTranscriptions((prev) =>
-        prev.map((t) =>
+
+      setTranscriptions((prev) => {
+        const updatedTranscriptions = prev.map((t) =>
           t.id === jobId
             ? {
                 ...t,
@@ -108,12 +133,22 @@ export function useTranscriptionManager({
                   : "N/A",
               }
             : t
-        )
-      );
+        );
 
-      if (status === "failed") {
-        toast.error("Transcription failed");
-      }
+        // Handle notifications using the updated state
+        if (status === "failed") {
+          toast.error("Transcription failed");
+
+          const notificationsEnabled =
+            localStorage.getItem("notifications-enabled") === "true";
+          const failedJob = updatedTranscriptions.find((t) => t.id === jobId);
+          if (notificationsEnabled && failedJob) {
+            NotificationManager.showTranscriptionFailed(failedJob.filename);
+          }
+        }
+
+        return updatedTranscriptions;
+      });
     },
     []
   );
@@ -197,63 +232,64 @@ export function useTranscriptionManager({
   useEffect(() => {
     if (!user) return;
 
-    const timeoutId = setTimeout(() => {
-      const deviceId =
-        localStorage.getItem("deviceId") ||
-        (() => {
-          const id = Math.random().toString(36).substr(2, 9);
-          localStorage.setItem("deviceId", id);
-          return id;
-        })();
+    const deviceId =
+      localStorage.getItem("deviceId") ||
+      (() => {
+        const id = Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("deviceId", id);
+        return id;
+      })();
 
-      const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
-      console.log("Setting up channel:", uniqueChannelName);
+    const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
+    console.log("Setting up channel:", uniqueChannelName);
 
-      const channel = supabase
-        .channel(uniqueChannelName)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "jobs",
-            filter: `user_id=eq.${user.id}`,
-          },
-          async (payload: RealtimePostgresChangesPayload<any>) => {
-            console.log("Job change detected:", payload);
+    const channel = supabase
+      .channel(uniqueChannelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "jobs",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload: RealtimePostgresChangesPayload<any>) => {
+          console.log("Job change detected:", payload);
 
-            if (
-              payload.eventType === "UPDATE" ||
-              payload.eventType === "INSERT"
-            ) {
-              const jobData = payload.new;
+          if (
+            payload.eventType === "UPDATE" ||
+            payload.eventType === "INSERT"
+          ) {
+            const jobData = payload.new;
 
-              if (jobData.status === "done") {
-                await handleJobCompletion(jobData.job_id, jobData.result_key);
-              } else {
-                updateTranscriptionStatus(jobData.job_id, jobData.status, jobData.file_duration ?? 0, jobData.file_size ?? 0);
-              }
+            if (jobData.status === "done") {
+              await handleJobCompletion(jobData.job_id, jobData.result_key);
+            } else {
+              updateTranscriptionStatus(
+                jobData.job_id,
+                jobData.status,
+                jobData.file_duration ?? 0,
+                jobData.file_size ?? 0
+              );
             }
           }
-        )
-        .subscribe((status: string, err?: Error) => {
-          console.log("Subscription status:", status);
+        }
+      )
+      .subscribe((status: string, err?: Error) => {
+        console.log("Subscription status:", status);
 
-          if (err) console.error("Subscription error:", err);
+        if (err) console.error("Subscription error:", err);
 
-          // Add reconnection logic for failed connections
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            console.log("Connection failed, will retry on next mount");
-          }
-        });
+        // Add reconnection logic for failed connections
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.log("Connection failed, will retry on next mount");
+        }
+      });
 
-      return () => {
-        console.log("Cleaning up channel:", uniqueChannelName);
-        supabase.removeChannel(channel);
-      };
-    }, 1000); // 1 second debounce
-
-    return () => clearTimeout(timeoutId);
+    return () => {
+      console.log("Cleaning up channel:", uniqueChannelName);
+      supabase.removeChannel(channel);
+    };
   }, [user?.id, supabase]);
 
   const mapBackendStatusToFrontend = (

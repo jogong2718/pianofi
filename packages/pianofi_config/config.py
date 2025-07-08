@@ -148,7 +148,8 @@ def get_supabase_config() -> Dict[str, str]:
         
         return {
             "url": os.getenv("SUPABASE_URL", ""),
-            "anon_key": os.getenv("SUPABASE_ANON_KEY", "")
+            "anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
+            "service_role_key": os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
         }
     
     # Production - get from Parameter Store
@@ -158,7 +159,8 @@ def get_supabase_config() -> Dict[str, str]:
         response = ssm.get_parameters(
             Names=[
                 f'/pianofi/{env}/supabase/url',
-                f'/pianofi/{env}/supabase/anon_key'
+                f'/pianofi/{env}/supabase/anon_key',
+                f'/pianofi/{env}/supabase/service_role_key'
             ],
             WithDecryption=True
         )
@@ -167,7 +169,8 @@ def get_supabase_config() -> Dict[str, str]:
         
         return {
             "url": params.get("url", ""),
-            "anon_key": params.get("anon_key", "")
+            "anon_key": params.get("anon_key", ""),
+            "service_role_key": params.get("service_role_key", "")
         }
     except Exception as e:
         raise Exception(f"Failed to get Supabase config from Parameter Store: {e}")
