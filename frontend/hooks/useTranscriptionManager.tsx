@@ -42,6 +42,10 @@ export function useTranscriptionManager({
 
   const isFetchingRef = useRef(false);
 
+  const deleteTranscription = useCallback((jobId: string) => {
+    setTranscriptions((prev) => prev.filter((t) => t.id !== jobId));
+  }, []);
+
   const handleJobCompletion = useCallback(
     async (jobId: string, resultKey: string) => {
       let shouldSkip = false;
@@ -106,7 +110,7 @@ export function useTranscriptionManager({
         toast.error("Failed to complete transcription");
       }
     },
-    [getDownloadUrl]
+    [getDownloadUrl, transcriptions]
   );
 
   const updateTranscriptionStatus = useCallback(
@@ -262,6 +266,11 @@ export function useTranscriptionManager({
           ) {
             const jobData = payload.new;
 
+            if (jobData.status === "deleted") {
+              deleteTranscription(jobData.job_id);
+              return;
+            }
+
             if (jobData.status === "done") {
               await handleJobCompletion(jobData.job_id, jobData.result_key);
             } else {
@@ -340,5 +349,6 @@ export function useTranscriptionManager({
     updateTranscriptionStatus,
     addTranscription,
     initialLoading,
+    deleteTranscription,
   };
 }

@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import time
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
-from app.routers import uploadUrl, createJob, getDownload, getUserJobs, createSheetMusic, createCheckoutSession, webhooks, getDashboardMetrics, updateProfile  # , transcription, midi_ops
+from app.routers import uploadUrl, createJob, getDownload, getUserJobs, createSheetMusic, createCheckoutSession, webhooks, getDashboardMetrics, updateProfile, deleteJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -53,6 +53,7 @@ app.include_router(createCheckoutSession.router, prefix="", tags=["createCheckou
 app.include_router(webhooks.router, prefix="", tags=["webhooks"])
 app.include_router(getDashboardMetrics.router, prefix="", tags=["getDashboardMetrics"])
 app.include_router(updateProfile.router, prefix="", tags=["updateProfile"])
+app.include_router(deleteJob.router, prefix="", tags=["deleteJob"])
 
 @app.post("/uploadLocal")
 async def create_upload_file(

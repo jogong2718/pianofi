@@ -3,50 +3,20 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Upload,
-  Music,
-  FileText,
-  Download,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  MoreHorizontal,
-  User,
-  Settings,
-  LogOut,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Music } from "lucide-react";
 import { UpgradeModal } from "@/components/ui/upgradeModal";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 
-import { useUploadUrl } from "@/hooks/useUploadUrl";
-import { uploadToS3 } from "@/lib/utils";
-import { useCreateJob } from "@/hooks/useCreateJob";
 import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useGetUserJobs } from "@/hooks/useGetUserJobs";
 import { useDashboardMetrics } from "@/hooks/useGetDashboardMetrics";
+
+import DashboardHeader from "./components/dashboardHeader";
+import MetricsCards from "./components/metricsCards";
+import FileUploader from "./components/fileUploader";
+import TranscriptionsList from "./components/transcriptionsList";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -54,25 +24,12 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [dragActive, setDragActive] = useState(false);
   const [activeTab, setActiveTab] = useState("upload");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const { getDownloadUrl } = useDownloadUrl();
   const { getUserJobs } = useGetUserJobs();
   const { metrics, loading: metricsLoading } = useDashboardMetrics();
-
-  const {
-    callUploadUrl,
-    loading: loadingUploadUrl,
-    error: uploadUrlError,
-  } = useUploadUrl();
-
-  const {
-    callCreateJob,
-    loading: loadingCreateJob,
-    error: CreateJobError,
-  } = useCreateJob();
 
   const {
     transcriptions,
@@ -131,407 +88,25 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const validateFile = (file: File): string | null => {
-    // File existence
-    if (!file) {
-      return "No file selected";
-    }
-
-    // File type validation
-    const allowedTypes = ["audio/mpeg", "audio/wav", "audio/flac"];
-    if (!allowedTypes.includes(file.type)) {
-      return "Unsupported file type. Please upload MP3, WAV, or FLAC.";
-    }
-
-    // File size validation (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-    if (file.size > maxSize) {
-      return "File too large. Maximum size is 10MB.";
-    }
-
-    // File name validation
-    const allowedExtensions = [".mp3", ".wav", ".flac"];
-    const hasValidExtension = allowedExtensions.some((ext) =>
-      file.name.toLowerCase().endsWith(ext)
-    );
-    if (!hasValidExtension) {
-      return "Invalid file extension. Please use .mp3, .wav, or .flac files.";
-    }
-
-    return null; // Valid file
-  };
-
-  const handleFiles = async (files: FileList) => {
-    if (!user) return;
-
-    if (metricsLoading) {
-      toast.error("Please wait while we check your subscription limits...");
-      return;
-    }
-
-    if (
-      metrics?.transcriptions_left !== undefined &&
-      metrics.transcriptions_left !== null &&
-      metrics.transcriptions_left <= 0
-    ) {
-      toast.error(
-        "You have reached your monthly transcription limit. Please upgrade your plan."
-      );
-      setShowUpgradeModal(true);
-      return;
-    }
-
-    if (
-      metrics?.transcriptions_left !== null &&
-      metrics?.transcriptions_left !== undefined &&
-      metrics?.transcriptions_left <= 2
-    ) {
-      toast.warning(
-        `Only ${metrics.transcriptions_left} transcription${
-          metrics.transcriptions_left === 1 ? "" : "s"
-        } left this month.`
-      );
-    }
-
-    const file = files[0];
-
-    // Validate file type and size
-    const validationError = validateFile(file);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-
-    try {
-      // 1) Get pre-signed upload URL + jobId + fileKey from backend
-      const {
-        uploadUrl,
-        jobId: newJobId,
-        fileKey,
-      } = await callUploadUrl({
-        file_name: file.name,
-        file_size: file.size,
-        content_type: file.type,
-      });
-
-      const newTranscription = {
-        id: newJobId,
-        filename: file.name,
-        status: "processing" as const,
-        progress: 0,
-        uploadedAt: new Date().toISOString().split("T")[0],
-        duration: "Processing...", // Placeholder until we get actual duration
-        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-      };
-
-      const isLocalMode =
-        uploadUrl.startsWith("/") || uploadUrl.includes("local-file.bin");
-
-      if (isLocalMode) {
-        await uploadFileLocally(uploadUrl, fileKey, file);
-        console.log("Local file upload successful");
-      } else {
-        await uploadToS3(uploadUrl, file);
-        console.log("S3 file upload successful");
-      }
-
-      addTranscription(newTranscription);
-
-      // 3) Tell backend “file is in S3; enqueue job”
-      await callCreateJob({
-        jobId: newJobId,
-        fileKey: fileKey,
-      });
-      console.log("Job enqueued successfully");
-
-      setActiveTab("transcriptions");
-
-      // // 4) Now that the job is enqueued, store jobId so we can start polling
-      // setJobId(newJobId);
-    } catch (err) {
-      console.error("Upload/Enqueue failed:", err);
-      toast.error("Upload failed: " + (err as Error).message);
-    }
-  };
-
-  const uploadFileLocally = async (
-    uploadUrl: string,
-    fileKey: string,
-    file: File
-  ) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("uploadUrl", uploadUrl);
-    formData.append("fileKey", fileKey);
-
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    const response = await fetch(`${backendUrl}/uploadLocal`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    console.log("Local upload successful:", result);
-    return result;
-  };
-
-  const handleFileInput = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files) {
-        handleFiles(target.files);
-      }
-    };
-    input.click();
-  };
-
-  const handleDownload = async (transcription: any) => {
-    if (!transcription.download_url) {
-      console.error(
-        "Download URL not available for transcription:",
-        transcription
-      );
-      toast.error("Download URL not available");
-      return;
-    }
-
-    try {
-      // For S3 presigned URLs or external URLs, open in new tab to trigger download
-      if (transcription.download_url.startsWith("http")) {
-        window.open(transcription.download_url, "_blank");
-      } else {
-        // For local API endpoints, use fetch and create blob
-        console.log("Downloading locally from:", transcription.download_url);
-        const response = await fetch(transcription.download_url);
-
-        if (!response.ok) {
-          throw new Error(`Download failed: ${response.statusText}`);
-        }
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-
-        // Create temporary link and trigger download
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = transcription.filename.replace(/\.[^/.]+$/, ".mid"); // Change extension to .mid
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up the blob URL
-        window.URL.revokeObjectURL(url);
-      }
-
-      toast.success("Download started successfully!");
-    } catch (error) {
-      console.error("Download failed:", error);
-      toast.error(`Download failed: ${(error as Error).message}`);
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "processing":
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case "failed":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "Completed";
-      case "processing":
-        return "Processing";
-      case "failed":
-        return "Failed";
-      default:
-        return "Unknown";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <UpgradeModal
         open={showUpgradeModal}
         onOpenChange={setShowUpgradeModal}
       />
-      {/* Header */}
-      <header className="border-b">
-        <div className="flex h-16 items-center px-4 lg:px-6">
-          <div className="flex items-center space-x-4">
-            <Music className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">PianoFi</span>
-          </div>
 
-          <div className="ml-auto flex items-center space-x-4">
-            <ThemeToggle />
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setShowUpgradeModal(true)}
-            >
-              Upgrade
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src="/middlegura.svg?height=32&width=32"
-                      alt="User"
-                    />
-                    <AvatarFallback>
-                      {user?.user_metadata?.first_name?.[0] ||
-                        user?.email?.[0] ||
-                        "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.user_metadata?.first_name &&
-                      user?.user_metadata?.last_name
-                        ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-                        : user?.email}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                {/* <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem> */}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        onLogout={handleLogout}
+        onUpgradeClick={() => setShowUpgradeModal(true)}
+      />
 
       <div className="flex-1 space-y-4 p-4 lg:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Transcriptions
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? "..." : metrics?.total_transcriptions || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                All time transcriptions
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Processing</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? "..." : metrics?.processing_count || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Currently being processed
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <Music className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? "..." : metrics?.this_month_count || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Transcriptions this month
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Transcriptions Left this Month
-              </CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading
-                  ? "..."
-                  : metrics?.transcriptions_left === null
-                  ? "∞"
-                  : metrics?.transcriptions_left || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {metrics?.transcriptions_left === null
-                  ? "Unlimited plan"
-                  : "Remaining this month"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <MetricsCards metrics={metrics} loading={metricsLoading} />
 
         <Tabs
           value={activeTab}
@@ -544,145 +119,20 @@ export default function DashboardPage() {
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Audio File</CardTitle>
-                <CardDescription>
-                  {metrics?.transcriptions_left !== undefined &&
-                  metrics.transcriptions_left !== null &&
-                  metrics.transcriptions_left <= 2 ? (
-                    <span className="text-yellow-600 font-medium">
-                      You have only {metrics.transcriptions_left} transcription
-                      {metrics.transcriptions_left === 1 ? "" : "s"} left this
-                      month.
-                    </span>
-                  ) : metrics?.transcriptions_left === 0 ? (
-                    <span className="text-red-600 font-medium">
-                      You have reached your monthly limit. Please upgrade to
-                      continue.
-                    </span>
-                  ) : (
-                    "Upload your audio file to convert it to piano sheet music"
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive
-                      ? "border-primary bg-primary/5"
-                      : "border-muted-foreground/25"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    Drop your audio file here
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    or click to browse files
-                  </p>
-                  <Button
-                    onClick={() => {
-                      handleFileInput();
-                    }}
-                  >
-                    Choose File
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-4">
-                    Supports MP3, WAV, FLAC up to 10MB
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <FileUploader
+              metrics={metrics}
+              metricsLoading={metricsLoading}
+              onUpgradeRequired={() => setShowUpgradeModal(true)}
+              onFileUploaded={(newTranscription) => {
+                addTranscription(newTranscription);
+                setActiveTab("transcriptions");
+              }}
+              user={user}
+            />
           </TabsContent>
 
           <TabsContent value="transcriptions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Transcriptions</CardTitle>
-                <CardDescription>
-                  View and download your transcribed sheet music
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {transcriptions.map((transcription) => (
-                    <div
-                      key={transcription.id}
-                      className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(transcription.status)}
-                          <div>
-                            <p className="font-medium">
-                              {transcription.filename}
-                            </p>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                              <span>{transcription.duration}</span>
-                              <span>{transcription.size}</span>
-                              <span>{transcription.uploadedAt}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            variant={
-                              transcription.status === "completed"
-                                ? "default"
-                                : transcription.status === "processing"
-                                ? "secondary"
-                                : "destructive"
-                            }
-                          >
-                            {getStatusText(transcription.status)}
-                          </Badge>
-                          {transcription.status === "processing" && (
-                            <div className="w-24">
-                              <Progress value={transcription.progress} />
-                            </div>
-                          )}
-                        </div>
-
-                        {transcription.status === "completed" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(transcription)}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </Button>
-                        )}
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Reprocess</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <TranscriptionsList transcriptions={transcriptions} />
           </TabsContent>
         </Tabs>
       </div>
