@@ -10,8 +10,15 @@ services:
       - packages/pianofi_config/.env
     volumes:
       - ./uploads:/app/uploads
-      - ./backend:/app/backend
+      # - ./backend/app:/app/app
       - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/app
+          target: /app/app
+        - action: rebuild
+          path: ./Dockerfile.dev
     restart: unless-stopped
   frontend:
     build:
@@ -25,8 +32,19 @@ services:
     environment:
       - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000  # ✅ Use service name
     volumes:
-      - ./frontend:/app
+      # - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
+      - /app/.next
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+            - .next/
+        - action: rebuild
+          path: ./frontend/Dockerfile.dev
     depends_on:
       - backend
   worker:

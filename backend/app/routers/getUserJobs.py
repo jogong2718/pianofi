@@ -42,6 +42,7 @@ async def get_user_jobs(
             SELECT job_id, status, created_at, result_key, file_name, file_size, file_duration
             FROM jobs 
             WHERE user_id = :user_id 
+            AND status != 'deleted'
             ORDER BY created_at DESC
         """)
         
