@@ -49,7 +49,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 
   return (
     <>
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg cur">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <TranscriptionStatusBadge status={transcription.status} />

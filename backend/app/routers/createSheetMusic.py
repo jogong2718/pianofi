@@ -39,11 +39,10 @@ local = Config.USE_LOCAL_STORAGE == "true"
 
 
 logging.basicConfig(
-    level=logging.INFO,  # Change to DEBUG for more verbose output
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
+    format='%(levelname)s - %(name)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout),  # Print to console
-        logging.FileHandler('app.log')     # Also save to file
+        logging.StreamHandler(sys.stdout),
     ]
 )
 
