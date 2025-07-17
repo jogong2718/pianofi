@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from music21 import converter, stream, clef, meter, key
+from music21 import converter, stream, clef, meter, key, chord, note
 import tempfile
 import copy
 
@@ -13,7 +13,7 @@ def test_midi_to_xml(midi_file_path):
         score = converter.parse(midi_file_path)
         print(f"✓ Successfully parsed MIDI file")
         
-        # Apply quantization (same as worker)
+        # # Apply quantization (same as worker)
         score.quantize(
             quarterLengthDivisors=[4, 3],  # More strict - only common note values
             processOffsets=True, 
@@ -29,7 +29,7 @@ def test_midi_to_xml(midi_file_path):
         
         # Save to current directory instead of temp
         midi_name = Path(midi_file_path).stem  # Get filename without extension
-        xml_path = f"{midi_name}.xml"
+        xml_path = f"{midi_name}.musicxml"
         
         piano_score.write("musicxml", xml_path)
         print(f"✓ Converted to XML: {xml_path}")
@@ -45,114 +45,67 @@ def test_midi_to_xml(midi_file_path):
         return None
 
 def create_piano_score(original_score):
-    """Create a piano score with treble and bass clefs"""
-    from music21 import note, chord, layout, stream, duration, pitch
-    
-    # Create new score
+    """
+    Split a piano MIDI into two staves (treble/bass),
+    preserving exact measure structure and offsets.
+    """
+    # We’ll assume the MIDI has a single piano Part.
+    src_part = original_score.parts[0]
+
+    # Prepare new Score and Parts
     piano_score = stream.Score()
-    
-    # Add metadata if present
-    if original_score.metadata:
-        piano_score.metadata = original_score.metadata
-    
-    # Create treble and bass staves as separate parts
     treble_part = stream.Part()
-    treble_part.id = 'Piano-Treble'
-    treble_part.partName = 'Piano'
+    bass_part   = stream.Part()
+
+    # Add clefs at the very beginning
     treble_part.insert(0, clef.TrebleClef())
-    
-    bass_part = stream.Part()
-    bass_part.id = 'Piano-Bass' 
-    bass_part.partName = 'Piano'
-    bass_part.insert(0, clef.BassClef())
-    
-    # Add time signature and key signature from original if present
-    time_sig = None
-    key_sig = None
-    for element in original_score.flatten():
-        if isinstance(element, meter.TimeSignature) and time_sig is None:
-            time_sig = copy.deepcopy(element)
-            treble_part.insert(0, time_sig)
-            bass_part.insert(0, copy.deepcopy(element))
-        elif isinstance(element, key.KeySignature) and key_sig is None:
-            key_sig = copy.deepcopy(element)
-            treble_part.insert(0, key_sig)
-            bass_part.insert(0, copy.deepcopy(element))
-    
-    # If no time signature found, add default 4/4
-    if time_sig is None:
-        default_ts = meter.TimeSignature('4/4')
-        treble_part.insert(0, default_ts)
-        bass_part.insert(0, meter.TimeSignature('4/4'))
-    
-    # Define staff ranges (MIDI note numbers)
-    TREBLE_MIN = 60   # C4 (Middle C)
-    TREBLE_MAX = 84   # C6 (High C)
-    BASS_MIN = 36     # C2 (Low C)
-    BASS_MAX = 72     # C5 (Tenor C)
-    
-    # Middle C (C4) is around MIDI note 60, use this as split point
-    SPLIT_PITCH = 60  # Middle C
-    
-    # Collect notes for each staff with timing
-    treble_notes = []
-    bass_notes = []
-    
-    # Only process notes and chords, skip rests entirely
-    for element in original_score.flatten().notes:
-        if element.isNote:
-            note_copy = copy.deepcopy(element)
-            midi_num = element.pitch.midi
-            if midi_num >= SPLIT_PITCH:
-                treble_notes.append((element.offset, note_copy))
+    bass_part.insert(0,   clef.BassClef())
+
+    SPLIT = 60  # Middle C
+
+    # Iterate each measure in source
+    for m in src_part.getElementsByClass(stream.Measure):
+        # Create two empty measures with the same number & time/key signatures
+        m_num = m.measureNumber
+        m_ts  = copy.deepcopy(m.timeSignature) if m.timeSignature else None
+        m_ks  = copy.deepcopy(m.keySignature)  if m.keySignature  else None
+
+        treb_m = stream.Measure(number=m_num)
+        bass_m = stream.Measure(number=m_num)
+        if m_ts: 
+            treb_m.timeSignature = m_ts
+            bass_m.timeSignature = copy.deepcopy(m_ts)
+        if m_ks:
+            treb_m.keySignature = m_ks
+            bass_m.keySignature = copy.deepcopy(m_ks)
+
+        # Copy notes/chords/rests into the “right” measure
+        for el in m.notesAndRests:
+            # el.offset is *within* the measure already
+            if isinstance(el, note.Note):
+                target = treb_m if el.pitch.midi >= SPLIT else bass_m
+                target.insert(el.offset, copy.deepcopy(el))
+            elif isinstance(el, chord.Chord):
+                high = [p for p in el.pitches if p.midi >= SPLIT]
+                low  = [p for p in el.pitches if p.midi <  SPLIT]
+                if high:
+                    c2 = chord.Chord(high, quarterLength=el.quarterLength)
+                    treb_m.insert(el.offset, c2)
+                if low:
+                    c3 = chord.Chord(low,  quarterLength=el.quarterLength)
+                    bass_m.insert(el.offset, c3)
             else:
-                bass_notes.append((element.offset, note_copy))
-                
-        elif element.isChord:
-            # Split chord notes based on pitch
-            treble_chord_notes = []
-            bass_chord_notes = []
-            
-            for pitch in element.pitches:
-                if pitch.midi >= SPLIT_PITCH:
-                    treble_chord_notes.append(pitch)
-                else:
-                    bass_chord_notes.append(pitch)
-            
-            # Create new chords for each staff
-            if treble_chord_notes:
-                treble_chord = chord.Chord(treble_chord_notes, 
-                                         quarterLength=element.quarterLength)
-                treble_notes.append((element.offset, treble_chord))
-            
-            if bass_chord_notes:
-                bass_chord = chord.Chord(bass_chord_notes, 
-                                       quarterLength=element.quarterLength)
-                bass_notes.append((element.offset, bass_chord))
-    
-    # Sort notes by offset
-    treble_notes.sort(key=lambda x: x[0])
-    bass_notes.sort(key=lambda x: x[0])
-    
-    # Add notes with proper timing and constrained rests
-    def add_notes_with_timing(part, notes_list, staff_min, staff_max):
-        if not notes_list:
-            return
-            
-        for offset, note_obj in notes_list:
-            # Add the note at its proper offset, music21 will handle timing
-            part.insert(offset, note_obj)
-    
-    add_notes_with_timing(treble_part, treble_notes, TREBLE_MIN, TREBLE_MAX)
-    add_notes_with_timing(bass_part, bass_notes, BASS_MIN, BASS_MAX)
-    
-    # Add both parts to score
+                # e.g. a Rest—copy into both staves so measures sum correctly
+                treb_m.insert(el.offset, copy.deepcopy(el))
+                bass_m.insert(el.offset, copy.deepcopy(el))
+
+        # Append these measures in sequence
+        treble_part.append(treb_m)
+        bass_part.append(bass_m)
+
+    # Finally, add the two parts to the score
     piano_score.insert(0, treble_part)
     piano_score.insert(0, bass_part)
-    
-    # Fill gaps with rests without altering timing
-    piano_score.makeRests(inPlace=True)
-    
     return piano_score
 
 
