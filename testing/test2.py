@@ -172,12 +172,22 @@ class MidiToMusicXML:
         
         # Part list
         part_list = ET.SubElement(root, 'part-list')
-        score_part = ET.SubElement(part_list, 'score-part', id="P1")
-        part_name = ET.SubElement(score_part, 'part-name')
-        part_name.text = "Piano"
         
-        # Part
-        part = ET.SubElement(root, 'part', id="P1")
+        # Treble part
+        score_part1 = ET.SubElement(part_list, 'score-part', id="P1")
+        part_name1 = ET.SubElement(score_part1, 'part-name')
+        part_name1.text = "Treble"
+        
+        # Bass part
+        score_part2 = ET.SubElement(part_list, 'score-part', id="P2")
+        part_name2 = ET.SubElement(score_part2, 'part-name')
+        part_name2.text = "Bass"
+        
+        # Treble part
+        treble_part = ET.SubElement(root, 'part', id="P1")
+        
+        # Bass part
+        bass_part = ET.SubElement(root, 'part', id="P2")
         
         # Generate measures
         measure_length = self.ticks_per_quarter * 4  # 4/4 time
@@ -186,12 +196,14 @@ class MidiToMusicXML:
         moment_index = 0
         
         while moment_index < len(musical_moments):
-            measure = ET.SubElement(part, 'measure', number=str(measure_num))
+            treble_measure = ET.SubElement(treble_part, 'measure', number=str(measure_num))
+            bass_measure = ET.SubElement(bass_part, 'measure', number=str(measure_num))
             measure_end = current_time + measure_length
             
             # Add attributes to first measure
             if measure_num == 1:
-                self._add_measure_attributes(measure)
+                self._add_measure_attributes(treble_measure, "treble")
+                self._add_measure_attributes(bass_measure, "bass")
             
             # Add musical moments in this measure
             while (moment_index < len(musical_moments) and 
@@ -203,14 +215,27 @@ class MidiToMusicXML:
                 # Add rest if needed
                 if moment_time > current_time:
                     rest_duration = moment_time - current_time
-                    self._add_rest(measure, rest_duration)
+                    self._add_rest(treble_measure, rest_duration)
+                    self._add_rest(bass_measure, rest_duration)
                     current_time = moment_time
                 
                 # Calculate actual duration (clip to measure boundary)
                 actual_duration = min(moment['duration'], measure_end - moment_time)
                 
-                # Add chord/note with proper duration
-                self._add_chord_with_duration(measure, moment['notes'], actual_duration)
+                # Split notes between treble and bass
+                treble_notes = [note for note in moment['notes'] if note['midi_note'] >= 60]  # Middle C and above
+                bass_notes = [note for note in moment['notes'] if note['midi_note'] < 60]  # Below middle C
+                
+                # Add chords with proper duration
+                if treble_notes:
+                    self._add_chord_with_duration(treble_measure, treble_notes, actual_duration)
+                else:
+                    self._add_rest(treble_measure, actual_duration)
+                    
+                if bass_notes:
+                    self._add_chord_with_duration(bass_measure, bass_notes, actual_duration)
+                else:
+                    self._add_rest(bass_measure, actual_duration)
                 
                 current_time = moment_time + actual_duration
                 moment_index += 1
@@ -218,15 +243,16 @@ class MidiToMusicXML:
             # Fill rest of measure with rest if needed
             if current_time < measure_end:
                 rest_duration = measure_end - current_time
-                self._add_rest(measure, rest_duration)
+                self._add_rest(treble_measure, rest_duration)
+                self._add_rest(bass_measure, rest_duration)
             
-            current_time = measure_end
+            current_time = measure_num
             measure_num += 1
         
         # Write XML file
         self._write_xml(root, output_filepath)
     
-    def _add_measure_attributes(self, measure):
+    def _add_measure_attributes(self, measure, clef_type="treble"):
         """Add measure attributes (time signature, key, clef)"""
         attributes = ET.SubElement(measure, 'attributes')
         
@@ -246,12 +272,17 @@ class MidiToMusicXML:
         beat_type = ET.SubElement(time_sig, 'beat-type')
         beat_type.text = "4"
         
-        # Treble clef
+        # Clef
         clef = ET.SubElement(attributes, 'clef')
         sign = ET.SubElement(clef, 'sign')
-        sign.text = "G"
         line = ET.SubElement(clef, 'line')
-        line.text = "2"
+        
+        if clef_type == "treble":
+            sign.text = "G"
+            line.text = "2"
+        else:  # bass
+            sign.text = "F"
+            line.text = "4"
     
     def _add_rest(self, measure, duration):
         """Add rest to measure"""
