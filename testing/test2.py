@@ -136,14 +136,52 @@ class MidiToMusicXML:
             note['start_time'] = self._quantize_time(note['start_time'])
             note['duration'] = max(self._quantize_time(note['duration']), 
                                  self.ticks_per_quarter // 4)
-        
+    
         # Sort notes by start time
         self.notes.sort(key=lambda x: x['start_time'])
         
-        # Group into chords (notes starting at same time)
-        chords = defaultdict(list)
+        # Create timeline of all events (note starts and ends)
+        events = []
         for note in self.notes:
-            chords[note['start_time']].append(note)
+            events.append({
+                'time': note['start_time'],
+                'type': 'start',
+                'note': note
+            })
+            events.append({
+                'time': note['start_time'] + note['duration'],
+                'type': 'end',
+                'note': note
+            })
+        
+        # Sort events by time
+        events.sort(key=lambda x: (x['time'], x['type'] == 'start'))
+        
+        # Process events and create musical moments
+        musical_moments = []
+        active_notes = []
+        current_time = 0
+        
+        for event in events:
+            event_time = event['time']
+            
+            # If time has advanced and we have active notes, create a musical moment
+            if event_time > current_time and active_notes:
+                duration = event_time - current_time
+                musical_moments.append({
+                    'time': current_time,
+                    'duration': duration,
+                    'notes': active_notes.copy()
+                })
+            
+            # Update active notes
+            if event['type'] == 'start':
+                active_notes.append(event['note'])
+            else:  # end
+                if event['note'] in active_notes:
+                    active_notes.remove(event['note'])
+            
+            current_time = event_time
         
         # Create XML structure
         root = ET.Element('score-partwise', version="3.1")
@@ -161,11 +199,9 @@ class MidiToMusicXML:
         measure_length = self.ticks_per_quarter * 4  # 4/4 time
         current_time = 0
         measure_num = 1
+        moment_index = 0
         
-        chord_times = sorted(chords.keys())
-        chord_index = 0
-        
-        while chord_index < len(chord_times) or current_time < (chord_times[-1] if chord_times else 0):
+        while moment_index < len(musical_moments):
             measure = ET.SubElement(part, 'measure', number=str(measure_num))
             measure_end = current_time + measure_length
             
@@ -173,25 +209,27 @@ class MidiToMusicXML:
             if measure_num == 1:
                 self._add_measure_attributes(measure)
             
-            # Add notes/chords in this measure
-            while (chord_index < len(chord_times) and 
-                   chord_times[chord_index] < measure_end):
+            # Add musical moments in this measure
+            while (moment_index < len(musical_moments) and 
+                   musical_moments[moment_index]['time'] < measure_end):
                 
-                chord_time = chord_times[chord_index]
+                moment = musical_moments[moment_index]
+                moment_time = moment['time']
                 
                 # Add rest if needed
-                if chord_time > current_time:
-                    rest_duration = chord_time - current_time
+                if moment_time > current_time:
+                    rest_duration = moment_time - current_time
                     self._add_rest(measure, rest_duration)
+                    current_time = moment_time
                 
-                # Add chord
-                chord_notes = chords[chord_time]
-                self._add_chord(measure, chord_notes, measure_end)
+                # Calculate actual duration (clip to measure boundary)
+                actual_duration = min(moment['duration'], measure_end - moment_time)
                 
-                # Update current time
-                max_duration = max(note['duration'] for note in chord_notes)
-                current_time = chord_time + max_duration
-                chord_index += 1
+                # Add chord/note
+                self._add_chord_with_duration(measure, moment['notes'], actual_duration)
+                
+                current_time = moment_time + actual_duration
+                moment_index += 1
             
             # Fill rest of measure with rest if needed
             if current_time < measure_end:
@@ -283,6 +321,38 @@ class MidiToMusicXML:
                 notations = ET.SubElement(note_elem, 'notations')
                 tied = ET.SubElement(notations, 'tied', type="start")
     
+    def _add_chord_with_duration(self, measure, chord_notes, duration):
+        """Add chord to measure with specific duration"""
+        # Sort notes by pitch (lowest first)
+        chord_notes.sort(key=lambda x: x['midi_note'])
+        
+        for i, note in enumerate(chord_notes):
+            note_elem = ET.SubElement(measure, 'note')
+            
+            # Add chord element for all notes except first
+            if i > 0:
+                chord = ET.SubElement(note_elem, 'chord')
+            
+            # Pitch
+            pitch = ET.SubElement(note_elem, 'pitch')
+            step = ET.SubElement(pitch, 'step')
+            step.text = note['pitch']['step']
+            
+            if note['pitch']['alter'] != 0:
+                alter = ET.SubElement(pitch, 'alter')
+                alter.text = str(note['pitch']['alter'])
+            
+            octave = ET.SubElement(pitch, 'octave')
+            octave.text = str(note['pitch']['octave'])
+            
+            # Duration
+            duration_elem = ET.SubElement(note_elem, 'duration')
+            duration_elem.text = str(duration)
+            
+            # Type
+            note_type = ET.SubElement(note_elem, 'type')
+            note_type.text = self._get_note_type(duration)
+
     def _write_xml(self, root, filepath):
         """Write XML to file with formatting"""
         xml_str = ET.tostring(root, encoding='unicode')
