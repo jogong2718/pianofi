@@ -33,6 +33,9 @@ next-env.d.ts
 # python
 __pycache__/
 venv/
+.venv/
+uv.lock
+.python-version
 tmpvenv/
 newvenv/
 pvenv/

@@ -365,5 +365,20 @@ def convert_midi_to_musicxml(midi_file, output_file):
 
 # Example usage
 if __name__ == "__main__":
-    convert_midi_to_musicxml("testing/09eded96-ed54-4aab-81f2-6fdb97d32afa.mid", 
-                           "testing/09eded96-ed54-4aab-81f2-6fdb97d32afa.musicxml")
+    import sys
+    import os
+    
+    if len(sys.argv) != 2:
+        print("Usage: python test2.py <song_name>")
+        sys.exit(1)
+    
+    song_name = sys.argv[1]
+    
+    midi_file = os.path.abspath(f"testing/midi/{song_name}.mid")
+    output_file = os.path.abspath(f"testing/xml/{song_name}.musicxml")
+    
+    if not os.path.exists(midi_file):
+        print(f"Error: MIDI file not found: {midi_file}")
+        sys.exit(1)
+    
+    convert_midi_to_musicxml(midi_file, output_file)
