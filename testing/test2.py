@@ -246,7 +246,7 @@ class MidiToMusicXML:
                 self._add_rest(treble_measure, rest_duration)
                 self._add_rest(bass_measure, rest_duration)
             
-            current_time = measure_num
+            current_time = measure_end  # FIXED: Set to measure_end, not measure_num
             measure_num += 1
         
         # Write XML file
@@ -387,12 +387,7 @@ def convert_midi_to_musicxml(midi_file, output_file):
     converter.create_musicxml(output_file)
     print(f"Converted {midi_file} to {output_file}")
 
-def convert_midi_to_musicxml(midi_file, output_file):
-    """Convert MIDI file to MusicXML"""
-    converter = MidiToMusicXML()
-    converter.parse_midi_file(midi_file)
-    converter.create_musicxml(output_file)
-    print(f"Converted {midi_file} to {output_file}")
+
 
 # Example usage
 if __name__ == "__main__":
@@ -413,3 +408,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     convert_midi_to_musicxml(midi_file, output_file)
+
+# if __name__ == "__main__":
+#     convert_midi_to_musicxml("testing/09eded96-ed54-4aab-81f2-6fdb97d32afa.mid", 
+#                            "testing/09eded96-ed54-4aab-81f2-6fdb97d32afa.musicxml")
