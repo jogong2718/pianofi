@@ -136,52 +136,36 @@ class MidiToMusicXML:
             note['start_time'] = self._quantize_time(note['start_time'])
             note['duration'] = max(self._quantize_time(note['duration']), 
                                  self.ticks_per_quarter // 4)
-    
+
         # Sort notes by start time
         self.notes.sort(key=lambda x: x['start_time'])
         
-        # Create timeline of all events (note starts and ends)
-        events = []
+        # Create timeline of chord start events only
+        chord_starts = defaultdict(list)
         for note in self.notes:
-            events.append({
-                'time': note['start_time'],
-                'type': 'start',
-                'note': note
-            })
-            events.append({
-                'time': note['start_time'] + note['duration'],
-                'type': 'end',
-                'note': note
-            })
+            chord_starts[note['start_time']].append(note)
         
-        # Sort events by time
-        events.sort(key=lambda x: (x['time'], x['type'] == 'start'))
-        
-        # Process events and create musical moments
+        # Create musical moments based on chord starts
         musical_moments = []
-        active_notes = []
-        current_time = 0
+        chord_times = sorted(chord_starts.keys())
         
-        for event in events:
-            event_time = event['time']
+        for i, chord_time in enumerate(chord_times):
+            chord_notes = chord_starts[chord_time]
             
-            # If time has advanced and we have active notes, create a musical moment
-            if event_time > current_time and active_notes:
-                duration = event_time - current_time
-                musical_moments.append({
-                    'time': current_time,
-                    'duration': duration,
-                    'notes': active_notes.copy()
-                })
+            # Determine duration until next chord or end of longest note
+            if i + 1 < len(chord_times):
+                next_chord_time = chord_times[i + 1]
+                # Duration is until next chord starts
+                duration = next_chord_time - chord_time
+            else:
+                # Last chord - duration is length of longest note
+                duration = max(note['duration'] for note in chord_notes)
             
-            # Update active notes
-            if event['type'] == 'start':
-                active_notes.append(event['note'])
-            else:  # end
-                if event['note'] in active_notes:
-                    active_notes.remove(event['note'])
-            
-            current_time = event_time
+            musical_moments.append({
+                'time': chord_time,
+                'duration': duration,
+                'notes': chord_notes
+            })
         
         # Create XML structure
         root = ET.Element('score-partwise', version="3.1")
@@ -225,7 +209,7 @@ class MidiToMusicXML:
                 # Calculate actual duration (clip to measure boundary)
                 actual_duration = min(moment['duration'], measure_end - moment_time)
                 
-                # Add chord/note
+                # Add chord/note with proper duration
                 self._add_chord_with_duration(measure, moment['notes'], actual_duration)
                 
                 current_time = moment_time + actual_duration
@@ -364,6 +348,13 @@ class MidiToMusicXML:
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines))
+
+def convert_midi_to_musicxml(midi_file, output_file):
+    """Convert MIDI file to MusicXML"""
+    converter = MidiToMusicXML()
+    converter.parse_midi_file(midi_file)
+    converter.create_musicxml(output_file)
+    print(f"Converted {midi_file} to {output_file}")
 
 def convert_midi_to_musicxml(midi_file, output_file):
     """Convert MIDI file to MusicXML"""
