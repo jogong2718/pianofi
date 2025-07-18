@@ -108,8 +108,8 @@ class MidiToMusicXML:
             return {'step': note_name, 'alter': 0, 'octave': octave}
     
     def _quantize_time(self, time):
-        """Quantize time to nearest 16th note"""
-        grid = self.ticks_per_quarter // 4
+        """Quantize time to nearest 32nd note"""
+        grid = self.ticks_per_quarter // 16  # Changed from 4 to 8 for 32nd notes
         return round(time / grid) * grid
     
     def _get_note_type(self, duration):
@@ -394,11 +394,7 @@ if __name__ == "__main__":
     import sys
     import os
     
-    if len(sys.argv) != 2:
-        print("Usage: python test2.py <song_name>")
-        sys.exit(1)
-    
-    song_name = sys.argv[1]
+    song_name = "09eded96-ed54-4aab-81f2-6fdb97d32afa"
     
     midi_file = os.path.abspath(f"testing/midi/{song_name}.mid")
     output_file = os.path.abspath(f"testing/xml/{song_name}.musicxml")
