@@ -109,7 +109,7 @@ class MidiToMusicXML:
     
     def _quantize_time(self, time):
         """Quantize time to nearest 32nd note"""
-        grid = self.ticks_per_quarter // 16  # Changed from 4 to 8 for 32nd notes
+        grid = self.ticks_per_quarter // 16  # important
         return round(time / grid) * grid
     
     def _get_note_type(self, duration):
@@ -135,7 +135,7 @@ class MidiToMusicXML:
         for note in self.notes:
             note['start_time'] = self._quantize_time(note['start_time'])
             note['duration'] = max(self._quantize_time(note['duration']), 
-                                 self.ticks_per_quarter // 4)
+                                 self.ticks_per_quarter // 16)
 
         # Sort notes by start time
         self.notes.sort(key=lambda x: x['start_time'])
@@ -394,7 +394,7 @@ if __name__ == "__main__":
     import sys
     import os
     
-    song_name = "09eded96-ed54-4aab-81f2-6fdb97d32afa"
+    song_name = "ROSÉ & Bruno Mars - APT"
     
     midi_file = os.path.abspath(f"testing/midi/{song_name}.mid")
     output_file = os.path.abspath(f"testing/xml/{song_name}.musicxml")
