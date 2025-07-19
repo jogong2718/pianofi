@@ -126,6 +126,49 @@ class MidiToMusicXML:
         else:
             return '32nd'
     
+    def _add_chord_with_duration(self, measure, chord_notes, duration, beam_state=None):
+        """Add chord to measure with specific duration"""
+        # Sort notes by pitch (lowest first)
+        chord_notes.sort(key=lambda x: x['midi_note'])
+        
+        for i, note in enumerate(chord_notes):
+            note_elem = ET.SubElement(measure, 'note')
+            
+            # Add chord element for all notes except first
+            if i > 0:
+                chord = ET.SubElement(note_elem, 'chord')
+            
+            # Pitch
+            pitch = ET.SubElement(note_elem, 'pitch')
+            step = ET.SubElement(pitch, 'step')
+            step.text = note['pitch']['step']
+            
+            if note['pitch']['alter'] != 0:
+                alter = ET.SubElement(pitch, 'alter')
+                alter.text = str(note['pitch']['alter'])
+            
+            octave = ET.SubElement(pitch, 'octave')
+            octave.text = str(note['pitch']['octave'])
+            
+            # Duration
+            duration_elem = ET.SubElement(note_elem, 'duration')
+            duration_elem.text = str(duration)
+            
+            # Type
+            note_type = ET.SubElement(note_elem, 'type')
+            note_type.text = self._get_note_type(duration)
+            
+            # Add beam information if applicable and it's the first note in the chord
+            if beam_state and i == 0 and self._should_beam(duration):
+                beam = ET.SubElement(note_elem, 'beam', number="1")
+                beam.text = beam_state
+
+    def _should_beam(self, duration):
+        """Determine if a note should be beamed based on its duration"""
+        # Notes that can be beamed: eighth notes and shorter
+        note_type = self._get_note_type(duration)
+        return note_type in ['eighth', '16th', '32nd']
+    
     def create_musicxml(self, output_filepath):
         """Generate MusicXML"""
         if not self.notes:
@@ -205,6 +248,16 @@ class MidiToMusicXML:
                 self._add_measure_attributes(treble_measure, "treble")
                 self._add_measure_attributes(bass_measure, "bass")
             
+            # Track beaming state
+            treble_beam_active = False
+            bass_beam_active = False
+            last_treble_duration = 0
+            last_bass_duration = 0
+            
+            # Track last rest elements in each part
+            last_treble_rest = None
+            last_bass_rest = None
+            
             # Add musical moments in this measure
             while (moment_index < len(musical_moments) and 
                    musical_moments[moment_index]['time'] < measure_end):
@@ -215,9 +268,12 @@ class MidiToMusicXML:
                 # Add rest if needed
                 if moment_time > current_time:
                     rest_duration = moment_time - current_time
-                    self._add_rest(treble_measure, rest_duration)
-                    self._add_rest(bass_measure, rest_duration)
+                    last_treble_rest = self._add_rest(treble_measure, rest_duration, last_treble_rest)
+                    last_bass_rest = self._add_rest(bass_measure, rest_duration, last_bass_rest)
                     current_time = moment_time
+                    # End any active beams when a rest is inserted
+                    treble_beam_active = False
+                    bass_beam_active = False
                 
                 # Calculate actual duration (clip to measure boundary)
                 actual_duration = min(moment['duration'], measure_end - moment_time)
@@ -226,16 +282,65 @@ class MidiToMusicXML:
                 treble_notes = [note for note in moment['notes'] if note['midi_note'] >= 60]  # Middle C and above
                 bass_notes = [note for note in moment['notes'] if note['midi_note'] < 60]  # Below middle C
                 
-                # Add chords with proper duration
+                # Handle treble part
                 if treble_notes:
-                    self._add_chord_with_duration(treble_measure, treble_notes, actual_duration)
-                else:
-                    self._add_rest(treble_measure, actual_duration)
+                    # Notes - reset last rest since we're adding notes
+                    last_treble_rest = None
                     
-                if bass_notes:
-                    self._add_chord_with_duration(bass_measure, bass_notes, actual_duration)
+                    # Determine beam state for treble
+                    treble_beam_state = None
+                    if self._should_beam(actual_duration):
+                        if treble_beam_active and actual_duration == last_treble_duration:
+                            treble_beam_state = "continue"
+                        else:
+                            treble_beam_active = True
+                            treble_beam_state = "begin"
+                        
+                        # Check if next moment should continue the beam
+                        next_moment_idx = moment_index + 1
+                        if (next_moment_idx >= len(musical_moments) or 
+                            musical_moments[next_moment_idx]['time'] >= measure_end or
+                            not self._should_beam(musical_moments[next_moment_idx]['duration']) or
+                            musical_moments[next_moment_idx]['duration'] != actual_duration):
+                            treble_beam_state = "end"
+                            treble_beam_active = False
+                    
+                    self._add_chord_with_duration(treble_measure, treble_notes, actual_duration, treble_beam_state)
+                    last_treble_duration = actual_duration
                 else:
-                    self._add_rest(bass_measure, actual_duration)
+                    # Rest - maintain consecutive rest tracking
+                    last_treble_rest = self._add_rest(treble_measure, actual_duration, last_treble_rest)
+                    treble_beam_active = False
+                
+                # Handle bass part
+                if bass_notes:
+                    # Notes - reset last rest since we're adding notes
+                    last_bass_rest = None
+                    
+                    # Determine beam state for bass
+                    bass_beam_state = None
+                    if self._should_beam(actual_duration):
+                        if bass_beam_active and actual_duration == last_bass_duration:
+                            bass_beam_state = "continue"
+                        else:
+                            bass_beam_active = True
+                            bass_beam_state = "begin"
+                        
+                        # Check if next moment should continue the beam
+                        next_moment_idx = moment_index + 1
+                        if (next_moment_idx >= len(musical_moments) or 
+                            musical_moments[next_moment_idx]['time'] >= measure_end or
+                            not self._should_beam(musical_moments[next_moment_idx]['duration']) or
+                            musical_moments[next_moment_idx]['duration'] != actual_duration):
+                            bass_beam_state = "end"
+                            bass_beam_active = False
+                    
+                    self._add_chord_with_duration(bass_measure, bass_notes, actual_duration, bass_beam_state)
+                    last_bass_duration = actual_duration
+                else:
+                    # Rest - maintain consecutive rest tracking
+                    last_bass_rest = self._add_rest(bass_measure, actual_duration, last_bass_rest)
+                    bass_beam_active = False
                 
                 current_time = moment_time + actual_duration
                 moment_index += 1
@@ -243,10 +348,10 @@ class MidiToMusicXML:
             # Fill rest of measure with rest if needed
             if current_time < measure_end:
                 rest_duration = measure_end - current_time
-                self._add_rest(treble_measure, rest_duration)
-                self._add_rest(bass_measure, rest_duration)
+                self._add_rest(treble_measure, rest_duration, last_treble_rest)
+                self._add_rest(bass_measure, rest_duration, last_bass_rest)
             
-            current_time = measure_end  # FIXED: Set to measure_end, not measure_num
+            current_time = measure_end
             measure_num += 1
         
         # Write XML file
@@ -284,16 +389,35 @@ class MidiToMusicXML:
             sign.text = "F"
             line.text = "4"
     
-    def _add_rest(self, measure, duration):
-        """Add rest to measure"""
-        note = ET.SubElement(measure, 'note')
-        rest = ET.SubElement(note, 'rest')
-        
-        duration_elem = ET.SubElement(note, 'duration')
-        duration_elem.text = str(duration)
-        
-        note_type = ET.SubElement(note, 'type')
-        note_type.text = self._get_note_type(duration)
+    def _add_rest(self, measure, duration, previous_rest=None):
+        """
+        Add rest to measure or update an existing rest
+        Returns the added/updated rest element
+        """
+        if previous_rest is not None:
+            # Update existing rest instead of adding a new one
+            prev_duration = int(previous_rest.find('duration').text)
+            new_duration = prev_duration + duration
+            
+            # Update duration
+            previous_rest.find('duration').text = str(new_duration)
+            
+            # Update note type
+            previous_rest.find('type').text = self._get_note_type(new_duration)
+            
+            return previous_rest
+        else:
+            # Create a new rest
+            note = ET.SubElement(measure, 'note')
+            rest = ET.SubElement(note, 'rest')
+            
+            duration_elem = ET.SubElement(note, 'duration')
+            duration_elem.text = str(duration)
+            
+            note_type = ET.SubElement(note, 'type')
+            note_type.text = self._get_note_type(duration)
+            
+            return note
     
     def _add_chord(self, measure, chord_notes, measure_end):
         """Add chord to measure"""
@@ -336,38 +460,6 @@ class MidiToMusicXML:
                 notations = ET.SubElement(note_elem, 'notations')
                 tied = ET.SubElement(notations, 'tied', type="start")
     
-    def _add_chord_with_duration(self, measure, chord_notes, duration):
-        """Add chord to measure with specific duration"""
-        # Sort notes by pitch (lowest first)
-        chord_notes.sort(key=lambda x: x['midi_note'])
-        
-        for i, note in enumerate(chord_notes):
-            note_elem = ET.SubElement(measure, 'note')
-            
-            # Add chord element for all notes except first
-            if i > 0:
-                chord = ET.SubElement(note_elem, 'chord')
-            
-            # Pitch
-            pitch = ET.SubElement(note_elem, 'pitch')
-            step = ET.SubElement(pitch, 'step')
-            step.text = note['pitch']['step']
-            
-            if note['pitch']['alter'] != 0:
-                alter = ET.SubElement(pitch, 'alter')
-                alter.text = str(note['pitch']['alter'])
-            
-            octave = ET.SubElement(pitch, 'octave')
-            octave.text = str(note['pitch']['octave'])
-            
-            # Duration
-            duration_elem = ET.SubElement(note_elem, 'duration')
-            duration_elem.text = str(duration)
-            
-            # Type
-            note_type = ET.SubElement(note_elem, 'type')
-            note_type.text = self._get_note_type(duration)
-
     def _write_xml(self, root, filepath):
         """Write XML to file with formatting"""
         xml_str = ET.tostring(root, encoding='unicode')
@@ -394,7 +486,7 @@ if __name__ == "__main__":
     import sys
     import os
     
-    song_name = "ROSÉ & Bruno Mars - APT"
+    song_name = "7262d4ea-ae00-4e99-943e-3b9f7288ea5c"
     
     midi_file = os.path.abspath(f"testing/midi/{song_name}.mid")
     output_file = os.path.abspath(f"testing/xml/{song_name}.musicxml")

@@ -31,6 +31,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -56,6 +57,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -73,6 +75,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="2">
@@ -83,6 +86,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -127,6 +131,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -144,6 +149,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -152,6 +158,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -160,6 +167,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -169,6 +177,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -177,6 +186,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -185,6 +195,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -193,6 +204,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="4">
@@ -203,6 +215,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -211,6 +224,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -219,6 +233,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -236,6 +251,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -244,6 +260,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -262,6 +279,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -270,6 +288,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -278,6 +297,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="5">
@@ -289,6 +309,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -306,6 +327,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -315,6 +337,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -332,6 +355,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -341,6 +365,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -350,6 +375,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -359,6 +385,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -376,6 +403,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="6">
@@ -387,6 +415,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -395,6 +424,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -404,6 +434,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -421,6 +452,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -430,6 +462,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -438,6 +471,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -446,6 +480,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -454,6 +489,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="7">
@@ -465,6 +501,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -473,6 +510,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -481,6 +519,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -489,6 +528,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -502,6 +542,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -510,6 +551,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -518,6 +560,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="8">
@@ -533,6 +576,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -541,6 +585,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -549,6 +594,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -558,6 +604,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -566,6 +613,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -574,6 +622,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -582,6 +631,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="9">
@@ -593,6 +643,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -601,6 +652,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -609,6 +661,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -617,6 +670,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -630,6 +684,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -638,6 +693,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -646,6 +702,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="10">
@@ -661,6 +718,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -669,6 +727,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -677,6 +736,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -690,6 +750,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -698,6 +759,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -706,6 +768,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="11">
@@ -717,6 +780,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -725,6 +789,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -733,6 +798,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -741,6 +807,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -754,6 +821,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -762,6 +830,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -770,6 +839,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="12">
@@ -781,6 +851,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -789,6 +860,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -797,6 +869,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -805,6 +878,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -814,6 +888,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -822,6 +897,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -830,6 +906,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -838,6 +915,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="13">
@@ -848,6 +926,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -856,6 +935,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -864,6 +944,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -872,6 +953,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -885,6 +967,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -898,6 +981,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="14">
@@ -908,6 +992,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -916,6 +1001,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -924,6 +1010,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -932,6 +1019,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -945,6 +1033,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -958,6 +1047,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="15">
@@ -968,6 +1058,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -994,6 +1085,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1007,6 +1099,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -1020,6 +1113,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -1033,6 +1127,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="16">
@@ -1043,6 +1138,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1069,6 +1165,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1082,6 +1179,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1104,6 +1202,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -1112,6 +1211,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1129,6 +1229,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="17">
@@ -1139,6 +1240,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1165,6 +1267,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1178,6 +1281,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1200,6 +1304,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1222,6 +1327,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="18">
@@ -1232,6 +1338,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1258,6 +1365,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1271,6 +1379,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1302,6 +1411,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -1315,6 +1425,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="19">
@@ -1325,6 +1436,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1343,6 +1455,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1357,6 +1470,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -1380,6 +1494,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1397,6 +1512,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="20">
@@ -1429,6 +1545,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -1472,6 +1589,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -1480,6 +1598,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1488,6 +1607,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1496,6 +1616,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1504,6 +1625,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1523,6 +1645,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1531,6 +1654,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1539,6 +1663,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="22">
@@ -1582,6 +1707,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -1634,6 +1760,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -1643,6 +1770,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1651,6 +1779,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1660,6 +1789,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1668,6 +1798,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1676,6 +1807,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
@@ -1690,6 +1822,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="24">
@@ -1733,6 +1866,7 @@
         </pitch>
         <duration>120</duration>
         <type>16th</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -1751,6 +1885,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -1802,6 +1937,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1819,6 +1955,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1836,6 +1973,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1853,6 +1991,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1870,6 +2009,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1887,6 +2027,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1895,6 +2036,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1903,6 +2045,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="26">
@@ -1913,6 +2056,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -1939,6 +2083,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -1947,6 +2092,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -1973,6 +2119,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -2032,6 +2179,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -2040,6 +2188,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -2048,6 +2197,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -2056,6 +2206,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -2064,6 +2215,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2081,6 +2233,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -2089,6 +2242,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <pitch>
@@ -2097,6 +2251,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="28">
@@ -2173,6 +2328,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -2199,6 +2355,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2225,6 +2382,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2251,6 +2409,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2268,6 +2427,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2285,16 +2445,12 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>480</duration>
+        <type>quarter</type>
       </note>
     </measure>
     <measure number="30">
@@ -2305,6 +2461,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -2331,6 +2488,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2357,6 +2515,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2383,6 +2542,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2409,6 +2569,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2440,6 +2601,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -2473,6 +2635,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -2490,6 +2653,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2507,6 +2671,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -2524,6 +2689,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -2573,6 +2739,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -2656,6 +2823,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -2664,6 +2832,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="34">
@@ -2737,6 +2906,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="35">
@@ -2770,6 +2940,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -2791,13 +2962,8 @@
       </note>
       <note>
         <rest/>
-        <duration>480</duration>
+        <duration>720</duration>
         <type>quarter</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
       </note>
       <note>
         <pitch>
@@ -2806,6 +2972,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="36">
@@ -2849,6 +3016,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -2940,6 +3108,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -2992,6 +3161,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -3009,6 +3179,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="38">
@@ -3036,6 +3207,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <pitch>
@@ -3044,24 +3216,21 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <rest/>
-        <duration>480</duration>
+        <duration>720</duration>
         <type>quarter</type>
       </note>
       <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
         <pitch>
           <step>G</step>
           <octave>4</octave>
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="39">
@@ -3095,6 +3264,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -3152,6 +3322,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="40">
@@ -3270,6 +3441,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -3296,6 +3468,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -3322,6 +3495,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -3339,6 +3513,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -3365,6 +3540,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="42">
@@ -3407,6 +3583,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -3447,6 +3624,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="43">
@@ -3489,6 +3667,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -3538,6 +3717,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="44">
@@ -3580,6 +3760,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -3656,6 +3837,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -3715,6 +3897,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="46">
@@ -3739,6 +3922,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -3770,6 +3954,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="47">
@@ -3812,6 +3997,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -3871,6 +4057,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="48">
@@ -3915,6 +4102,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <pitch>
@@ -3946,6 +4134,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
     </measure>
     <measure number="49">
@@ -3989,6 +4178,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4065,6 +4255,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4187,6 +4378,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4308,6 +4500,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4556,6 +4749,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4600,6 +4794,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4655,6 +4850,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4688,13 +4884,8 @@
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>480</duration>
+        <type>quarter</type>
       </note>
       <note>
         <pitch>
@@ -4704,6 +4895,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -4749,6 +4941,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4788,6 +4981,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -4826,6 +5020,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -4868,6 +5063,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4912,6 +5108,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4957,6 +5154,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -4999,6 +5197,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5059,6 +5258,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5110,6 +5310,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5149,6 +5350,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -5231,87 +5433,22 @@
       </attributes>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>480</duration>
-        <type>quarter</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>720</duration>
-        <type>quarter</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>1920</duration>
+        <type>half</type>
       </note>
     </measure>
     <measure number="2">
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>480</duration>
-        <type>quarter</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>1200</duration>
+        <duration>1920</duration>
         <type>half</type>
       </note>
     </measure>
     <measure number="3">
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>1920</duration>
+        <type>half</type>
       </note>
     </measure>
     <measure number="4">
@@ -5322,41 +5459,12 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>1680</duration>
+        <type>half</type>
       </note>
     </measure>
     <measure number="5">
@@ -5368,41 +5476,12 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>1680</duration>
+        <type>half</type>
       </note>
     </measure>
     <measure number="6">
@@ -5413,31 +5492,12 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>1200</duration>
+        <type>half</type>
       </note>
       <note>
         <pitch>
@@ -5446,6 +5506,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5461,6 +5522,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5483,6 +5545,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5496,6 +5559,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5509,6 +5573,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5524,6 +5589,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5555,6 +5621,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5568,6 +5635,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5581,6 +5649,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5596,6 +5665,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5628,6 +5698,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5641,6 +5712,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5654,6 +5726,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5669,6 +5742,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5700,6 +5774,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5713,21 +5788,12 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
-      </note>
-      <note>
-        <rest/>
-        <duration>240</duration>
-        <type>eighth</type>
+        <duration>720</duration>
+        <type>quarter</type>
       </note>
     </measure>
     <measure number="11">
@@ -5738,6 +5804,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5760,6 +5827,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5773,6 +5841,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5805,6 +5874,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5820,6 +5890,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5842,6 +5913,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5855,6 +5927,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5868,6 +5941,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -5883,6 +5957,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5905,6 +5980,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5927,6 +6003,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5949,6 +6026,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5973,6 +6051,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -5995,6 +6074,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6017,6 +6097,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6039,6 +6120,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6063,6 +6145,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6085,6 +6168,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6107,6 +6191,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6129,6 +6214,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6153,6 +6239,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6175,6 +6262,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6197,6 +6285,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6219,6 +6308,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6243,6 +6333,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6265,6 +6356,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6278,6 +6370,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6300,6 +6393,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6315,6 +6409,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6337,6 +6432,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6350,6 +6446,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6363,6 +6460,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6379,6 +6477,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6403,6 +6502,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <rest/>
@@ -6426,6 +6526,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6468,6 +6569,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6527,6 +6629,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6546,6 +6649,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6565,6 +6669,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6584,6 +6689,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6602,6 +6708,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6619,6 +6726,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6636,6 +6744,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6653,6 +6762,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -6689,6 +6799,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6706,6 +6817,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -6762,6 +6874,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6781,6 +6894,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6800,6 +6914,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6819,6 +6934,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6837,6 +6953,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -6859,6 +6976,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6900,6 +7018,7 @@
         </pitch>
         <duration>120</duration>
         <type>16th</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -6922,6 +7041,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -6979,6 +7099,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7001,6 +7122,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7018,6 +7140,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7035,6 +7158,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7057,6 +7181,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7081,6 +7206,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7103,6 +7229,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7120,6 +7247,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -7173,6 +7301,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7195,6 +7324,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7212,6 +7342,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7229,6 +7360,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7251,6 +7383,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7345,6 +7478,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7362,6 +7496,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7379,6 +7514,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7396,6 +7532,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7413,6 +7550,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7430,6 +7568,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7447,6 +7586,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7464,6 +7604,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -7483,6 +7624,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7500,6 +7642,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7517,6 +7660,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7534,6 +7678,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7551,6 +7696,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7568,6 +7714,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7585,6 +7732,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7602,6 +7750,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -7621,6 +7770,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7638,6 +7788,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7655,6 +7806,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -7672,6 +7824,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -7751,6 +7904,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -7862,6 +8016,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7938,6 +8093,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7979,6 +8135,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -7996,6 +8153,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8030,6 +8188,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8071,6 +8230,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8088,6 +8248,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8158,6 +8319,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8175,6 +8337,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8209,6 +8372,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8250,6 +8414,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8267,6 +8432,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8301,6 +8467,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8342,6 +8509,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8359,6 +8527,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8393,6 +8562,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8504,6 +8674,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8521,6 +8692,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -8538,6 +8710,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -8555,6 +8728,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -8572,6 +8746,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -8622,6 +8797,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8670,6 +8846,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8711,6 +8888,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8728,6 +8906,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -8762,6 +8941,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8806,6 +8986,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8889,6 +9070,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8932,6 +9114,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -8977,6 +9160,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9019,6 +9203,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9060,6 +9245,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9077,6 +9263,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9111,6 +9298,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9155,6 +9343,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9198,6 +9387,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9243,6 +9433,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9262,6 +9453,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9337,6 +9529,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9354,6 +9547,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9426,6 +9620,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9443,6 +9638,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9515,6 +9711,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9532,6 +9729,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9680,6 +9878,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9699,6 +9898,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9718,6 +9918,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9777,6 +9978,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9796,6 +9998,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9815,6 +10018,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9834,6 +10038,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -9893,6 +10098,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -9912,6 +10118,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9931,6 +10138,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9950,6 +10158,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9969,6 +10178,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -9988,6 +10198,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10006,6 +10217,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10023,6 +10235,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
@@ -10042,6 +10255,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">begin</beam>
       </note>
       <note>
         <chord/>
@@ -10059,6 +10273,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10076,6 +10291,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10093,6 +10309,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10110,6 +10327,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10127,6 +10345,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10145,6 +10364,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">continue</beam>
       </note>
       <note>
         <chord/>
@@ -10164,6 +10384,7 @@
         </pitch>
         <duration>240</duration>
         <type>eighth</type>
+        <beam number="1">end</beam>
       </note>
       <note>
         <chord/>
