@@ -118,7 +118,7 @@ def convert_midi_to_visual(midi_file_path: str, output_path: str, format: str, t
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Visual conversion failed: {str(e)}")
 
-def get_xml_for_job(job_id: str, user_id: str, db: Session) -> str:
+async def get_xml_for_job(job_id: str, user_id: str, db: Session) -> str:
     try:
         sql = text("""
             SELECT status FROM jobs 
@@ -162,6 +162,51 @@ def get_xml_for_job(job_id: str, user_id: str, db: Session) -> str:
     except Exception as e:
         logger.exception(f"Unexpected error in get_xml_for_job: {str(e)}")  # .exception() includes stack trace
         raise HTTPException(status_code=500, detail=f"XML generation failed: {str(e)}")
+
+
+async def get_midi_for_job(job_id: str, user_id: str, db: Session) -> str:
+    try:
+        sql = text("""
+            SELECT status FROM jobs
+            WHERE job_id = :job_id AND user_id = :user_id
+        """)
+        result = db.execute(sql, {
+            "job_id": job_id,
+            "user_id": user_id
+        }).fetchone()
+
+        if not result:
+            logger.error(f"Job not found or access denied: {job_id}")
+            raise HTTPException(status_code=404, detail="Job not found or access denied")
+        
+        status = result[0]
+        logger.info(f"Job status: {status}")
+        
+        if status != 'done':
+            logger.error(f"Job not completed. Current status: {status}")
+            raise HTTPException(status_code=400, detail=f"Job not completed. Current status: {status}")
+        
+        s3_key = f"midi/{job_id}.mid"
+        try:
+            response = s3_client.get_object(
+                Bucket=aws_creds["s3_bucket"],
+                Key=s3_key
+            )
+            midi_content = response['Body'].read()
+            return midi_content
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                logger.error(f"MIDI file not found in S3: {s3_key}")
+                raise HTTPException(status_code=404, detail="MIDI file not found in S3")
+            else:
+                logger.error(f"S3 download failed: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"S3 download failed: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Unexpected error in get_midi_for_job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"MIDI generation failed: {str(e)}")
+
 
 @router.post("/convertToXml")
 async def convert_to_xml_endpoint(
@@ -207,7 +252,7 @@ async def get_xml_endpoint(
 ):
     try:
         authenticated_user_id = current_user.id
-        xml_content = get_xml_for_job(job_id, authenticated_user_id, db)
+        xml_content = await get_xml_for_job(job_id, authenticated_user_id, db)
         
         from fastapi.responses import Response
         return Response(
@@ -220,4 +265,26 @@ async def get_xml_endpoint(
         
     except Exception as e:
         logger.exception(f"Error in get_xml_endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/getMIDI/{job_id}")
+async def get_midi_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        authenticated_user_id = current_user.id
+        midi_content = await get_midi_for_job(job_id, authenticated_user_id, db)
+        
+        from fastapi.responses import Response
+        return Response(
+            content=midi_content,
+            media_type='application/octet-stream',
+            headers={
+                'Content-Disposition': f'attachment; filename="{job_id}.mid"'
+            }
+        )
+    except Exception as e:
+        logger.exception(f"Error in get_midi_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useSheetMusic } from "@/hooks/useSheetMusic";
+import { useMIDI, useSheetMusic } from "@/hooks/useSheetMusic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Edit } from "lucide-react";
@@ -13,9 +13,11 @@ export default function TranscriptionDetailPage() {
     const router = useRouter();
     const jobId = params.id as string;
 
-    const { xml, loading, error } = useSheetMusic({ jobId });
+    const { xml, loading: xmlLoading, error: xmlError } = useSheetMusic({ jobId });
+    const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
 
-    if (loading) {
+
+    if (xmlLoading) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="animate-pulse space-y-4">
@@ -26,11 +28,11 @@ export default function TranscriptionDetailPage() {
         );
     }
 
-    if (error) {
+    if (xmlError || midiError) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center text-red-600">
-                    <p>Error loading transcription: {error}</p>
+                    <p>Error loading transcription: {xmlError || midiError}</p>
                 </div>
             </div>
         );
