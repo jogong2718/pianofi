@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ViewSheetMusic from "@/components/ViewSheetMusic";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -70,14 +71,9 @@ export default function TranscriptionDetailPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="h-96 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                        <div className="text-center text-gray-500">
-                            <Edit className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p className="text-lg font-medium">Music Editor Coming Soon</p>
-                            <p className="text-sm">Sheet music will be rendered here</p>
+                        <div className="w-full h-full text-center text-gray-500">
                             {xml && (
-                                <p className="text-xs mt-2 text-green-600">
-                                    ✓ XML data loaded ({xml.length} characters)
-                                </p>
+                                <ViewSheetMusic musicXmlString={xml} />
                             )}
                         </div>
                     </div>

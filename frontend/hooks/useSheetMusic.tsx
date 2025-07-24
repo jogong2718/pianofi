@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { OpenSheetMusicDisplay } from "opensheetmusicdisplay";
 
 interface UseSheetMusicProps {
     jobId: string;
@@ -11,6 +12,11 @@ interface SheetMusicData {
     error: string | null;
 }
 
+interface UseOSMDProps {
+    musicXml?: string;
+}
+
+  
 export function useSheetMusic({ jobId }: UseSheetMusicProps) {
     const [data, setData] = useState<SheetMusicData>({
         xml: "",
@@ -62,4 +68,38 @@ export function useSheetMusic({ jobId }: UseSheetMusicProps) {
     }, [jobId, supabase]);
 
     return data;
+}
+
+export function useSheetMusicDisplay({ musicXml }: UseOSMDProps) {
+    const [osmd, setOSMD] = useState<OpenSheetMusicDisplay | null>(null);
+
+    const containerRef = useCallback((div: HTMLDivElement) => {
+        if (div && !osmd) {
+          // 1. Create OSMD instance when div becomes available
+          const newOsmd = new OpenSheetMusicDisplay(div, {
+            autoResize: true,
+            backend: "svg", 
+            drawTitle: true,
+          });
+          setOSMD(newOsmd);
+        }
+      }, [osmd]);
+
+    useEffect(() => {
+        if (!musicXml || !osmd) return;
+
+        const renderSheet = async () => {
+            try {
+                await osmd.load(musicXml);
+                await osmd.render();
+            }
+            catch (error) {
+                console.error("Error rendering sheet music:", error);
+            }
+        }
+
+        renderSheet();
+    }, [musicXml, osmd]);
+
+    return { containerRef, osmd };
 }
