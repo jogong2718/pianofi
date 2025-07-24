@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import TranscriptionItem from "./transcriptionItem";
+import { useRouter } from 'next/navigation';
 
 interface TranscriptionsListProps {
   transcriptions: any[];
@@ -16,6 +17,8 @@ interface TranscriptionsListProps {
 const TranscriptionsList: FC<TranscriptionsListProps> = ({
   transcriptions,
 }) => {
+  const router = useRouter();
+
   const handleDownload = async (transcription: any) => {
     if (!transcription.download_url) {
       console.error(
@@ -76,6 +79,9 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
               key={transcription.id}
               transcription={transcription}
               onDownload={handleDownload}
+              onClick={() => {
+                router.push(`/dashboard/transcription/${transcription.id}`);
+              }}
             />
           ))}
         </div>

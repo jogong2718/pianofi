@@ -27,11 +27,13 @@ import {
 interface TranscriptionItemProps {
   transcription: any;
   onDownload: (transcription: any) => void;
+  onClick: (transcription: any) => void;
 }
 
 const TranscriptionItem: FC<TranscriptionItemProps> = ({
   transcription,
   onDownload,
+  onClick,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { deleteJob, loading: deleteLoading } = useDeleteJob();
@@ -90,7 +92,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
             <Button
               size="sm"
               variant="outline"
-              // onClick={() => onDownload(transcription)}
+              onClick={onClick}
             >
               <Eye className="h-4 w-4 mr-2" />
               View Transcription
