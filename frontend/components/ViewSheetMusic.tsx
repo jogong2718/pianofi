@@ -10,7 +10,7 @@ export default function MusicSheetViewer({ musicXmlString }: MusicSheetViewerPro
     const { containerRef, osmd } = useSheetMusicDisplay({ musicXml: musicXmlString });
 
     return (
-        <div className="w-full h-auto">
+        <div className="w-full min-h-full">
             <div ref={containerRef} className="w-full h-auto" />
         </div>
     );

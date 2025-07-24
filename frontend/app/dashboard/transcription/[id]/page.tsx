@@ -37,67 +37,45 @@ export default function TranscriptionDetailPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push("/dashboard")}
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Dashboard
-                    </Button>
-                    <h1 className="text-2xl font-bold">Transcription Details</h1>
+        <div className="h-screen flex flex-col">
+            <div className="container mx-auto md:px-4 pt-8 flex flex-col h-full">
+                {/* Header - Fixed size */}
+                <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                    <div className="flex items-center space-x-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push("/dashboard")}
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Back to Dashboard
+                        </Button>
+                        <h1 className="text-2xl font-bold">Transcription Details</h1>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download MIDI
+                        </Button>
+                        <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Sheet Music
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download MIDI
-                    </Button>
-                    <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Sheet Music
-                    </Button>
-                </div>
-            </div>
-
-            {/* Music Editor Placeholder */}
-            <Card className="mb-6">
-                <CardHeader>
-                    <CardTitle>Music Editor</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="h-96 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                        <div className="w-full h-full text-center text-gray-500">
+                {/* Music Editor - Grows to fill remaining space */}
+                <Card className="flex-1 min-h-0">
+                    <CardContent className="p-0 h-full">
+                        <div className="h-full max-w-6xl mx-auto bg-gray-50 border-2 border-dashed border-gray-300 overflow-auto">
                             {xml && (
                                 <ViewSheetMusic musicXmlString={xml} />
                             )}
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Additional Info Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Transcription Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm text-gray-600">Job ID</p>
-                            <p className="font-medium">{jobId}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Status</p>
-                            <p className="font-medium text-green-600">Completed</p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
