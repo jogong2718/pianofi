@@ -106,7 +106,14 @@ def process_job(job, engine, s3_client, aws_creds, local):
 
     try:
         # Use the modular conversion function
-        convert_midi_to_xml(final_mid, xml_path, job_id)
+        with engine.connect() as db:
+            result = db.execute(
+                text("SELECT file_name FROM jobs WHERE job_id = :job_id"),
+                {"job_id": job_id}
+            )
+            sheet_music_title = result.scalar()  # Get the single result
+
+        convert_midi_to_xml(final_mid, xml_path, job_id, sheet_music_title)
 
         if local:
             xml_final = UPLOAD_DIR / f"xml/{job_id}.xml"
