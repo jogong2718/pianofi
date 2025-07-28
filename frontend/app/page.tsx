@@ -193,7 +193,31 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-4 lg:gap-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Free Trial</CardTitle>
+                  <CardDescription>
+                    Get started with a free transcription
+                  </CardDescription>
+                  <div className="text-3xl font-bold">
+                    $0<span className="text-sm font-normal">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>• Basic model (still better than our competitors)</li>
+                    <li>• 1 transcription per account</li>
+                    <li>• Up to 1 minutes per file</li>
+                  </ul>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>Starter</CardTitle>
@@ -206,12 +230,20 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
+                    <li>
+                      • Access to the most advanced SOTA transcription models
+                    </li>
                     <li>• 10 transcriptions per month</li>
                     <li>• Up to 5 minutes per file</li>
-                    <li>• PDF downloads</li>
+                    <li>• PDF + MusicXML downloads</li>
                     <li>• Email support</li>
                   </ul>
-                  <Button className="w-full mt-6">Get Started</Button>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
                 </CardContent>
               </Card>
               <Card className="border-primary">
@@ -233,7 +265,12 @@ export default function LandingPage() {
                     <li>• Priority support</li>
                     <li>• Batch processing</li>
                   </ul>
-                  <Button className="w-full mt-6">Get Started</Button>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
                 </CardContent>
               </Card>
               <Card>
