@@ -34,13 +34,6 @@ services:
     volumes:
       # - ./frontend:/app
       - /app/node_modules  # Prevent overwriting node_modules
-<<<<<<< HEAD:docker-compose-dev.yaml
-    develop:
-      watch:
-        - path: ./frontend
-          target: /app
-          action: sync
-=======
       - /app/.next
     develop:
       watch:
@@ -52,7 +45,6 @@ services:
             - .next/
         - action: rebuild
           path: ./frontend/Dockerfile.dev
->>>>>>> 1945ec37d4516b4af2f119a4938f37cc11293fe4:docker-compose.yaml
     depends_on:
       - backend
   worker:

@@ -45,7 +45,7 @@ more-itertools==10.7.0
 multidict==6.5.0
 music21==9.7.1
 mutagen==1.47.0
-numpy==2.3.1
+numpy==2.2.1
 packaging==23.2
 pillow==11.3.0
 pluggy==1.6.0
