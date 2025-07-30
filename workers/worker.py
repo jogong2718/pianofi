@@ -1,14 +1,12 @@
 print("starting worker...")
 
-import os, json, time, logging, redis, boto3
+import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
 from workers.tasks.midiToXml import convert_midi_to_xml
 from mutagen import File
-from music21 import converter
 
 print("starting worker...")
 
@@ -101,8 +99,8 @@ def process_job(job, engine, s3_client, aws_creds, local):
 
     # 5) Transfrom midi into xml
 
-    xml_path = f"/tmp/{job_id}_xml"
-    xml_key = f"xml/{job_id}.xml"
+    xml_path = f"/tmp/{job_id}musicxml"
+    xml_key = f"xml/{job_id}.musicxml"
 
     try:
         # Use the modular conversion function
@@ -118,20 +116,35 @@ def process_job(job, engine, s3_client, aws_creds, local):
         convert_midi_to_xml(final_mid, xml_path, job_id, sheet_music_title)
 
         if local:
-            xml_final = UPLOAD_DIR / f"xml/{job_id}.xml"
+            xml_final = UPLOAD_DIR / f"xml/{job_id}.musicxml"
             if not xml_final.parent.exists():
                 xml_final.parent.mkdir(parents=True, exist_ok=True)
             with open(xml_final, "wb") as f:
                 with open(xml_path, "rb") as xml_file:
                     f.write(xml_file.read())
-            xml_key = f"xml/{job_id}.xml"
+            xml_key = f"xml/{job_id}.musicxml"
         else:
             s3_client.upload_file(xml_path, bucket, xml_key)
-            xml_key = f"xml/{job_id}.xml"
+            xml_key = f"xml/{job_id}.musicxml"
     except Exception as e:
         logging.error(f"Error in XML conversion step for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
         return
+
+    # 6) DB → status=done, file_key=midi_key, xml_key=xml_key
+    with engine.connect() as db:
+        update_sql = text("""
+            UPDATE jobs
+            SET status='done', finished_at=NOW(), result_key=:midi_key, xml_key=:xml_key
+            WHERE job_id=:jobId
+        """)
+        db.execute(update_sql, {
+            "midi_key": midi_key,
+            "xml_key": xml_key,
+            "jobId": job_id,
+        })
+        db.commit()
+    logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
 
 def main():
 
