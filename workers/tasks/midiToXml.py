@@ -71,6 +71,12 @@ class MidiToMusicXML:
             elif data[offset-1] == 0xFF:  # Meta event
                 offset += 1
                 length, offset = self._read_varint(data, offset)
+                meta_type = data[offset]
+                if meta_type == 0x51 and length == 3:
+                    # Set Tempo event
+                    tempo_bytes = data[offset:offset+3]
+                    microseconds_per_quarter = int.from_bytes(tempo_bytes, byteorder='big')
+                    self.bpm = round(60000000 / microseconds_per_quarter)
                 offset += length
             else:
                 offset += 1
@@ -249,6 +255,14 @@ class MidiToMusicXML:
             if measure_num == 1:
                 self._add_measure_attributes(treble_measure, "treble")
                 self._add_measure_attributes(bass_measure, "bass")
+                # Add direction for tempo marking
+                direction = ET.SubElement(treble_measure, 'direction', placement="above")
+                direction_type = ET.SubElement(direction, 'direction-type')
+                metronome = ET.SubElement(direction_type, 'metronome')
+                beat_unit = ET.SubElement(metronome, 'beat-unit')
+                beat_unit.text = "quarter"
+                per_minute = ET.SubElement(metronome, 'per-minute')
+                per_minute.text = str(self.bpm)
             
             # Track beaming state
             treble_beam_active = False
