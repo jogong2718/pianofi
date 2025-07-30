@@ -9,7 +9,7 @@ class MidiToMusicXML:
     def __init__(self):
         self.ticks_per_quarter = 480
         self.notes = []
-        
+
     def parse_midi_file(self, filepath):
         """Parse MIDI file and extract notes"""
         with open(filepath, 'rb') as f:
@@ -177,7 +177,7 @@ class MidiToMusicXML:
         note_type = self._get_note_type(duration)
         return note_type in ['eighth', '16th', '32nd']
     
-    def create_musicxml(self, output_filepath):
+    def create_musicxml(self, output_filepath, sheet_music_title=None):
         """Generate MusicXML"""
         if not self.notes:
             return
@@ -220,6 +220,11 @@ class MidiToMusicXML:
         
         # Create XML structure
         root = ET.Element('score-partwise', version="3.1")
+
+        # Add work element
+        work = ET.SubElement(root, 'work')
+        work_title = ET.SubElement(work, 'work-title')
+        work_title.text = sheet_music_title if sheet_music_title else "Untitled"
         
         # Part list
         part_list = ET.SubElement(root, 'part-list')
@@ -227,12 +232,12 @@ class MidiToMusicXML:
         # Treble part
         score_part1 = ET.SubElement(part_list, 'score-part', id="P1")
         part_name1 = ET.SubElement(score_part1, 'part-name')
-        part_name1.text = "Treble"
+        # part_name1.text = "Treble"
         
         # Bass part
         score_part2 = ET.SubElement(part_list, 'score-part', id="P2")
         part_name2 = ET.SubElement(score_part2, 'part-name')
-        part_name2.text = "Bass"
+        # part_name2.text = "Bass"
         
         # Treble part
         treble_part = ET.SubElement(root, 'part', id="P1")
@@ -488,14 +493,14 @@ class MidiToMusicXML:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines))
 
-def convert_midi_to_musicxml(midi_file, output_file):
+def convert_midi_to_musicxml(midi_file, output_file, sheet_music_title=None):
     """Convert MIDI file to MusicXML"""
     converter = MidiToMusicXML()
     converter.parse_midi_file(midi_file)
-    converter.create_musicxml(output_file)
+    converter.create_musicxml(output_file, sheet_music_title)
     print(f"Converted {midi_file} to {output_file}")
 
-def convert_midi_to_xml(midi_file_path, output_path, job_id=None):
+def convert_midi_to_xml(midi_file_path, output_path, job_id=None, sheet_music_title=None):
     """
     Convert MIDI file to MusicXML format
     
@@ -516,7 +521,7 @@ def convert_midi_to_xml(midi_file_path, output_path, job_id=None):
         else:
             logging.info(f"Converting MIDI {midi_file_path} to MusicXML")
     
-        convert_midi_to_musicxml(midi_file_path, output_path)
+        convert_midi_to_musicxml(midi_file_path, output_path, sheet_music_title)
         
         # Verify the file was created
         if not Path(output_path).exists():
