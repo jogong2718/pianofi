@@ -39,12 +39,8 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
   const { deleteJob, loading: deleteLoading } = useDeleteJob();
 
   const handleDelete = async () => {
-    try {
-      await deleteJob(transcription.id);
-      setShowDeleteDialog(false);
-    } catch (error) {
-      // Error is already handled in the hook
-    }
+    await deleteJob(transcription.id);
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -89,11 +85,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
           </div>
 
           {transcription.status === "completed" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onClick}
-            >
+            <Button size="sm" variant="outline" onClick={onClick}>
               <Eye className="h-4 w-4 mr-2" />
               View Transcription
             </Button>
