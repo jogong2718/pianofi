@@ -24,9 +24,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { toast } from "sonner";
+
 interface TranscriptionItemProps {
   transcription: any;
-  onDownload: (transcription: any) => void;
+  onDownload: (transcription: any, downloadType: string) => void;
   onClick: (transcription: any) => void;
 }
 
@@ -98,11 +100,39 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onDownload(transcription)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (
+                    !transcription.xml_download_url ||
+                    transcription.xml_download_url === "pending" ||
+                    transcription.xml_download_url === "error" ||
+                    transcription.status === "missing"
+                  ) {
+                    // Show a toast or message to the user
+                    toast.error("Midi file not available for download.");
+                    return;
+                  }
+                  onDownload(transcription, "midi");
+                }}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Midi
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (
+                    !transcription.xml_download_url ||
+                    transcription.xml_download_url === "pending" ||
+                    transcription.xml_download_url === "error" ||
+                    transcription.status === "missing"
+                  ) {
+                    // Show a toast or message to the user
+                    toast.error("MusicXML file not available for download.");
+                    return;
+                  }
+                  onDownload(transcription, "xml");
+                }}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 XML
               </DropdownMenuItem>

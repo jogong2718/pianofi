@@ -41,8 +41,8 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
     );
   }
 
-  const handleDownload = async (transcription: any) => {
-    if (!transcription.download_url) {
+  const handleDownload = async (transcription: any, downloadType: string) => {
+    if (!transcription.midi_download_url && !transcription.xml_download_url) {
       console.error(
         "Download URL not available for transcription:",
         transcription
@@ -53,12 +53,21 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
 
     try {
       // For S3 presigned URLs or external URLs, open in new tab to trigger download
-      if (transcription.download_url.startsWith("http")) {
-        window.open(transcription.download_url, "_blank");
+      let the_url = "";
+      if (downloadType === "midi" && transcription.midi_download_url) {
+        the_url = transcription.midi_download_url;
+      } else if (downloadType === "xml" && transcription.xml_download_url) {
+        the_url = transcription.xml_download_url;
+      } else {
+        throw new Error("Invalid download type specified");
+      }
+
+      if (the_url.startsWith("http")) {
+        window.open(the_url, "_blank");
       } else {
         // For local API endpoints, use fetch and create blob
-        console.log("Downloading locally from:", transcription.download_url);
-        const response = await fetch(transcription.download_url);
+        console.log("Downloading locally from:", the_url);
+        const response = await fetch(the_url);
 
         if (!response.ok) {
           throw new Error(`Download failed: ${response.statusText}`);

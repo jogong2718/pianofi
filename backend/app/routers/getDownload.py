@@ -52,7 +52,7 @@ if not local:
         region_name=aws_creds["aws_region"],
     )
 
-@router.get("/getDownload/{job_id}", response_model=getDownloadResponse, tags=["jobs"])
+@router.get("/getMidiDownload/{job_id}", response_model=getDownloadResponse, tags=["jobs"])
 def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     """
     Fetch a job by its unique jobId.
@@ -62,12 +62,12 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
         if local:
             # Use absolute URL with your backend base URL
             backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
-            download_url = f"{backend_base}/download/{job_id}"
+            download_url = f"{backend_base}/downloadMidi/{job_id}"
             
             return getDownloadResponse(
                 job_id=job_id,
                 status="completed",
-                download_url=download_url,
+                midi_download_url=download_url,
             )
         
         else:
@@ -85,7 +85,11 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
                     logger.error(f"File not found in S3: {s3_key}")
                     logger.error(f"Bucket: {bucket_name}")
                     logger.error(f"Error details: {e}")
-                    raise HTTPException(status_code=404, detail="Result file not found in S3 nigga")
+                    return getDownloadResponse(
+                        job_id=job_id,
+                        status="missing",
+                        midi_download_url=None,
+                    )
                 else:
                     raise HTTPException(status_code=500, detail="Error checking S3 file")
             
@@ -99,7 +103,68 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
             return getDownloadResponse(
                 job_id=job_id,
                 status="completed",
-                download_url=presigned_url,
+                midi_download_url=presigned_url,
+            )
+
+
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in getDownload: {str(e)}\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Error getting download link: {str(e)}")
+    
+@router.get("/getXmlDownload/{job_id}", response_model=getDownloadResponse, tags=["jobs"])
+def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
+    """
+    Fetch a job by its unique jobId.
+    This endpoint retrieves the downloadlink of a job based on the provided jobId.
+    """
+    try:
+        if local:
+            # Use absolute URL with your backend base URL
+            backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
+            download_url = f"{backend_base}/downloadXml/{job_id}"
+            
+            return getDownloadResponse(
+                job_id=job_id,
+                status="completed",
+                xml_download_url=download_url,
+            )
+        
+        else:
+            # Production: Generate S3 presigned URL
+            bucket_name = aws_creds["s3_bucket"]
+            s3_key = f"xml/{job_id}.musicxml"  # This matches the worker pattern
+
+            print(bucket_name, s3_key)
+            
+            try:
+                # Check if file exists in S3
+                s3_client.head_object(Bucket=bucket_name, Key=s3_key)
+            except ClientError as e:
+                if e.response['Error']['Code'] == '404':
+                    logger.error(f"File not found in S3: {s3_key}")
+                    logger.error(f"Bucket: {bucket_name}")
+                    logger.error(f"Error details: {e}")
+                    return getDownloadResponse(
+                        job_id=job_id,
+                        status="missing",
+                        xml_download_url=None,
+                    )
+                else:
+                    raise HTTPException(status_code=500, detail="Error checking S3 file")
+            
+            # Generate presigned URL (valid for 1 hour)
+            presigned_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket_name, 'Key': s3_key},
+                ExpiresIn=3600  # 1 hour
+            )
+            
+            return getDownloadResponse(
+                job_id=job_id,
+                status="completed",
+                xml_download_url=presigned_url,
             )
 
 
