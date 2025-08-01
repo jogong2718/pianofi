@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
+import MidiPlayer from "@/components/MidiPlayer";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -56,6 +57,8 @@ export default function TranscriptionDetailPage() {
                     </div>
 
                     <div className="flex items-center space-x-2">
+                        
+                        <MidiPlayer midi={midi} />
                         <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-2" />
                             Download MIDI
