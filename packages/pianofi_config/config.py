@@ -36,7 +36,7 @@ def get_database_url() -> str:
     
     try:
         response = ssm.get_parameter(
-            Name=f'/pianofi/{env}/database/url',
+            Name=f'/pianofi/database/url',
             WithDecryption=True
         )
         return response['Parameter']['Value']
@@ -67,8 +67,8 @@ def get_aws_credentials() -> Dict[str, str]:
             Names=[
                 # f'/pianofi/{env}/aws/access_key_id',
                 # f'/pianofi/{env}/aws/secret_access_key',
-                f'/pianofi/{env}/aws/region',
-                f'/pianofi/{env}/s3/bucket'
+                f'/pianofi/aws/region',
+                f'/pianofi/s3/bucket'
             ],
             WithDecryption=True
         )
@@ -99,7 +99,7 @@ def get_cors_origins() -> list:
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
-        response = ssm.get_parameter(Name=f'/pianofi/{env}/cors/allowed_origins')
+        response = ssm.get_parameter(Name=f'/pianofi/cors/allowed_origins')
         return response['Parameter']['Value'].split(",")
     except Exception as e:
         # Fallback to restrictive CORS in production
@@ -127,7 +127,7 @@ def get_redis_url() -> str:
     
     try:
         response = ssm.get_parameter(
-            Name=f'/pianofi/{env}/redis/url',
+            Name=f'/pianofi/redis/url',
             WithDecryption=True
         )
         return response['Parameter']['Value']
@@ -158,9 +158,9 @@ def get_supabase_config() -> Dict[str, str]:
     try:
         response = ssm.get_parameters(
             Names=[
-                f'/pianofi/{env}/supabase/url',
-                f'/pianofi/{env}/supabase/anon_key',
-                f'/pianofi/{env}/supabase/service_role_key'
+                f'/pianofi/supabase/url',
+                f'/pianofi/supabase/anon_key',
+                f'/pianofi/supabase/service_role_key'
             ],
             WithDecryption=True
         )
@@ -193,7 +193,7 @@ def get_backend_base_url() -> str:
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
-        response = ssm.get_parameter(Name=f'/pianofi/{env}/backend/base_url')
+        response = ssm.get_parameter(Name=f'/pianofi/backend/base_url')
         return response['Parameter']['Value']
     except Exception as e:
         # Fallback to environment variable or default
@@ -223,9 +223,9 @@ def get_stripe_keys() -> str:
     try:
         response = ssm.get_parameters(
             Names=[
-                f'/pianofi/{env}/stripe/secret_key',
-                f'/pianofi/{env}/stripe/publishable_key',
-                f'/pianofi/{env}/stripe/webhook_secret'
+                f'/pianofi/stripe/secret_key',
+                f'/pianofi/stripe/publishable_key',
+                f'/pianofi/stripe/webhook_secret'
             ],
             WithDecryption=True
         )

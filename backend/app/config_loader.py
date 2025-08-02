@@ -7,7 +7,7 @@ def get_config():
     """Load config based on environment (Docker vs local)"""
     try:
         # Try Docker/installed package import first
-        from pianofi_config.config import Config
+        from packages.pianofi_config.config import Config
         return Config
     except ImportError:
         # Fall back to local development import
