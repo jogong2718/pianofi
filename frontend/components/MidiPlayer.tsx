@@ -14,7 +14,6 @@ export default function MidiPlayer({ midi }: MidiPlayerProps) {
 
     useEffect(() => {
         const sampler = new Tone.Sampler({
-            // a 4-sample map is usually enough; Tone repitches the gaps
             urls: {
                 C1: 'C1.mp3', C2: 'C2.mp3', C3: 'C3.mp3',
                 C4: 'C4.mp3', C5: 'C5.mp3', C6: 'C6.mp3', C7: 'C7.mp3',
@@ -22,10 +21,10 @@ export default function MidiPlayer({ midi }: MidiPlayerProps) {
                 'F#4': 'Fs4.mp3', 'F#5': 'Fs5.mp3', 'F#6': 'Fs6.mp3'
             },
             release: 1,
-            baseUrl: 'https://tonejs.github.io/audio/salamander/', // free host
+            baseUrl: 'https://tonejs.github.io/audio/salamander/',
         }).toDestination();
 
-        Tone.loaded().then(() => setSynth(sampler)); // wait for samples
+        Tone.loaded().then(() => setSynth(sampler));
         return () => {
             sampler.dispose();
         };
