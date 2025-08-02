@@ -5,4 +5,5 @@ from datetime import datetime
 class getDownloadResponse(BaseModel):
     job_id: str
     status: str
-    download_url: Optional[str] = None
+    midi_download_url: Optional[str] = None
+    xml_download_url: Optional[str] = None

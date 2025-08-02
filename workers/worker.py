@@ -1,11 +1,11 @@
 print("starting worker...")
 
-import os, json, time, logging, redis, boto3
+import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
+from workers.tasks.midiToXml import convert_midi_to_xml
 from mutagen import File
 
 print("starting worker...")
@@ -77,11 +77,11 @@ def process_job(job, engine, s3_client, aws_creds, local):
     midi_path = run_picogen(str(local_raw), f"/tmp/{job_id}_midi")  
     final_mid = midi_path
     # 4) Upload result
-    result_key = f"results/{job_id}.mid"
+    midi_key = f"midi/{job_id}.mid"
 
     if local:
         UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
-        final_mid = UPLOAD_DIR / result_key
+        final_mid = UPLOAD_DIR / midi_key
 
         if not final_mid.parent.exists():
             final_mid.parent.mkdir(parents=True, exist_ok=True)
@@ -94,15 +94,57 @@ def process_job(job, engine, s3_client, aws_creds, local):
 
     else:
         # Production - upload to S3
-        logging.info(f"Uploading result to s3://{bucket}/{result_key}")
-        s3_client.upload_file(final_mid, bucket, result_key)
+        logging.info(f"Uploading result to s3://{bucket}/{midi_key}")
+        s3_client.upload_file(final_mid, bucket, midi_key)
 
-    # 5) DB → done
+    # 5) Transfrom midi into xml
+
+    xml_path = f"/tmp/{job_id}musicxml"
+    xml_key = f"xml/{job_id}.musicxml"
+
+    try:
+        # Use the modular conversion function
+        with engine.connect() as db:
+            result = db.execute(
+                text("SELECT file_name FROM jobs WHERE job_id = :job_id"),
+                {"job_id": job_id}
+            )
+            sheet_music_title = result.scalar()  # Get the single result
+            if sheet_music_title:
+                sheet_music_title = os.path.splitext(sheet_music_title)[0]
+
+        convert_midi_to_xml(final_mid, xml_path, job_id, sheet_music_title)
+
+        if local:
+            xml_final = UPLOAD_DIR / f"xml/{job_id}.musicxml"
+            if not xml_final.parent.exists():
+                xml_final.parent.mkdir(parents=True, exist_ok=True)
+            with open(xml_final, "wb") as f:
+                with open(xml_path, "rb") as xml_file:
+                    f.write(xml_file.read())
+            xml_key = f"xml/{job_id}.musicxml"
+        else:
+            s3_client.upload_file(xml_path, bucket, xml_key)
+            xml_key = f"xml/{job_id}.musicxml"
+    except Exception as e:
+        logging.error(f"Error in XML conversion step for job {job_id}: {e}")
+        # You might want to set job status to 'failed' here
+        return
+
+    # 6) DB → status=done, file_key=midi_key, xml_key=xml_key
     with engine.connect() as db:
-        db.execute(text("""UPDATE jobs SET status='done', finished_at=NOW(), result_key=:rk
-                        WHERE job_id=:id"""), {"id":job_id,"rk":result_key})
+        update_sql = text("""
+            UPDATE jobs
+            SET status='done', finished_at=NOW(), result_key=:midi_key, xml_key=:xml_key
+            WHERE job_id=:jobId
+        """)
+        db.execute(update_sql, {
+            "midi_key": midi_key,
+            "xml_key": xml_key,
+            "jobId": job_id,
+        })
         db.commit()
-    logging.info(f"Job {job_id} completed.")
+    logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
 
 def main():
 
@@ -110,7 +152,7 @@ def main():
     logging.info("Worker starting up...")
 
     aws_creds = Config.AWS_CREDENTIALS
-    local = Config.ENVIRONMENT == "development"
+    local = Config.USE_LOCAL_STORAGE == "true"
 
     try:
         logging.info("Loading configuration for redis...")
@@ -142,8 +184,8 @@ def main():
         if not local:
             s3_client = boto3.client(
                 "s3",
-                aws_access_key_id=aws_creds["aws_access_key_id"],
-                aws_secret_access_key=aws_creds["aws_secret_access_key"],
+                # aws_access_key_id=aws_creds["aws_access_key_id"],
+                # aws_secret_access_key=aws_creds["aws_secret_access_key"],
                 region_name=aws_creds["aws_region"],
             )
 

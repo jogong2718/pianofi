@@ -1,0 +1,9 @@
+[project]
+name = "pianofi"
+version = "0.1.0"
+description = "AI-powered piano transcription and sheet music generation"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "music21>=9.1.0",
+]

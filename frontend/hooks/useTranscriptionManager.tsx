@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import { NotificationManager } from "@/lib/notifications";
 
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -20,11 +21,15 @@ interface Transcription {
   uploadedAt: string;
   duration: string;
   size: string;
-  download_url?: string;
+  midi_download_url?: string;
+  xml_download_url?: string;
 }
 
 interface UseTranscriptionManagerProps {
-  getDownloadUrl: (jobId: string) => Promise<{ download_url: string }>;
+  getDownloadUrl: (
+    jobId: string,
+    downloadType: string
+  ) => Promise<{ midi_download_url?: string; xml_download_url?: string }>;
   getUserJobs?: () => Promise<any[]>;
   user?: any;
   supabase?: any; // Optional, if you need to use supabase directly
@@ -41,31 +46,58 @@ export function useTranscriptionManager({
 
   const isFetchingRef = useRef(false);
 
+  const deleteTranscription = useCallback((jobId: string) => {
+    setTranscriptions((prev) => prev.filter((t) => t.id !== jobId));
+  }, []);
+
   const handleJobCompletion = useCallback(
     async (jobId: string, resultKey: string) => {
+      let shouldSkip = false;
+
       const existingJob = transcriptions.find((t) => t.id === jobId);
-      if (existingJob?.download_url === "error") {
+      if (
+        existingJob?.midi_download_url === "error" ||
+        existingJob?.xml_download_url === "error"
+      ) {
         console.log(`Skipping repeated download URL attempt for job ${jobId}`);
+        shouldSkip = true;
         return;
       }
 
+      if (shouldSkip) return;
+
       try {
         // Get download URL from backend
-        const { download_url } = await getDownloadUrl(jobId);
+        const { midi_download_url } = await getDownloadUrl(jobId, "midi");
+        const { xml_download_url } = await getDownloadUrl(jobId, "xml");
 
         // Update transcription with download URL
-        setTranscriptions((prev) =>
-          prev.map((t) =>
+        setTranscriptions((prev) => {
+          const updatedTranscriptions = prev.map((t) =>
             t.id === jobId
               ? {
                   ...t,
                   status: "completed" as const,
                   progress: 100,
-                  download_url: download_url,
+                  midi_download_url: midi_download_url,
+                  xml_download_url: xml_download_url,
                 }
               : t
-          )
-        );
+          );
+
+          const notificationsEnabled =
+            localStorage.getItem("notifications-enabled") === "true";
+          const completedJob = updatedTranscriptions.find(
+            (t) => t.id === jobId
+          );
+          if (notificationsEnabled && completedJob) {
+            NotificationManager.showTranscriptionComplete(
+              completedJob.filename
+            );
+          }
+
+          return updatedTranscriptions;
+        });
 
         toast.success("Transcription completed!");
       } catch (error) {
@@ -78,7 +110,8 @@ export function useTranscriptionManager({
                   ...t,
                   status: "completed" as const,
                   progress: 100,
-                  download_url: "error", // Mark as error
+                  xml_download_url: "error", // Mark as error
+                  midi_download_url: "error", // Mark as error
                 }
               : t
           )
@@ -87,14 +120,20 @@ export function useTranscriptionManager({
         toast.error("Failed to complete transcription");
       }
     },
-    [getDownloadUrl]
+    [getDownloadUrl, transcriptions]
   );
 
   const updateTranscriptionStatus = useCallback(
-    (jobId: string, status: string, file_duration: number, file_size: number) => {
+    (
+      jobId: string,
+      status: string,
+      file_duration: number,
+      file_size: number
+    ) => {
       const typedStatus = status as TranscriptionStatus;
-      setTranscriptions((prev) =>
-        prev.map((t) =>
+
+      setTranscriptions((prev) => {
+        const updatedTranscriptions = prev.map((t) =>
           t.id === jobId
             ? {
                 ...t,
@@ -108,12 +147,22 @@ export function useTranscriptionManager({
                   : "N/A",
               }
             : t
-        )
-      );
+        );
 
-      if (status === "failed") {
-        toast.error("Transcription failed");
-      }
+        // Handle notifications using the updated state
+        if (status === "failed") {
+          toast.error("Transcription failed");
+
+          const notificationsEnabled =
+            localStorage.getItem("notifications-enabled") === "true";
+          const failedJob = updatedTranscriptions.find((t) => t.id === jobId);
+          if (notificationsEnabled && failedJob) {
+            NotificationManager.showTranscriptionFailed(failedJob.filename);
+          }
+        }
+
+        return updatedTranscriptions;
+      });
     },
     []
   );
@@ -153,21 +202,35 @@ export function useTranscriptionManager({
           size: job.file_size
             ? `${(job.file_size / (1024 * 1024)).toFixed(2)} MB`
             : "N/A",
-          download_url:
-            job.status === "done" && job.result_key ? "pending" : undefined,
+          midi_download_url:
+            job.status === "done" && job.midi_download_url
+              ? job.midi_download_url
+              : "pending",
+          xml_download_url:
+            job.status === "done" && job.xml_download_url
+              ? job.xml_download_url
+              : "pending",
         }));
 
         setTranscriptions(transcriptionsList);
 
         // For completed jobs, fetch download URLs
         const completedJobs = transcriptionsList.filter(
-          (t) => t.status === "completed" && t.download_url === "pending"
+          (t) =>
+            t.status === "completed" &&
+            t.midi_download_url === "pending" &&
+            t.xml_download_url === "pending"
         );
         for (const job of completedJobs) {
           try {
-            const { download_url } = await getDownloadUrl(job.id);
+            const { midi_download_url } = await getDownloadUrl(job.id, "midi");
+            const { xml_download_url } = await getDownloadUrl(job.id, "xml");
             setTranscriptions((prev) =>
-              prev.map((t) => (t.id === job.id ? { ...t, download_url } : t))
+              prev.map((t) =>
+                t.id === job.id
+                  ? { ...t, midi_download_url, xml_download_url }
+                  : t
+              )
             );
           } catch (error) {
             console.error(
@@ -177,7 +240,13 @@ export function useTranscriptionManager({
 
             setTranscriptions((prev) =>
               prev.map((t) =>
-                t.id === job.id ? { ...t, download_url: "error" } : t
+                t.id === job.id
+                  ? {
+                      ...t,
+                      midi_download_url: "error",
+                      xml_download_url: "error",
+                    }
+                  : t
               )
             );
           }
@@ -197,63 +266,69 @@ export function useTranscriptionManager({
   useEffect(() => {
     if (!user) return;
 
-    const timeoutId = setTimeout(() => {
-      const deviceId =
-        localStorage.getItem("deviceId") ||
-        (() => {
-          const id = Math.random().toString(36).substr(2, 9);
-          localStorage.setItem("deviceId", id);
-          return id;
-        })();
+    const deviceId =
+      localStorage.getItem("deviceId") ||
+      (() => {
+        const id = Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("deviceId", id);
+        return id;
+      })();
 
-      const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
-      console.log("Setting up channel:", uniqueChannelName);
+    const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
+    console.log("Setting up channel:", uniqueChannelName);
 
-      const channel = supabase
-        .channel(uniqueChannelName)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "jobs",
-            filter: `user_id=eq.${user.id}`,
-          },
-          async (payload: RealtimePostgresChangesPayload<any>) => {
-            console.log("Job change detected:", payload);
+    const channel = supabase
+      .channel(uniqueChannelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "jobs",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload: RealtimePostgresChangesPayload<any>) => {
+          console.log("Job change detected:", payload);
 
-            if (
-              payload.eventType === "UPDATE" ||
-              payload.eventType === "INSERT"
-            ) {
-              const jobData = payload.new;
+          if (
+            payload.eventType === "UPDATE" ||
+            payload.eventType === "INSERT"
+          ) {
+            const jobData = payload.new;
 
-              if (jobData.status === "done") {
-                await handleJobCompletion(jobData.job_id, jobData.result_key);
-              } else {
-                updateTranscriptionStatus(jobData.job_id, jobData.status, jobData.file_duration ?? 0, jobData.file_size ?? 0);
-              }
+            if (jobData.status === "deleted") {
+              deleteTranscription(jobData.job_id);
+              return;
+            }
+
+            if (jobData.status === "done") {
+              await handleJobCompletion(jobData.job_id, jobData.result_key);
+            } else {
+              updateTranscriptionStatus(
+                jobData.job_id,
+                jobData.status,
+                jobData.file_duration ?? 0,
+                jobData.file_size ?? 0
+              );
             }
           }
-        )
-        .subscribe((status: string, err?: Error) => {
-          console.log("Subscription status:", status);
+        }
+      )
+      .subscribe((status: string, err?: Error) => {
+        console.log("Subscription status:", status);
 
-          if (err) console.error("Subscription error:", err);
+        if (err) console.error("Subscription error:", err);
 
-          // Add reconnection logic for failed connections
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            console.log("Connection failed, will retry on next mount");
-          }
-        });
+        // Add reconnection logic for failed connections
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.log("Connection failed, will retry on next mount");
+        }
+      });
 
-      return () => {
-        console.log("Cleaning up channel:", uniqueChannelName);
-        supabase.removeChannel(channel);
-      };
-    }, 1000); // 1 second debounce
-
-    return () => clearTimeout(timeoutId);
+    return () => {
+      console.log("Cleaning up channel:", uniqueChannelName);
+      supabase.removeChannel(channel);
+    };
   }, [user?.id, supabase]);
 
   const mapBackendStatusToFrontend = (
@@ -304,5 +379,6 @@ export function useTranscriptionManager({
     updateTranscriptionStatus,
     addTranscription,
     initialLoading,
+    deleteTranscription,
   };
 }

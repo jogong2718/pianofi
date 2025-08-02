@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/client";
 interface getDownloadResponse {
   jobId: string;
   status: string;
-  download_url?: string;
+  midi_download_url?: string;
+  xml_download_url?: string;
   result_key?: string;
 }
 
@@ -14,7 +15,7 @@ export function useDownloadUrl() {
   const supabase = createClient();
 
   const getDownloadUrl = useCallback(
-    async (jobId: string) => {
+    async (jobId: string, downloadType: string) => {
       setLoading(true);
       setError(null);
 
@@ -28,12 +29,23 @@ export function useDownloadUrl() {
         }
 
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-        const res = await fetch(`${backendUrl}/getDownload/${jobId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        let res: Response;
+        if (downloadType === "midi") {
+          res = await fetch(`${backendUrl}/getMidiDownload/${jobId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+          console.log("Fetching MIDI download for jobId:", jobId);
+        } else {
+          res = await fetch(`${backendUrl}/getXmlDownload/${jobId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+        }
         console.log("Fetching job details for jobId:", jobId);
         console.log(res);
 
@@ -45,16 +57,33 @@ export function useDownloadUrl() {
 
         console.log("Job details received:", data);
 
+        if (data.status === "missing") {
+          console.log(
+            "Download URL not available for this job (status: missing)"
+          );
+          return downloadType === "midi"
+            ? { midi_download_url: undefined }
+            : { xml_download_url: undefined };
+        }
+
         // Check if job is completed and has download URL
         if (data.status !== "done" && data.status !== "completed") {
           throw new Error("Job is not completed yet");
         }
 
-        if (!data.download_url) {
+        if (!data.midi_download_url && !data.xml_download_url) {
           throw new Error("Download URL not available");
         }
 
-        return { download_url: data.download_url };
+        if (downloadType === "midi") {
+          return { midi_download_url: data.midi_download_url };
+        }
+
+        if (downloadType === "xml") {
+          return { xml_download_url: data.xml_download_url };
+        }
+        // If we reach here, it means an invalid download type was specified
+        throw new Error("Invalid download type specified");
       } catch (err: any) {
         setError(err.message || "Unknown error");
         throw err;

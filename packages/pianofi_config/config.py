@@ -9,6 +9,11 @@ def get_environment() -> str:
     return os.getenv("ENVIRONMENT", "development")
 
 @lru_cache()
+def get_storage() -> str:
+    """Get storage type (local, s3)"""
+    return os.getenv("USE_LOCAL_STORAGE", "false")
+
+@lru_cache()
 def get_database_url() -> str:
     """Get database URL from Parameter Store in production, .env in development"""
     env = get_environment()
@@ -31,7 +36,7 @@ def get_database_url() -> str:
     
     try:
         response = ssm.get_parameter(
-            Name=f'/pianofi/{env}/database/url',
+            Name=f'/pianofi/database/url',
             WithDecryption=True
         )
         return response['Parameter']['Value']
@@ -47,8 +52,8 @@ def get_aws_credentials() -> Dict[str, str]:
         from dotenv import load_dotenv
         load_dotenv()
         return {
-            "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID", ""),
-            "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
+            # "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID", ""),
+            # "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
             "aws_region": os.getenv("AWS_REGION", ""),
             "s3_bucket": os.getenv("S3_BUCKET", "")
         }
@@ -60,10 +65,10 @@ def get_aws_credentials() -> Dict[str, str]:
         # Get multiple parameters at once
         response = ssm.get_parameters(
             Names=[
-                f'/pianofi/{env}/aws/access_key_id',
-                f'/pianofi/{env}/aws/secret_access_key',
-                f'/pianofi/{env}/aws/region',
-                f'/pianofi/{env}/s3/bucket'
+                # f'/pianofi/{env}/aws/access_key_id',
+                # f'/pianofi/{env}/aws/secret_access_key',
+                f'/pianofi/aws/region',
+                f'/pianofi/s3/bucket'
             ],
             WithDecryption=True
         )
@@ -71,8 +76,8 @@ def get_aws_credentials() -> Dict[str, str]:
         params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
         
         return {
-            "aws_access_key_id": params.get("access_key_id", ""),
-            "aws_secret_access_key": params.get("secret_access_key", ""),
+            # "aws_access_key_id": params.get("access_key_id", ""),
+            # "aws_secret_access_key": params.get("secret_access_key", ""),
             "aws_region": params.get("region", ""),
             "s3_bucket": params.get("bucket", "")
         }
@@ -94,7 +99,7 @@ def get_cors_origins() -> list:
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
-        response = ssm.get_parameter(Name=f'/pianofi/{env}/cors/allowed_origins')
+        response = ssm.get_parameter(Name=f'/pianofi/cors/allowed_origins')
         return response['Parameter']['Value'].split(",")
     except Exception as e:
         # Fallback to restrictive CORS in production
@@ -122,7 +127,7 @@ def get_redis_url() -> str:
     
     try:
         response = ssm.get_parameter(
-            Name=f'/pianofi/{env}/redis/url',
+            Name=f'/pianofi/redis/url',
             WithDecryption=True
         )
         return response['Parameter']['Value']
@@ -143,7 +148,8 @@ def get_supabase_config() -> Dict[str, str]:
         
         return {
             "url": os.getenv("SUPABASE_URL", ""),
-            "anon_key": os.getenv("SUPABASE_ANON_KEY", "")
+            "anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
+            "service_role_key": os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
         }
     
     # Production - get from Parameter Store
@@ -152,8 +158,9 @@ def get_supabase_config() -> Dict[str, str]:
     try:
         response = ssm.get_parameters(
             Names=[
-                f'/pianofi/{env}/supabase/url',
-                f'/pianofi/{env}/supabase/anon_key'
+                f'/pianofi/supabase/url',
+                f'/pianofi/supabase/anon_key',
+                f'/pianofi/supabase/service_role_key'
             ],
             WithDecryption=True
         )
@@ -162,7 +169,8 @@ def get_supabase_config() -> Dict[str, str]:
         
         return {
             "url": params.get("url", ""),
-            "anon_key": params.get("anon_key", "")
+            "anon_key": params.get("anon_key", ""),
+            "service_role_key": params.get("service_role_key", "")
         }
     except Exception as e:
         raise Exception(f"Failed to get Supabase config from Parameter Store: {e}")
@@ -185,11 +193,52 @@ def get_backend_base_url() -> str:
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
-        response = ssm.get_parameter(Name=f'/pianofi/{env}/backend/base_url')
+        response = ssm.get_parameter(Name=f'/pianofi/backend/base_url')
         return response['Parameter']['Value']
     except Exception as e:
         # Fallback to environment variable or default
         return os.getenv("BACKEND_BASE_URL", "https://api.yourdomain.com")
+    
+@lru_cache()
+def get_stripe_keys() -> str:
+    """Get Stripe keys from environment or Parameter Store"""
+    env = get_environment()
+    
+    if env == "development":
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass
+        
+        return {
+            "secret_key": os.getenv("STRIPE_SECRET_KEY", ""),
+            "publishable_key": os.getenv("STRIPE_PUBLISHABLE_KEY", ""),
+            "webhook_secret": os.getenv("STRIPE_WEBHOOK_SECRET", "")
+        }
+    
+    # Production - get from Parameter Store
+    ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
+    
+    try:
+        response = ssm.get_parameters(
+            Names=[
+                f'/pianofi/stripe/secret_key',
+                f'/pianofi/stripe/publishable_key',
+                f'/pianofi/stripe/webhook_secret'
+            ],
+            WithDecryption=True
+        )
+        
+        params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
+        
+        return {
+            "secret_key": params.get("secret_key", ""),
+            "publishable_key": params.get("publishable_key", ""),
+            "webhook_secret": params.get("webhook_secret", "")
+        }
+    except Exception as e:
+        raise Exception(f"Failed to get Stripe keys from Parameter Store: {e}")
 
 # Configuration class for easy access
 class Config:
@@ -200,3 +249,5 @@ class Config:
     REDIS_URL = get_redis_url()
     SUPABASE_CONFIG = get_supabase_config()
     BACKEND_BASE_URL = get_backend_base_url()
+    USE_LOCAL_STORAGE = get_storage()
+    STRIPE_KEYS = get_stripe_keys()

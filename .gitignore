@@ -3,7 +3,9 @@
 .DS_Store
 
 # dependencies
-node_modules
+node_modules/
+yarn.lock
+pnpm-lock.yaml
 
 # next.js
 .next/
@@ -31,6 +33,9 @@ next-env.d.ts
 # python
 __pycache__/
 venv/
+.venv/
+uv.lock
+.python-version
 tmpvenv/
 newvenv/
 pvenv/
@@ -38,3 +43,7 @@ pvenv/
 backend/uploads/tmp/
 
 uploads/
+
+project-aws/
+dev-start.sh
+dev-start.bat
