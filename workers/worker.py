@@ -49,9 +49,9 @@ def process_job(job, engine, s3_client, aws_creds, local):
         
         logging.info(f"Downloading s3://{bucket}/{file_key} to {local_raw}")
         s3_client.download_file(
-            bucket,        # S3 bucket name
-            file_key,      # S3 object key (like "abc123.bin")
-            str(local_raw) # Local file path where to save
+            bucket,
+            file_key,
+            str(local_raw)
         )
         logging.info(f"Downloaded {local_raw}")
 
