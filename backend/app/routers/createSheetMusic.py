@@ -208,6 +208,53 @@ async def get_midi_for_job(job_id: str, user_id: str, db: Session) -> str:
         raise HTTPException(status_code=500, detail=f"MIDI generation failed: {str(e)}")
 
 
+async def get_audio_for_job(job_id: str, user_id: str, db: Session) -> tuple[bytes, dict]:
+    try:
+        sql = text("""
+            SELECT status, audio_metadata FROM jobs 
+            WHERE job_id = :job_id AND user_id = :user_id
+        """)
+        
+        result = db.execute(sql, {
+            "job_id": job_id, 
+            "user_id": user_id
+        }).fetchone()
+        
+        if not result:
+            logger.error(f"Job not found or access denied: {job_id}")
+            raise HTTPException(status_code=404, detail="Job not found or access denied")
+        
+        status, audio_metadata = result
+        logger.info(f"Job status: {status}")
+        
+        if status != 'done':
+            logger.error(f"Job not completed. Current status: {status}")
+            raise HTTPException(status_code=400, detail=f"Job not completed. Current status: {status}")
+        
+        # Get audio file from S3
+        s3_key = f"processed_audio/{job_id}.wav"
+        try:
+            response = s3_client.get_object(
+                Bucket=aws_creds["s3_bucket"],
+                Key=s3_key
+            )
+            audio_content = response['Body'].read()
+            return audio_content, audio_metadata
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                logger.error(f"Audio file not found in S3: {s3_key}")
+                raise HTTPException(status_code=404, detail="Audio file not found in S3")
+            else:
+                logger.error(f"S3 download failed: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"S3 download failed: {str(e)}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Unexpected error in get_audio_for_job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Audio generation failed: {str(e)}")
+
+
 @router.post("/convertToXml")
 async def convert_to_xml_endpoint(
     midi_file_path: str,
@@ -287,4 +334,33 @@ async def get_midi_endpoint(
         )
     except Exception as e:
         logger.exception(f"Error in get_midi_endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/getAudio/{job_id}")
+async def get_audio_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        authenticated_user_id = current_user.id
+        audio_content, audio_metadata = await get_audio_for_job(job_id, authenticated_user_id, db)
+        
+        from fastapi.responses import Response
+        import json
+        
+        # Return audio with metadata in headers
+        headers = {
+            'Content-Disposition': f'attachment; filename="{job_id}.wav"',
+            'X-Audio-Metadata': json.dumps(audio_metadata) if audio_metadata else '{}'
+        }
+        
+        return Response(
+            content=audio_content,
+            media_type='audio/wav',
+            headers=headers
+        )
+        
+    except Exception as e:
+        logger.exception(f"Error in get_audio_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

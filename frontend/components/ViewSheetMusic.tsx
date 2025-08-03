@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSheetMusicDisplay } from '@/hooks/useSheetMusic';
+import { useSheetMusicDisplay, useMIDI, useAudio } from '@/hooks/useSheetMusic';
 
 interface MusicSheetViewerProps {
     musicXmlString?: string;

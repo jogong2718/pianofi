@@ -286,4 +286,5 @@ if __name__ == "__main__":
     midi_file = Path(f"uploads/{job_id}.mid")
     output_file = Path(f"uploads/{job_id}.wav")
     
-    metadata = convert_midi_to_audio(midi_file, output_file, job_id)
+    audio_path, metadata = convert_midi_to_audio(midi_file, output_file, job_id)
+    print(metadata)
