@@ -39,6 +39,7 @@ uv.lock
 tmpvenv/
 newvenv/
 pvenv/
+workervenv/
 
 backend/uploads/tmp/
 

@@ -1,8 +1,10 @@
+async-timeout==5.0.1
 boto3==1.39.15
 botocore==1.39.15
 dotenv==0.9.9
 greenlet==3.2.3
 jmespath==1.0.1
+midi2audio==0.1.1
 mutagen==1.47.0
 psycopg2-binary==2.9.10
 python-dateutil==2.9.0.post0

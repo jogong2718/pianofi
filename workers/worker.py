@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
 from workers.tasks.picogen import run_picogen
 from workers.tasks.midiToXml import convert_midi_to_xml
+from workers.tasks.midiToAudio import convert_midi_to_audio
 from mutagen import File
 
 print("starting worker...")
@@ -49,9 +50,9 @@ def process_job(job, engine, s3_client, aws_creds, local):
         
         logging.info(f"Downloading s3://{bucket}/{file_key} to {local_raw}")
         s3_client.download_file(
-            bucket,        # S3 bucket name
-            file_key,      # S3 object key (like "abc123.bin")
-            str(local_raw) # Local file path where to save
+            bucket,
+            file_key,
+            str(local_raw)
         )
         logging.info(f"Downloaded {local_raw}")
 
@@ -97,9 +98,9 @@ def process_job(job, engine, s3_client, aws_creds, local):
         logging.info(f"Uploading result to s3://{bucket}/{midi_key}")
         s3_client.upload_file(final_mid, bucket, midi_key)
 
-    # 5) Transfrom midi into xml
+    # 5) Transform midi into xml
 
-    xml_path = f"/tmp/{job_id}musicxml"
+    xml_path = f"/tmp/{job_id}.musicxml"
     xml_key = f"xml/{job_id}.musicxml"
 
     try:
@@ -130,8 +131,30 @@ def process_job(job, engine, s3_client, aws_creds, local):
         logging.error(f"Error in XML conversion step for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
         return
+    
+    # 6) Convert MIDI to audio
+    audio_path = f"/tmp/{job_id}.wav"
+    audio_key = f"audio/{job_id}.wav"
+    try:
+        convert_midi_to_audio(final_mid, audio_path)
+        
+        if local:
+            audio_final = UPLOAD_DIR / f"audio/{job_id}.wav"
+            if not audio_final.parent.exists():
+                audio_final.parent.mkdir(parents=True, exist_ok=True)
+            with open(audio_final, "wb") as f:
+                with open(audio_path, "rb") as audio_file:
+                    f.write(audio_file.read())
+        else:
+            audio_key = f"audio/{job_id}.wav"
+            s3_client.upload_file(audio_path, bucket, audio_key)
+            audio_final = f"s3://{bucket}/{audio_key}"
+    except Exception as e:
+        logging.error(f"Error converting MIDI to audio for job {job_id}: {e}")
+        # You might want to set job status to 'failed' here
+        return
 
-    # 6) DB → status=done, file_key=midi_key, xml_key=xml_key
+    # 7) DB → status=done, file_key=midi_key, xml_key=xml_key
     with engine.connect() as db:
         update_sql = text("""
             UPDATE jobs
@@ -145,6 +168,8 @@ def process_job(job, engine, s3_client, aws_creds, local):
         })
         db.commit()
     logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
+
+    
 
 def main():
 

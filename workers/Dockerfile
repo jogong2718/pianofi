@@ -12,6 +12,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     conda clean -afy
 
 WORKDIR /app
+
+RUN curl -L "https://github.com/musescore/MuseScore/raw/master/share/sound/FluidR3Mono_GM.sf3" -o FluidR3_GM.sf3
+
 COPY workers/ ./workers
 COPY packages/ ./packages
 COPY uploads/ ./uploads
