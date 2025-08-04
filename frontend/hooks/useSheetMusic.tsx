@@ -27,16 +27,6 @@ interface MIDIData {
     error: string | null;
 }
 
-interface UseAudioProps {
-    jobId: string;
-}
-
-interface AudioData {
-    audioUrl: string | null;
-    metadata: any | null;
-    loading: boolean;
-    error: string | null;
-}
 
   
 export function useSheetMusic({ jobId }: UseSheetMusicProps) {
@@ -150,82 +140,6 @@ export function useMIDI({ jobId }: UseMIDIProps) {
     return data;
 }
 
-export function useAudio({ jobId }: UseAudioProps) {
-    const [data, setData] = useState<AudioData>({
-        audioUrl: null,
-        metadata: null,
-        loading: true,
-        error: null,
-    });
-
-    const supabase = createClient();
-
-    useEffect(() => {
-        if (!jobId) return;
-
-        const fetchAudio = async () => {
-            try {
-                console.log('Getting Audio for jobId:', jobId);
-                setData(prev => ({ ...prev, loading: true, error: null }));
-
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession();
-
-                if (!session?.access_token) {
-                    throw new Error("No authentication token found");
-                }
-
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-                const response = await fetch(`${backendUrl}/getAudio/${jobId}`, {
-                    headers: {
-                        'Accept': 'audio/wav',
-                        'Authorization': `Bearer ${session.access_token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch Audio: ${response.statusText}`);
-                }
-
-                // Get audio content as blob
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                // Get metadata from headers
-                const metadataHeader = response.headers.get('X-Audio-Metadata');
-                const metadata = metadataHeader ? JSON.parse(metadataHeader) : null;
-
-                setData({ 
-                    audioUrl, 
-                    metadata, 
-                    loading: false, 
-                    error: null 
-                });
-
-                console.log('Audio fetched successfully', { metadata });
-            } catch (error) {
-                setData({
-                    audioUrl: null,
-                    metadata: null,
-                    loading: false,
-                    error: error instanceof Error ? error.message : "Failed to fetch audio",
-                });
-            }
-        };
-
-        fetchAudio();
-
-        // Cleanup function to revoke object URL
-        return () => {
-            if (data.audioUrl) {
-                URL.revokeObjectURL(data.audioUrl);
-            }
-        };
-    }, [jobId, supabase]);
-
-    return data;
-}
 
 export function useSheetMusicDisplay({ musicXml }: UseOSMDProps) {
     const [osmd, setOSMD] = useState<OpenSheetMusicDisplay | null>(null);

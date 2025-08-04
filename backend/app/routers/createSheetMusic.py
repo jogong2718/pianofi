@@ -358,7 +358,7 @@ async def get_audio_endpoint(
         return Response(
             content=audio_content,
             media_type='audio/wav',
-            headers=headers
+            headers=headers,
         )
         
     except Exception as e:

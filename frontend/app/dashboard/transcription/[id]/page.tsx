@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
-import MidiPlayer from "@/components/MidiPlayer";
+import AudioPlayer from "@/components/audioPlayer";
+import { useAudio } from "@/hooks/useAudio";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -16,6 +17,8 @@ export default function TranscriptionDetailPage() {
 
     const { xml, loading: xmlLoading, error: xmlError } = useSheetMusic({ jobId });
     const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
+    const { audioRef, metadata } = useAudio({ jobId });
+
 
 
     if (xmlLoading) {
@@ -58,7 +61,7 @@ export default function TranscriptionDetailPage() {
 
                     <div className="flex items-center space-x-2">
                         
-                        <MidiPlayer midi={midi} />
+                        <AudioPlayer jobId={jobId} />
                         <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-2" />
                             Download MIDI
@@ -75,7 +78,7 @@ export default function TranscriptionDetailPage() {
                     <CardContent className="p-0 h-full">
                         <div className="h-full max-w-6xl mx-auto bg-gray-50 border-2 border-dashed border-gray-300 overflow-auto">
                             {xml && (
-                                <ViewSheetMusic musicXmlString={xml} />
+                                <ViewSheetMusic musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
                             )}
                         </div>
                     </CardContent>
