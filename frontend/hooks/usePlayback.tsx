@@ -47,7 +47,6 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         if (!svg) return;
 
         const allMeasures = svg.querySelectorAll('.vf-measure');
-        console.log('allMeasures', allMeasures);
 
         const measureDict: { [id: string]: { treble?: Element, bass?: Element } } = {};
 
@@ -95,7 +94,6 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
                 }
             }
         }
-
         console.log('Precomputed bounds for', bounds.length, 'measures');
         setMeasureBounds(bounds);
     }, [svgContainer]);
@@ -113,7 +111,6 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
             const bbox = bound.combinedBbox;
             if (x >= bbox.left && x <= bbox.right && 
                 y >= bbox.top && y <= bbox.bottom) {
-                console.log('found measure', bound.id);
                 return bound;
             }
         }
@@ -121,8 +118,63 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         return null;
     }, [measureBounds, svgContainer]);
 
-    // Create highlight
-    const createHighlight = useCallback((measureBound: MeasureBounds, persistent: boolean = false) => {
+    // Helper function to find which measure is playing at current time
+    const findMeasureFromTime = useCallback((currentTime: number): string | null => {
+        if (!metadata?.measures) return null;
+
+        const measureEntries = Object.entries(metadata.measures);
+        
+        if (measureEntries.length === 0) return null;
+        if (currentTime < measureEntries[0][1].start) return null;
+        
+        let left = 0;
+        let right = measureEntries.length - 1;
+        let result = null;
+
+        while (left <= right) {
+            const mid = Math.floor((left + right) / 2);
+            const [measureId, measureData] = measureEntries[mid];
+
+            if (currentTime >= measureData.start && currentTime < measureData.end) {
+                return measureId;
+            } else if (currentTime < measureData.start) {
+                right = mid - 1;
+            } else {
+                result = measureId; 
+                left = mid + 1;
+            }
+        }
+
+        return result;
+    }, [metadata]);
+
+    // Pure highlighting function - responds to state changes
+    const updateHighlights = useCallback(() => {
+        const svg = svgContainer?.querySelector('svg');
+        if (!svg) return;
+        
+        // Remove all existing highlights
+        svg.querySelectorAll('.measure-highlight-hover, .measure-highlight-selected').forEach(h => h.remove());
+        
+        // Add hover highlight (lower priority)
+        if (hoveredMeasure && hoveredMeasure !== selectedMeasure) {
+            const hoverBound = measureBounds.find(m => m.id === hoveredMeasure);
+            if (hoverBound) {
+                createHighlight(hoverBound, 'hover');
+            }
+        }
+        
+        // Add selected highlight (higher priority)
+        if (selectedMeasure) {
+            const selectedBound = measureBounds.find(m => m.id === selectedMeasure);
+            if (selectedBound) {
+                createHighlight(selectedBound, 'selected');
+            }
+        }
+    }, [selectedMeasure, hoveredMeasure, measureBounds, svgContainer]);
+
+    // Updated highlight creation with types
+    const createHighlight = useCallback((measureBound: MeasureBounds, type: 'hover' | 'selected') => {
         const svg = svgContainer?.querySelector('svg');
         if (!svg) return;
         
@@ -133,19 +185,18 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         highlight.setAttribute('y', bbox.y.toString());
         highlight.setAttribute('width', bbox.width.toString());
         highlight.setAttribute('height', bbox.height.toString());
+        highlight.setAttribute('stroke-width', '2');
+        highlight.setAttribute('pointer-events', 'none');
         
-        if (persistent) {
-            highlight.setAttribute('fill', 'rgba(255, 165, 0, 0.3)');
-            highlight.setAttribute('stroke', 'rgba(255, 165, 0, 0.8)');
-            highlight.setAttribute('class', 'measure-highlight-persistent');
+        if (type === 'selected') {
+            highlight.setAttribute('fill', 'rgba(34, 197, 94, 0.3)');  // Green for playing/selected
+            highlight.setAttribute('stroke', 'rgba(34, 197, 94, 0.8)');
+            highlight.setAttribute('class', 'measure-highlight-selected');
         } else {
-            highlight.setAttribute('fill', 'rgba(0, 123, 255, 0.2)');
+            highlight.setAttribute('fill', 'rgba(0, 123, 255, 0.2)');  // Blue for hover
             highlight.setAttribute('stroke', 'rgba(0, 123, 255, 0.5)');
             highlight.setAttribute('class', 'measure-highlight-hover');
         }
-        
-        highlight.setAttribute('stroke-width', '2');
-        highlight.setAttribute('pointer-events', 'none');
         
         svg.appendChild(highlight);
     }, [svgContainer]);
@@ -182,20 +233,30 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         }
     }, [findMeasureFromCoordinates, selectedMeasure, hoveredMeasure, removeHighlight, createHighlight]);
 
+    // Simplified click handler - ONLY sets state
     const handleClick = useCallback((event: MouseEvent) => {
         const measureBound = findMeasureFromCoordinates(event);
+        if (!measureBound) return;
         
-        if (measureBound) {
-            setSelectedMeasure(measureBound.id);
-            setHoveredMeasure(null); 
-            removeHighlight(); 
-            createHighlight(measureBound, true); 
-            console.log('Selected measure:', measureBound.id);
-            
-            // Auto-play the measure
-            playMeasure(measureBound.id);
+        const wasPlaying = audioRef.current && !audioRef.current.paused;
+        
+        // Set selected measure
+        setSelectedMeasure(measureBound.id);
+        setHoveredMeasure(null);
+        
+        // Jump audio to this measure
+        if (audioRef.current && metadata?.measures) {
+            const measureData = metadata.measures[measureBound.id];
+            if (measureData) {
+                audioRef.current.currentTime = measureData.start;
+                
+                // Continue playing if it was already playing
+                if (wasPlaying) {
+                    audioRef.current.play();
+                }
+            }
         }
-    }, [findMeasureFromCoordinates, removeHighlight, createHighlight]);
+    }, [findMeasureFromCoordinates, audioRef, metadata]);
 
     const handleMouseLeave = useCallback(() => {
         setHoveredMeasure(null);
@@ -221,14 +282,22 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
 
     // Audio control functions
     const play = useCallback(async () => {
-        if (audioRef.current) {
-            try {
-                await audioRef.current.play();
-            } catch (error) {
-                console.error('Error playing audio:', error);
+        if (!audioRef.current) return;
+        
+        // Default to first measure if none selected
+        if (!selectedMeasure) {
+            setSelectedMeasure("1");
+            if (metadata?.measures?.["1"]) {
+                audioRef.current.currentTime = metadata.measures["1"].start;
             }
         }
-    }, [audioRef]);
+        
+        try {
+            await audioRef.current.play();
+        } catch (error) {
+            console.error('Error playing audio:', error);
+        }
+    }, [audioRef, selectedMeasure, metadata]);
 
     const pause = useCallback(() => {
         if (audioRef.current) {
@@ -243,29 +312,44 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         }
     }, [audioRef]);
 
+    // Simplified playMeasure function
     const playMeasure = useCallback((measureId: string) => {
+        setSelectedMeasure(measureId);
+        
         if (audioRef.current && metadata?.measures) {
             const measureData = metadata.measures[measureId];
             if (measureData) {
-                // 1. Stop current audio and clear any existing timeout
-                audioRef.current.pause();
-                if (measureTimeoutRef.current) {
-                    clearTimeout(measureTimeoutRef.current);
-                    measureTimeoutRef.current = null;
-                }
-                
-                // 2. Set new position and play
                 audioRef.current.currentTime = measureData.start;
                 play();
-                
-                // 3. Set new timeout to stop at measure end
-                measureTimeoutRef.current = setTimeout(() => {
-                    pause();
-                    measureTimeoutRef.current = null;
-                }, (measureData.end - measureData.start) * 1000);
             }
         }
-    }, [audioRef, metadata, play, pause]);
+    }, [audioRef, metadata, play]);
+
+    // Auto-update selectedMeasure as audio plays
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !metadata?.measures) return;
+
+        const handleTimeUpdate = () => {
+            // Only update if audio is actually playing
+            if (!audio.paused) {
+                const currentTime = audio.currentTime;
+                const currentMeasure = findMeasureFromTime(currentTime);
+                if (currentMeasure && currentMeasure !== selectedMeasure) {
+                    console.log(`Measure changed: ${selectedMeasure} → ${currentMeasure} (time: ${currentTime.toFixed(2)}s)`);
+                    setSelectedMeasure(currentMeasure);
+                }
+            }
+        };
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        return () => audio.removeEventListener('timeupdate', handleTimeUpdate);
+    }, [audioRef, metadata, findMeasureFromTime, selectedMeasure]);
+
+    // Update highlights whenever state changes
+    useEffect(() => {
+        updateHighlights();
+    }, [updateHighlights]);
 
     // Cleanup timeout on unmount
     useEffect(() => {
