@@ -17,11 +17,11 @@ export default function TranscriptionDetailPage() {
 
     const { xml, loading: xmlLoading, error: xmlError } = useSheetMusic({ jobId });
     const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
-    const { audioRef, metadata } = useAudio({ jobId });
+    const { audioRef, metadata, loading: audioLoading, error: audioError } = useAudio({ jobId });
 
 
 
-    if (xmlLoading) {
+    if (xmlLoading || audioLoading) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="animate-pulse space-y-4">
@@ -32,7 +32,7 @@ export default function TranscriptionDetailPage() {
         );
     }
 
-    if (xmlError || midiError) {
+    if (xmlError || midiError || audioError) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center text-red-600">
@@ -61,7 +61,7 @@ export default function TranscriptionDetailPage() {
 
                     <div className="flex items-center space-x-2">
                         
-                        <AudioPlayer jobId={jobId} />
+                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
                         <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-2" />
                             Download MIDI

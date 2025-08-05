@@ -5,19 +5,18 @@ import { useAudio } from '@/hooks/useAudio';
 
 interface AudioPlayerProps {
     jobId: string;
+    audioRef: React.RefObject<HTMLAudioElement | null>;
+    metadata: any | null;
 }
 
-export default function AudioPlayer({ jobId }: AudioPlayerProps) {
+export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    
-    const { audioUrl, metadata, loading, error } = useAudio({ jobId });
+
 
     // Initialize audio element when audioUrl is available
     useEffect(() => {
-        if (audioUrl) {
-            const audio = new Audio(audioUrl);
-            audioRef.current = audio;
+        if (audioRef.current) {
+            const audio = audioRef.current;
 
             // Audio event listeners
             audio.addEventListener('ended', () => setIsPlaying(false));
@@ -32,7 +31,7 @@ export default function AudioPlayer({ jobId }: AudioPlayerProps) {
                 audioRef.current = null;
             };
         }
-    }, [audioUrl]);
+    }, [audioRef]);
 
     const play = async () => {
         if (audioRef.current) {
@@ -58,31 +57,13 @@ export default function AudioPlayer({ jobId }: AudioPlayerProps) {
         setIsPlaying(false);
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center space-x-2 text-gray-500">
-                <Volume2 className="h-4 w-4" />
-                <span>Loading audio...</span>
-            </div>
-        );
-    }
-
-    if (error || !audioUrl) {
-        return (
-            <div className="flex items-center space-x-2 text-gray-500">
-                <Volume2 className="h-4 w-4" />
-                <span>No audio available</span>
-            </div>
-        );
-    }
-
     return (
         <div className="flex items-center space-x-2">
             <Button
                 variant="outline"
                 size="sm"
                 onClick={isPlaying ? pause : play}
-                disabled={!audioUrl}
+                disabled={!audioRef}
             >
                 {isPlaying ? (
                     <Pause className="h-4 w-4" />
@@ -94,7 +75,7 @@ export default function AudioPlayer({ jobId }: AudioPlayerProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={stop}
-                disabled={!audioUrl}
+                disabled={!audioRef}
             >
                 <Square className="h-4 w-4" />
             </Button>
