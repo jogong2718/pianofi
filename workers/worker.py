@@ -134,19 +134,19 @@ def process_job(job, engine, s3_client, aws_creds, local):
     
     # 6) Convert MIDI to audio
     audio_path = f"/tmp/{job_id}.wav"
-    audio_key = f"audio/{job_id}.wav"
+    audio_key = f"processed_audio/{job_id}.wav"
     try:
         convert_midi_to_audio(final_mid, audio_path)
         
         if local:
-            audio_final = UPLOAD_DIR / f"audio/{job_id}.wav"
+            audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.wav"
             if not audio_final.parent.exists():
                 audio_final.parent.mkdir(parents=True, exist_ok=True)
             with open(audio_final, "wb") as f:
                 with open(audio_path, "rb") as audio_file:
                     f.write(audio_file.read())
         else:
-            audio_key = f"audio/{job_id}.wav"
+            audio_key = f"processed_audio/{job_id}.wav"
             s3_client.upload_file(audio_path, bucket, audio_key)
             audio_final = f"s3://{bucket}/{audio_key}"
     except Exception as e:
@@ -169,7 +169,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
         db.commit()
     logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
 
-    
+
 
 def main():
 
