@@ -17,13 +17,24 @@ export default function MusicSheetViewer({ musicXmlString, audioRef, metadata }:
         measureBounds,
         handleMouseOver,
         handleClick,
-        handleMouseLeave
+        handleMouseLeave,
+        recomputeBounds
     } = usePlayback({ 
         audioRef,
         metadata,
         osmd, 
         svgContainer: divRef.current 
     });
+
+    // Update the resize handler
+    const handleResize = () => {
+        setTimeout(async () => {
+            if (osmd && divRef.current) {
+                await osmd.render();           // ← First re-render OSMD
+                await recomputeBounds();       // ← Then recompute bounds
+            }
+        }, 100);
+    };
 
     // Add event listeners when measureBounds are ready
     useEffect(() => {
@@ -36,12 +47,16 @@ export default function MusicSheetViewer({ musicXmlString, audioRef, metadata }:
         svg.addEventListener('mouseleave', handleMouseLeave);
         svg.addEventListener('click', handleClick);
 
+        // Add resize listener to recompute measure bounds
+        window.addEventListener('resize', handleResize);
+
         return () => {
             svg.removeEventListener('mousemove', handleMouseOver);
             svg.removeEventListener('mouseleave', handleMouseLeave);
             svg.removeEventListener('click', handleClick);
+            window.removeEventListener('resize', handleResize);
         };
-    }, [measureBounds, handleMouseOver, handleMouseLeave, handleClick]);
+    }, [measureBounds, handleMouseOver, handleMouseLeave, handleClick, osmd]);
 
     return (
         <div className="w-full min-h-full">

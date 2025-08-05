@@ -31,6 +31,7 @@ interface PlaybackData {
     pause: () => void;
     stop: () => void;
     playMeasure: (measureId: string) => void;
+    recomputeBounds: () => Promise<void>;
 }
 
 export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlaybackProps): PlaybackData {
@@ -278,6 +279,7 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         };
 
         initializeMeasures();
+
     }, [osmd, svgContainer, precomputeMeasureBounds]);
 
     // Audio control functions
@@ -370,6 +372,7 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         play,
         pause,
         stop,
-        playMeasure
+        playMeasure,
+        recomputeBounds: precomputeMeasureBounds
     };
 } 
