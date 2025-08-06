@@ -32,6 +32,8 @@ interface PlaybackData {
     stop: () => void;
     playMeasure: (measureId: string) => void;
     recomputeBounds: () => Promise<void>;
+    goToNextMeasure: () => void;
+    goToPreviousMeasure: () => void;
 }
 
 export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlaybackProps): PlaybackData {
@@ -327,6 +329,23 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         }
     }, [audioRef, metadata, play]);
 
+    // Add these functions to usePlayback:
+    const goToNextMeasure = useCallback(() => {
+        if (!selectedMeasure || !metadata?.measures) return;
+        const nextMeasure = (parseInt(selectedMeasure) + 1).toString();
+        if (metadata.measures[nextMeasure]) {
+            playMeasure(nextMeasure);
+        }
+    }, [selectedMeasure, metadata, playMeasure]);
+
+    const goToPreviousMeasure = useCallback(() => {
+        if (!selectedMeasure || !metadata?.measures) return;
+        const prevMeasure = (parseInt(selectedMeasure) - 1).toString();
+        if (metadata.measures[prevMeasure]) {
+            playMeasure(prevMeasure);
+        }
+    }, [selectedMeasure, metadata, playMeasure]);
+
     // Auto-update selectedMeasure as audio plays
     useEffect(() => {
         const audio = audioRef.current;
@@ -373,6 +392,8 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         pause,
         stop,
         playMeasure,
-        recomputeBounds: precomputeMeasureBounds
+        recomputeBounds: precomputeMeasureBounds,
+        goToNextMeasure,
+        goToPreviousMeasure,
     };
 } 

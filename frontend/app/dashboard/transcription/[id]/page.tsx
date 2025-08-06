@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
-import AudioPlayer from "@/components/audioPlayer";
 import { useAudio } from "@/hooks/useAudio";
+import AudioPlayer from "@/components/audioPlayer";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -60,8 +60,7 @@ export default function TranscriptionDetailPage() {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        
-                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
+
                         <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-2" />
                             Download MIDI
@@ -75,10 +74,11 @@ export default function TranscriptionDetailPage() {
 
                 {/* Music Editor - Grows to fill remaining space */}
                 <Card className="flex-1 min-h-0">
-                    <CardContent className="p-0 h-full">
-                        <div className="h-full max-w-6xl mx-auto bg-gray-50 border-2 border-dashed border-gray-300 overflow-auto">
+                    <CardContent className="p-0 h-full flex flex-col">
+                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
+                        <div className="h-full flex-1 max-w-6xl w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto">
                             {xml && (
-                                <ViewSheetMusic musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
+                                <ViewSheetMusic jobId={jobId} musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
                             )}
                         </div>
                     </CardContent>

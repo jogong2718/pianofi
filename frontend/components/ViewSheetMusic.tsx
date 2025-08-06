@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { useSheetMusicDisplay } from '@/hooks/useSheetMusic';
 import { usePlayback } from '@/hooks/usePlayback';
+import AudioPlayer from './audioPlayer';
 
 interface MusicSheetViewerProps {
+    jobId: string;
     musicXmlString?: string;
     audioRef: React.RefObject<HTMLAudioElement | null>;
     metadata: any | null;
 }
 
-export default function MusicSheetViewer({ musicXmlString, audioRef, metadata }: MusicSheetViewerProps) {
+export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, metadata }: MusicSheetViewerProps) {
     const { containerRef, osmd } = useSheetMusicDisplay({ musicXml: musicXmlString });
     const divRef = useRef<HTMLDivElement>(null);
 
@@ -30,8 +32,8 @@ export default function MusicSheetViewer({ musicXmlString, audioRef, metadata }:
     const handleResize = () => {
         setTimeout(async () => {
             if (osmd && divRef.current) {
-                await osmd.render();           // ← First re-render OSMD
-                await recomputeBounds();       // ← Then recompute bounds
+                await osmd.render();
+                await recomputeBounds();
             }
         }, 100);
     };
@@ -47,7 +49,6 @@ export default function MusicSheetViewer({ musicXmlString, audioRef, metadata }:
         svg.addEventListener('mouseleave', handleMouseLeave);
         svg.addEventListener('click', handleClick);
 
-        // Add resize listener to recompute measure bounds
         window.addEventListener('resize', handleResize);
 
         return () => {
