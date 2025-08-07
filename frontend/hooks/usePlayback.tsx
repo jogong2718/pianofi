@@ -60,10 +60,10 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
                 measureDict[id] = {};
             }
 
-            const staffline = measure.closest('[id*="Treble0"], [id*="Bass1"]');
-            if (staffline?.id.includes('Treble0')) {
+            const staffline = measure.closest('[id$="0-1"], [id$="1-1"]');
+            if (staffline?.id.endsWith('0-1')) { // treble
                 measureDict[id].treble = measure;
-            } else if (staffline?.id.includes('Bass1')) {
+            } else if (staffline?.id.endsWith('1-1')) { // bass
                 measureDict[id].bass = measure;
             }
         }
