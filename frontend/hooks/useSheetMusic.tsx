@@ -146,11 +146,12 @@ export function useSheetMusicDisplay({ musicXml }: UseOSMDProps) {
 
     const containerRef = useCallback((div: HTMLDivElement) => {
         if (div && !osmd) {
-          // 1. Create OSMD instance when div becomes available
           const newOsmd = new OpenSheetMusicDisplay(div, {
             autoResize: true,
             backend: "svg", 
             drawTitle: true,
+            pageBackgroundColor: "#ffffff",
+            pageFormat: "Endless"
           });
           setOSMD(newOsmd);
         }
