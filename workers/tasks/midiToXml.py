@@ -4,14 +4,23 @@ import struct
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from collections import defaultdict
+import mido
 
 class MidiToMusicXML:
     def __init__(self):
         self.ticks_per_quarter = 480
         self.notes = []
+        self.bpm = 120
 
     def parse_midi_file(self, filepath):
         """Parse MIDI file and extract notes"""
+
+        try:
+            self.bpm = self.get_bpm_with_mido(filepath)
+            logging.info(f"BPM extracted with mido: {self.bpm}")
+        except Exception as e:
+            logging.info(f"Using default BPM (120): {e}")
+        
         with open(filepath, 'rb') as f:
             data = f.read()
         
@@ -48,36 +57,53 @@ class MidiToMusicXML:
             status = running_status & 0xF0
             
             if status == 0x90:  # Note on
-                note, velocity = data[offset:offset+2]
-                offset += 2
-                if velocity > 0:
-                    note_ons[note] = current_time
-                else:  # Velocity 0 = note off
+                if offset + 2 <= len(data):  # ✅ Bounds check
+                    note, velocity = data[offset:offset+2]
+                    offset += 2
+                    if velocity > 0:
+                        note_ons[note] = current_time
+                    else:  # Velocity 0 = note off
+                        if note in note_ons:
+                            self._add_note(note, note_ons[note], current_time)
+                            del note_ons[note]
+                else:
+                    break
+                        
+            elif status == 0x80:  # Note off
+                if offset + 2 <= len(data):  # ✅ Bounds check
+                    note = data[offset]
+                    offset += 2
                     if note in note_ons:
                         self._add_note(note, note_ons[note], current_time)
                         del note_ons[note]
-                        
-            elif status == 0x80:  # Note off
-                note = data[offset]
-                offset += 2
-                if note in note_ons:
-                    self._add_note(note, note_ons[note], current_time)
-                    del note_ons[note]
+                else:
+                    break
                     
             elif status in [0xA0, 0xB0, 0xE0]:  # 2-byte events
-                offset += 2
+                if offset + 2 <= len(data):  # ✅ Bounds check
+                    offset += 2
+                else:
+                    break
             elif status in [0xC0, 0xD0]:  # 1-byte events
-                offset += 1
-            elif data[offset-1] == 0xFF:  # Meta event
-                offset += 1
-                length, offset = self._read_varint(data, offset)
-                meta_type = data[offset]
-                if meta_type == 0x51 and length == 3:
-                    # Set Tempo event
-                    tempo_bytes = data[offset:offset+3]
-                    microseconds_per_quarter = int.from_bytes(tempo_bytes, byteorder='big')
-                    self.bpm = round(60000000 / microseconds_per_quarter)
-                offset += length
+                if offset + 1 <= len(data):  # ✅ Bounds check
+                    offset += 1
+                else:
+                    break
+            elif offset > 0 and data[offset-1] == 0xFF:  # Meta event
+                if offset < len(data):  # ✅ Bounds check
+                    offset += 1
+                    length, offset = self._read_varint(data, offset)
+                    if offset < len(data):  # ✅ Bounds check
+                        meta_type = data[offset]
+                        if meta_type == 0x51 and length == 3 and offset + 3 <= len(data):  # ✅ Bounds check
+                            tempo_bytes = data[offset:offset+3]
+                            microseconds_per_quarter = int.from_bytes(tempo_bytes, byteorder='big')
+                            self.bpm = round(60000000 / microseconds_per_quarter)
+                        offset += length
+                    else:
+                        break
+                else:
+                    break
             else:
                 offset += 1
                 
@@ -86,7 +112,7 @@ class MidiToMusicXML:
     def _read_varint(self, data, offset):
         """Read MIDI variable length integer"""
         value = 0
-        while True:
+        while offset < len(data):
             byte = data[offset]
             offset += 1
             value = (value << 7) | (byte & 0x7F)
@@ -176,6 +202,19 @@ class MidiToMusicXML:
         # Notes that can be beamed: eighth notes and shorter
         note_type = self._get_note_type(duration)
         return note_type in ['eighth', '16th', '32nd']
+    
+    def get_bpm_with_mido(self, filepath):
+        """Extract BPM using mido library"""
+        mid = mido.MidiFile(filepath)
+        
+        for track in mid.tracks:
+            for msg in track:
+                if msg.type == 'set_tempo':
+                    microseconds_per_beat = msg.tempo
+                    bpm = 60000000 / microseconds_per_beat
+                    return round(bpm)
+        
+        return 120  # Default if no tempo found
     
     def create_musicxml(self, output_filepath, sheet_music_title=None):
         """Generate MusicXML"""
@@ -440,47 +479,6 @@ class MidiToMusicXML:
             
             return note
     
-    def _add_chord(self, measure, chord_notes, measure_end):
-        """Add chord to measure"""
-        # Sort notes by pitch (lowest first)
-        chord_notes.sort(key=lambda x: x['midi_note'])
-        
-        for i, note in enumerate(chord_notes):
-            note_elem = ET.SubElement(measure, 'note')
-            
-            # Add chord element for all notes except first
-            if i > 0:
-                chord = ET.SubElement(note_elem, 'chord')
-            
-            # Pitch
-            pitch = ET.SubElement(note_elem, 'pitch')
-            step = ET.SubElement(pitch, 'step')
-            step.text = note['pitch']['step']
-            
-            if note['pitch']['alter'] != 0:
-                alter = ET.SubElement(pitch, 'alter')
-                alter.text = str(note['pitch']['alter'])
-            
-            octave = ET.SubElement(pitch, 'octave')
-            octave.text = str(note['pitch']['octave'])
-            
-            # Duration (clip to measure boundary)
-            duration = min(note['duration'], 
-                          measure_end - note['start_time'])
-            
-            duration_elem = ET.SubElement(note_elem, 'duration')
-            duration_elem.text = str(duration)
-            
-            # Type
-            note_type = ET.SubElement(note_elem, 'type')
-            note_type.text = self._get_note_type(duration)
-            
-            # Add tie if note extends beyond measure
-            if note['duration'] > duration:
-                tie = ET.SubElement(note_elem, 'tie', type="start")
-                notations = ET.SubElement(note_elem, 'notations')
-                tied = ET.SubElement(notations, 'tied', type="start")
-    
     def _write_xml(self, root, filepath):
         """Write XML to file with formatting"""
         xml_str = ET.tostring(root, encoding='unicode')
@@ -538,3 +536,15 @@ def convert_midi_to_xml(midi_file_path, output_path, job_id=None, sheet_music_ti
             error_msg = f"Error converting MIDI to MusicXML for job {job_id}: {e}"
         logging.error(error_msg)
         raise
+
+if __name__ == "__main__":
+    import sys  
+    if len(sys.argv) < 3:
+        print("Usage: python midiToXml.py <input_midi_file> <output_xml_file> [<sheet_music_title>]")   
+    else:
+        input_midi_file = sys.argv[1]
+        output_xml_file = sys.argv[2]
+        sheet_music_title = sys.argv[3] if len(sys.argv) > 3 else None
+    
+        convert_midi_to_xml(input_midi_file, output_xml_file, sheet_music_title=sheet_music_title)
+        print(f"Conversion complete: {output_xml_file}")

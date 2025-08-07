@@ -8,6 +8,7 @@ from workers.tasks.picogen import run_picogen
 from workers.tasks.midiToXml import convert_midi_to_xml
 from workers.tasks.midiToAudio import convert_midi_to_audio
 from mutagen import File
+import os
 
 print("starting worker...")
 
@@ -111,8 +112,27 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 {"job_id": job_id}
             )
             sheet_music_title = result.scalar()  # Get the single result
+            logging.info(f"Sheet music title from DB: {sheet_music_title}")
             if sheet_music_title:
                 sheet_music_title = os.path.splitext(sheet_music_title)[0]
+                logging.info(f"Processed sheet music title: {sheet_music_title}")
+
+        logging.info(f"Converting MIDI file: {final_mid}")
+        if isinstance(final_mid, Path):
+            midi_file_path = final_mid
+        else:
+            midi_file_path = Path(final_mid)
+        
+        if not midi_file_path.exists():
+            logging.error(f"MIDI file does not exist: {midi_file_path}")
+            return
+        
+        file_size = midi_file_path.stat().st_size
+        logging.info(f"MIDI file size: {file_size} bytes")
+        
+        if file_size == 0:
+            logging.error(f"MIDI file is empty: {midi_file_path}")
+            return
 
         convert_midi_to_xml(final_mid, xml_path, job_id, sheet_music_title)
 
@@ -130,14 +150,24 @@ def process_job(job, engine, s3_client, aws_creds, local):
     except Exception as e:
         logging.error(f"Error in XML conversion step for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
+        with engine.connect() as db:
+            update_sql = text("""
+                UPDATE jobs
+                SET status='error', finished_at=NOW()
+                WHERE job_id=:jobId
+            """)
+            db.execute(update_sql, {"jobId": job_id})
+            db.commit()
         return
     
     # 6) Convert MIDI to audio
     audio_path = f"/tmp/{job_id}.wav"
     audio_key = f"processed_audio/{job_id}.wav"
     try:
-        convert_midi_to_audio(final_mid, audio_path)
+        audio_file_path, metadata = convert_midi_to_audio(Path(final_mid), Path(audio_path), job_id)
         
+        logging.info(f"Audio file generated at {audio_file_path} with metadata: {metadata}")
+
         if local:
             audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.wav"
             if not audio_final.parent.exists():
@@ -145,13 +175,38 @@ def process_job(job, engine, s3_client, aws_creds, local):
             with open(audio_final, "wb") as f:
                 with open(audio_path, "rb") as audio_file:
                     f.write(audio_file.read())
+
+            with engine.connect() as db:
+                db.execute(text("""
+                    UPDATE jobs 
+                    SET audio_metadata = :audio_metadata 
+                    WHERE job_id = :job_id
+                """), {"audio_metadata": json.dumps(metadata), "job_id": job_id})
+                db.commit()
         else:
             audio_key = f"processed_audio/{job_id}.wav"
             s3_client.upload_file(audio_path, bucket, audio_key)
+
+            with engine.connect() as db:
+                db.execute(text("""
+                    UPDATE jobs 
+                    SET audio_metadata = :audio_metadata 
+                    WHERE job_id = :job_id
+                """), {"audio_metadata": json.dumps(metadata), "job_id": job_id})
+                db.commit()
+
             audio_final = f"s3://{bucket}/{audio_key}"
     except Exception as e:
         logging.error(f"Error converting MIDI to audio for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
+        with engine.connect() as db:
+            update_sql = text("""
+                UPDATE jobs
+                SET status='error', finished_at=NOW()
+                WHERE job_id=:jobId
+            """)
+            db.execute(update_sql, {"jobId": job_id})
+            db.commit()
         return
 
     # 7) DB → status=done, file_key=midi_key, xml_key=xml_key

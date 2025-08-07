@@ -1,7 +1,5 @@
 FROM tanchihpin0517/picogen2:latest-full
 
-# replace with requirements.txt when it gets made
-
 COPY workers/requirements.txt /app/requirements.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -13,7 +11,14 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 WORKDIR /app
 
-RUN curl -L "https://github.com/musescore/MuseScore/raw/master/share/sound/FluidR3Mono_GM.sf3" -o FluidR3_GM.sf3
+USER root
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -L -o FluidR3_GM.sf3 "https://github.com/musescore/MuseScore/raw/master/share/sound/FluidR3Mono_GM.sf3" && \
+    chown picogen2:picogen2 FluidR3_GM.sf3 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+USER picogen2
 
 COPY workers/ ./workers
 COPY packages/ ./packages
