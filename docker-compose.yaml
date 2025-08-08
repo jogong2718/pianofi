@@ -57,7 +57,7 @@ services:
     volumes:
       - ./uploads:/app/uploads     # host:container
       # - ./workers:/app/workers
-      - ./project-aws:/home/picogen2/.aws
+      - ./project-aws:/root/.aws
     develop:
       watch:
         - path: ./workers
