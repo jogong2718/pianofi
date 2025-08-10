@@ -4,11 +4,14 @@ import { useParams } from "next/navigation";
 import { useMIDI, useSheetMusic } from "@/hooks/useSheetMusic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Edit } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, Download, Edit, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
-import AudioPlayer from "@/components/audioPlayer";
 import { useAudio } from "@/hooks/useAudio";
+import AudioPlayer from "@/components/audioPlayer";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -17,11 +20,28 @@ export default function TranscriptionDetailPage() {
 
     const { xml, loading: xmlLoading, error: xmlError } = useSheetMusic({ jobId });
     const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
-    const { audioRef, metadata } = useAudio({ jobId });
+    const { audioRef, metadata, loading: audioLoading, error: audioError } = useAudio({ jobId });
 
+    // Show toast notifications for non-critical errors
+    useEffect(() => {
+        if (midiError) {
+            toast.error("MIDI Download Unavailable", {
+                description: midiError,
+                duration: 5000,
+            });
+        }
+    }, [midiError]);
 
+    useEffect(() => {
+        if (audioError) {
+            toast.error("Audio Playback Unavailable", {
+                description: audioError,
+                duration: 5000,
+            });
+        }
+    }, [audioError]);
 
-    if (xmlLoading) {
+    if (xmlLoading || audioLoading) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="animate-pulse space-y-4">
@@ -32,11 +52,28 @@ export default function TranscriptionDetailPage() {
         );
     }
 
-    if (xmlError || midiError) {
+    // Only show critical error that prevents the core functionality (XML required for OSMD)
+    if (xmlError) {
         return (
             <div className="container mx-auto px-4 py-8">
-                <div className="text-center text-red-600">
-                    <p>Error loading transcription: {xmlError || midiError}</p>
+                <div className="max-w-2xl mx-auto space-y-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push("/dashboard")}
+                        className="mb-4"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Dashboard
+                    </Button>
+                    
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Cannot Load Sheet Music</AlertTitle>
+                        <AlertDescription>
+                            {xmlError}
+                        </AlertDescription>
+                    </Alert>
                 </div>
             </div>
         );
@@ -60,8 +97,6 @@ export default function TranscriptionDetailPage() {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        
-                        <AudioPlayer jobId={jobId} />
                         <Button variant="outline" size="sm">
                             <Download className="h-4 w-4 mr-2" />
                             Download MIDI
@@ -75,10 +110,11 @@ export default function TranscriptionDetailPage() {
 
                 {/* Music Editor - Grows to fill remaining space */}
                 <Card className="flex-1 min-h-0">
-                    <CardContent className="p-0 h-full">
-                        <div className="h-full max-w-6xl mx-auto bg-gray-50 border-2 border-dashed border-gray-300 overflow-auto">
+                    <CardContent className="p-0 h-full flex flex-col">
+                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
+                        <div className="h-full flex-1 max-w-6xl w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto">
                             {xml && (
-                                <ViewSheetMusic musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
+                                <ViewSheetMusic jobId={jobId} musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
                             )}
                         </div>
                     </CardContent>
