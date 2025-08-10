@@ -12,6 +12,8 @@ import { Upload } from "lucide-react";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { useCreateJob } from "@/hooks/useCreateJob";
 import { uploadToS3 } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface FileUploaderProps {
   metrics: any;
@@ -33,6 +35,10 @@ const FileUploader: FC<FileUploaderProps> = ({
   const { callUploadUrl, loading: loadingUploadUrl } = useUploadUrl();
 
   const { callCreateJob, loading: loadingCreateJob } = useCreateJob();
+
+  const [selectedModel, setSelectedModel] = useState<"amt" | "picogen">("amt");
+  const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
+  const levelsDisabled = selectedModel === "picogen";
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -158,6 +164,8 @@ const FileUploader: FC<FileUploaderProps> = ({
       await callCreateJob({
         jobId: newJobId,
         fileKey: fileKey,
+        model: selectedModel,
+        level: selectedLevel,
       });
       console.log("Job enqueued successfully");
 
@@ -227,6 +235,71 @@ const FileUploader: FC<FileUploaderProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 grid gap-6 md:grid-cols-2">
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Model</h4>
+            <RadioGroup
+              value={selectedModel}
+              onValueChange={(v) => setSelectedModel(v as any)}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="amt" id="model-amt" />
+                <Label htmlFor="model-amt">AMT (Better Musicality)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="picogen" id="model-picogen" />
+                <Label htmlFor="model-picogen">
+                  PiCoGen (Better Timing and Accuracy)
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Difficulty / Level</h4>
+            <RadioGroup
+              value={selectedLevel.toString()}
+              onValueChange={(v) => {
+                if (levelsDisabled) return;
+                setSelectedLevel(Number(v) as 1 | 2 | 3);
+              }}
+              className={`flex gap-4 flex-wrap ${
+                levelsDisabled ? "opacity-50 pointer-events-none" : ""
+              }`}
+              aria-disabled={levelsDisabled}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value="1"
+                  id="level-easy"
+                  disabled={levelsDisabled}
+                />
+                <Label htmlFor="level-easy">Easy</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value="2"
+                  id="level-medium"
+                  disabled={levelsDisabled}
+                />
+                <Label htmlFor="level-medium">Medium</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value="3"
+                  id="level-hard"
+                  disabled={levelsDisabled}
+                />
+                <Label htmlFor="level-hard">Hard</Label>
+              </div>
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground mt-1">
+              {levelsDisabled
+                ? "Difficulty levels apply only to AMT."
+                : "Select a difficulty for AMT transcription."}
+            </p>
+          </div>
+        </div>
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive

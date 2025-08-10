@@ -47,11 +47,11 @@ services:
           path: ./frontend/Dockerfile.dev
     depends_on:
       - backend
-  worker:
+  picogenworker:
     build:
       context: .
-      dockerfile: workers/Dockerfile
-    image: pianofi-worker:dev
+      dockerfile: picogenworkers/Dockerfile
+    image: pianofi-picogen-worker:dev
     env_file:
       - packages/pianofi_config/.env
     volumes:
@@ -60,8 +60,35 @@ services:
       - ./project-aws:/root/.aws
     develop:
       watch:
-        - path: ./workers
-          target: /app/workers
+        - path: ./picogenworkers
+          target: /app/picogenworkers
+          action: sync
+    # entrypoint: ""
+    # command: tail -f /dev/null
+    restart: unless-stopped
+    # needs gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  amtworker:
+    build:
+      context: .
+      dockerfile: amtworkers/Dockerfile
+    image: pianofi-amt-worker:dev
+    env_file:
+      - packages/pianofi_config/.env
+    volumes:
+      - ./uploads:/app/uploads     # host:container
+      # - ./workers:/app/workers
+      - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - path: ./amtworkers
+          target: /app/amtworkers
           action: sync
     # entrypoint: ""
     # command: tail -f /dev/null

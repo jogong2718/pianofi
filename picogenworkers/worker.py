@@ -4,7 +4,7 @@ import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
-from workers.tasks.amtapc import run_amtapc
+from workers.tasks.picogen import run_picogen
 from workers.tasks.midiToXml import convert_midi_to_xml
 from workers.tasks.midiToAudio import convert_midi_to_audio
 from mutagen import File
@@ -74,24 +74,10 @@ def process_job(job, engine, s3_client, aws_creds, local):
     except Exception as e:
         logging.warning(f"Could not extract duration for {job_id}: {e}")
 
-    # 3) amt-apc processing
-    try:
-        logging.info(f"Running amt-apc for job {job_id} on {local_raw}")
-        midi_path = run_amtapc(str(local_raw), f"/tmp/{job_id}.midi")  
-        final_mid = midi_path
-        logging.info(f"AMT-APC generated MIDI file: {final_mid}")
-    except Exception as e:
-        logging.error(f"Error running AMT-APC for job {job_id}: {e}")
-        # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
-        return
+    # 3) picogen processing
+    logging.info(f"Running picogen for job {job_id} on {local_raw}")
+    midi_path = run_picogen(str(local_raw), f"/tmp/{job_id}_midi")  
+    final_mid = midi_path
     # 4) Upload result
     midi_key = f"midi/{job_id}.mid"
 
@@ -294,7 +280,7 @@ def main():
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
-                item = r.brpop("job_queue", timeout=50)
+                item = r.brpop("picogen_job_queue", timeout=50)
                 if item:
                     logging.info(f"Got job: {item}")
                     _, raw = item

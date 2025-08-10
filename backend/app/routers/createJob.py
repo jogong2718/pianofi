@@ -63,11 +63,11 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), c
         
         update_sql = text("""
             UPDATE jobs
-            SET status = 'queued', queued_at = NOW()
+            SET status = 'queued', queued_at = NOW(), model = :model, level = :level
             WHERE job_id = :jobId AND file_key = :fileKey
         """)
 
-        update_result = db.execute(update_sql, {"jobId": payload.jobId, "fileKey": payload.fileKey})
+        update_result = db.execute(update_sql, {"jobId": payload.jobId, "fileKey": payload.fileKey, "model": payload.model, "level": payload.level})
 
         if update_result.rowcount == 0:
             raise HTTPException(status_code=400, detail="Job not found or fileKey mismatch")
@@ -80,16 +80,17 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), c
             "jobId": payload.jobId,
             "fileKey": payload.fileKey,
             "userId": authenticated_user_id,
-            "createdAt": time.time()
+            "createdAt": time.time(),
+            "model": payload.model,
+            "level": payload.level
         }
 
-        r.lpush("job_queue", json.dumps(job_data))  # Push job data to Redis list
+        if payload.model == "picogen":
+            r.lpush("picogen_job_queue", json.dumps(job_data))
+        elif payload.model == "amt":
+            r.lpush("amt_job_queue", json.dumps(job_data))
         # Log the job creation
-        logging.info(f"Job created: {payload.jobId}, fileKey: {payload.fileKey}, userId: {authenticated_user_id}")
-
-        # Simulate saving the job (e.g., to a database)
-        # In a real application, you would save this to your database here
-        # WORK ON THIS WE NEED TO DECIDE OUR DB AND I NEED TO LEARN REDIS LMAO
+        logging.info(f"Job created: {payload.jobId} in {payload.model}, fileKey: {payload.fileKey}, userId: {authenticated_user_id}")
 
         return CreateJobResponse(success=True)
     
