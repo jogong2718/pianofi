@@ -12,7 +12,7 @@ RUN git clone https://github.com/misya11p/amt-apc.git /app/amt-apc
 RUN mkdir -p /app/amt-apc/models/params && \
     wget -P /app/amt-apc/models/params/ https://github.com/misya11p/amt-apc/releases/download/beta/apc.pth
 
-COPY workers/requirements.txt /app/requirements.txt
+COPY amtworkers/requirements.txt /app/requirements.txt
 
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
@@ -22,7 +22,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY workers/ ./workers
+COPY amtworkers/ ./amtworkers
 COPY packages/ ./packages
 COPY uploads/ ./uploads
 
@@ -31,4 +31,4 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 ENTRYPOINT []
-CMD ["python", "-u", "workers/worker.py"]
+CMD ["python", "-u", "amtworkers/worker.py"]

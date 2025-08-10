@@ -239,7 +239,15 @@ def process_job(job, engine, s3_client, aws_creds, local):
         db.commit()
     logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
 
+    # 8) cleanup tmp files
 
+    try:
+        for path in [Path(local_raw), Path(audio_path), Path(midi_path), Path(xml_path)]:
+            if path.exists():
+                path.unlink()
+                logging.info(f"Deleted temporary file: {path}")
+    except Exception as e:
+        logging.error(f"Error cleaning up temporary files: {e}")
 
 def main():
 

@@ -43,12 +43,14 @@ def run_amtapc(audio_file, output_file, style="level3"):
         os.chdir(amt_apc_dir)
         logging.info(f"Current working directory: {os.getcwd()}")
 
+        style_level = f"level{style}"
+
         # Command to run AMT-APC inference
         cmd = [
             sys.executable,
             "infer",  # No .py extension
             str(audio_file),
-            "--style", style,
+            "--style", style_level,
             "--output", str(output_file),
             "--path_model", str(model_file)  # Add explicit model path
         ]
