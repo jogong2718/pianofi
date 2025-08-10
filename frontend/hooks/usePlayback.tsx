@@ -246,6 +246,8 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         // Set selected measure
         setSelectedMeasure(measureBound.id);
         setHoveredMeasure(null);
+
+        console.log('Clicked on measure: ', measureBound.id);
         
         // Jump audio to this measure
         if (audioRef.current && metadata?.measures) {
@@ -255,6 +257,7 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
                 
                 // Continue playing if it was already playing
                 if (wasPlaying) {
+                    console.log('Playing audio on measure: ', measureBound.id);
                     audioRef.current.play();
                 }
             }

@@ -4,9 +4,9 @@ import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
-from workers.tasks.picogen import run_picogen
-from workers.tasks.midiToXml import convert_midi_to_xml
-from workers.tasks.midiToAudio import convert_midi_to_audio
+from picogenworkers.tasks.picogen import run_picogen
+from picogenworkers.tasks.midiToXml import convert_midi_to_xml
+from picogenworkers.tasks.midiToAudio import convert_midi_to_audio
 from mutagen import File
 import os
 
@@ -224,7 +224,14 @@ def process_job(job, engine, s3_client, aws_creds, local):
         db.commit()
     logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
 
-
+    # 8) Cleanup temporary files
+    try:
+        for path in [Path(local_raw), Path(audio_path), Path(midi_path), Path(xml_path)]:
+            if path.exists():
+                path.unlink()
+                logging.info(f"Deleted temporary file: {path}")
+    except Exception as e:
+        logging.error(f"Error cleaning up temporary files: {e}")
 
 def main():
 
@@ -280,7 +287,7 @@ def main():
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
-                item = r.brpop("job_queue", timeout=50)
+                item = r.brpop("picogen_job_queue", timeout=50)
                 if item:
                     logging.info(f"Got job: {item}")
                     _, raw = item

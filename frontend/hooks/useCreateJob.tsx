@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 interface CreateJobProps {
   jobId: string;
   fileKey: string;
+  model: string;
+  level: number;
 }
 
 interface CreateJobResponse {
@@ -24,6 +26,8 @@ export function useCreateJob() {
   async function callCreateJob({
     jobId,
     fileKey,
+    model,
+    level,
   }: CreateJobProps): Promise<CreateJobResponse> {
     setLoading(true);
     setError(null);
@@ -44,7 +48,7 @@ export function useCreateJob() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ jobId, fileKey }),
+        body: JSON.stringify({ jobId, fileKey, model, level }),
       });
 
       if (!res.ok) {

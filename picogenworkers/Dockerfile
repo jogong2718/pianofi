@@ -1,6 +1,6 @@
 FROM tanchihpin0517/picogen2:latest-full
 
-COPY workers/requirements.txt /app/requirements.txt
+COPY picogenworkers/requirements.txt /app/requirements.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     conda run -n picogen2 /bin/bash -c "\
@@ -20,7 +20,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 USER picogen2
 
-COPY workers/ ./workers
+COPY picogenworkers/ ./picogenworkers
 COPY packages/ ./packages
 COPY uploads/ ./uploads
 
@@ -29,4 +29,4 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 ENTRYPOINT []
-CMD ["/home/picogen2/miniconda/envs/picogen2/bin/python", "-u", "workers/worker.py"]
+CMD ["/home/picogen2/miniconda/envs/picogen2/bin/python", "-u", "picogenworkers/worker.py"]

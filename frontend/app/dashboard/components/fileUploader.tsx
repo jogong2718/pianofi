@@ -12,6 +12,8 @@ import { Upload } from "lucide-react";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { useCreateJob } from "@/hooks/useCreateJob";
 import { uploadToS3 } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface FileUploaderProps {
   metrics: any;
@@ -33,6 +35,10 @@ const FileUploader: FC<FileUploaderProps> = ({
   const { callUploadUrl, loading: loadingUploadUrl } = useUploadUrl();
 
   const { callCreateJob, loading: loadingCreateJob } = useCreateJob();
+
+  const [selectedModel, setSelectedModel] = useState<"amt" | "picogen">("amt");
+  const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
+  const levelsDisabled = selectedModel === "picogen";
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -158,6 +164,8 @@ const FileUploader: FC<FileUploaderProps> = ({
       await callCreateJob({
         jobId: newJobId,
         fileKey: fileKey,
+        model: selectedModel,
+        level: selectedLevel,
       });
       console.log("Job enqueued successfully");
 
@@ -205,6 +213,21 @@ const FileUploader: FC<FileUploaderProps> = ({
     input.click();
   };
 
+  // helper styling builders
+  const modelOptionClass = (v: "amt" | "picogen") =>
+    `cursor-pointer rounded-md border px-4 py-3 text-sm transition-all flex items-start gap-2 w-full
+     ${selectedModel === v
+        ? "bg-primary/10 border-primary ring-2 ring-primary/40"
+        : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
+     }`;
+
+  const levelOptionClass = (v: 1 | 2 | 3) =>
+    `cursor-pointer rounded-md border px-4 py-4 text-xs sm:text-sm font-medium transition-all flex items-center gap-2
+     ${selectedLevel === v
+        ? "bg-primary/10 border-primary ring-2 ring-primary/40"
+        : "border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/5"
+     } ${levelsDisabled ? "opacity-50" : ""}`;
+
   return (
     <Card>
       <CardHeader>
@@ -227,6 +250,121 @@ const FileUploader: FC<FileUploaderProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Reworked selection layout */}
+        <div className="mb-10 flex flex-col md:flex-row justify-center items-start gap-8">
+          <div className="flex-1 max-w-md mx-auto md:mx-0">
+            <div className="rounded-xl border border-border/60 bg-muted/10 backdrop-blur-sm p-4 md:p-5 h-full">
+              <h4 className="text-sm font-semibold mb-3 tracking-wide uppercase text-muted-foreground">
+                Model
+              </h4>
+              <RadioGroup
+                value={selectedModel}
+                onValueChange={(v) => setSelectedModel(v as any)}
+                className="space-y-3"
+              >
+                <Label
+                  htmlFor="model-amt"
+                  className={modelOptionClass("amt")}
+                  onClick={() => setSelectedModel("amt")}
+                >
+                  <RadioGroupItem value="amt" id="model-amt" className="mt-0.5" />
+                  <div>
+                    <div className="font-medium">AMT</div>
+                    <p className="text-xs text-muted-foreground">
+                      Better musicality & faster turnaround
+                    </p>
+                  </div>
+                </Label>
+
+                <Label
+                  htmlFor="model-picogen"
+                  className={modelOptionClass("picogen")}
+                  onClick={() => setSelectedModel("picogen")}
+                >
+                  <RadioGroupItem
+                    value="picogen"
+                    id="model-picogen"
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-medium">PiCoGen</div>
+                    <p className="text-xs text-muted-foreground">
+                      Higher timing precision & note accuracy
+                    </p>
+                  </div>
+                </Label>
+              </RadioGroup>
+            </div>
+          </div>
+
+          {/* Difficulty */}
+          <div className="flex-1 max-w-md mx-auto md:mx-0">
+            <div
+              className={`rounded-xl border border-border/60 bg-muted/10 backdrop-blur-sm p-5 md:p-6 h-full transition-opacity ${
+                levelsDisabled ? "opacity-60" : ""
+              }`}
+            >
+              <h4 className="text-sm font-semibold mb-5 tracking-wide uppercase text-muted-foreground">
+                Difficulty / Level
+              </h4>
+              <RadioGroup
+                value={selectedLevel.toString()}
+                onValueChange={(v) => {
+                  if (levelsDisabled) return;
+                  setSelectedLevel(Number(v) as 1 | 2 | 3);
+                }}
+                className="grid grid-cols-3 gap-4"
+                aria-disabled={levelsDisabled}
+              >
+                <Label
+                  htmlFor="level-easy"
+                  className={levelOptionClass(1)}
+                  onClick={() => !levelsDisabled && setSelectedLevel(1)}
+                >
+                  <RadioGroupItem
+                    value="1"
+                    id="level-easy"
+                    disabled={levelsDisabled}
+                    className="hidden"
+                  />
+                  Easy
+                </Label>
+                <Label
+                  htmlFor="level-medium"
+                  className={levelOptionClass(2)}
+                  onClick={() => !levelsDisabled && setSelectedLevel(2)}
+                >
+                  <RadioGroupItem
+                    value="2"
+                    id="level-medium"
+                    disabled={levelsDisabled}
+                    className="hidden"
+                  />
+                  Medium
+                </Label>
+                <Label
+                  htmlFor="level-hard"
+                  className={levelOptionClass(3)}
+                  onClick={() => !levelsDisabled && setSelectedLevel(3)}
+                >
+                  <RadioGroupItem
+                    value="3"
+                    id="level-hard"
+                    disabled={levelsDisabled}
+                    className="hidden"
+                  />
+                  Hard
+                </Label>
+              </RadioGroup>
+              <p className="text-xs text-muted-foreground mt-5">
+                {levelsDisabled
+                  ? "Difficulty levels apply only to AMT."
+                  : "Choose how simplified or complex you want the transcription."}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive
