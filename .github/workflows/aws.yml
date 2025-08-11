@@ -103,23 +103,6 @@ jobs:
         if: matrix.service == 'picogenworkers'
         uses: docker/setup-buildx-action@v3
 
-      - name: Build, tag, and push (Buildx)
-        id: buildx-image
-        if: matrix.service == 'picogenworkers'
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker buildx build \
-            --progress=plain \
-            --tag $ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG \
-            --file ${{ matrix.dockerfile }} \
-            --push \
-            --cache-from type=gha \
-            --cache-to type=gha,mode=max \
-            ${{ matrix.context }}
-          echo "image=$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
       # All for picogen to not crash ------------------------------------------------------
 
       - name: Build, tag, and push image to Amazon ECR
@@ -128,21 +111,23 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build a docker container and push it to ECR
-          docker build -f ${{ matrix.dockerfile }} -t $ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG ${{ matrix.context }}
-          docker push $ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      # Choose whichever image output exists ------------------------
-      - name: Select image uri
-        id: image
-        run: |
-          if [ -n "${{ steps.buildx-image.outputs.image }}" ]; then
-            echo "uri=${{ steps.buildx-image.outputs.image }}" >> $GITHUB_OUTPUT
+          if [ "${{ matrix.service }}" = "picogenworkers" ]; then
+            # Buildx path (large image)
+            docker buildx build \
+              --progress=plain \
+              --tag "$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" \
+              --file "${{ matrix.dockerfile }}" \
+              --push \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              "${{ matrix.context }}"
           else
-            echo "uri=${{ steps.docker-image.outputs.image }}" >> $GITHUB_OUTPUT
+            # Classic docker path (small images)
+            docker build -f "${{ matrix.dockerfile }}" -t "$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" "${{ matrix.context }}"
+            docker push "$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG"
           fi
-      # -------------------------------------------------------------
+          echo "image=$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
