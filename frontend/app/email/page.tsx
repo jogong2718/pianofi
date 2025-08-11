@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Header } from "@/components/ui/header";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const searchParams = useSearchParams();
@@ -150,5 +150,25 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
+          <Header />
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="text-center">
+              <Mail className="h-8 w-8 text-primary mx-auto mb-4" />
+              <p>Loading email confirmation...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }

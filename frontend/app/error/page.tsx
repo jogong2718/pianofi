@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import {
 import { AlertCircle, Home, Mail, RefreshCw } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
-export default function ErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
   const type = searchParams.get("type") || "general";
@@ -155,5 +156,25 @@ export default function ErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
+          <Header />
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="text-center">
+              <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-4" />
+              <p>Loading...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ErrorContent />
+    </Suspense>
   );
 }
