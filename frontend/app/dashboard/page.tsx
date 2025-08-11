@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,9 +18,10 @@ import MetricsCards from "./components/metricsCards";
 import FileUploader from "./components/fileUploader";
 import TranscriptionsList from "./components/transcriptionsList";
 
-export default function DashboardPage() {
+// Create a new component for the dashboard content
+function DashboardContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Now wrapped in Suspense
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -137,5 +138,23 @@ export default function DashboardPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// New main component with Suspense wrapper
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <Music className="h-8 w-8 text-primary mx-auto mb-4" />
+            <p>Loading dashboard...</p>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
