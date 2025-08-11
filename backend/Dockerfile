@@ -1,28 +1,32 @@
-# Use Python 3.12 base image
-FROM python:3.12.7-slim
+# backend/Dockerfile
+FROM python:3.12-slim
 
-# ENV ENVIRONMENT="development"
-# ENV AWS_REGION=us-east-1
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Install system dependencies including LilyPond
+# Install system dependencies gpt generated not sure if its needed
 RUN apt-get update && apt-get install -y \
     lilypond \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy all your app files
-COPY backend/ ./backend/
+# Copy backend code and shared config
+COPY backend/app/ ./app/
 COPY packages/ ./packages/
 
-# Expose port 8000 for FastAPI
+# Install API requirements (lighter than worker requirements)
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN chown -R appuser:appuser /app
+USER appuser
+
+ENV PYTHONPATH=/app
 EXPOSE 8000
 
-# Run FastAPI app with Uvicorn
+# Healthcheck gpt generated dunno wot it does
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

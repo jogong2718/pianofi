@@ -27,7 +27,7 @@ COPY packages/ ./packages
 COPY uploads/ ./uploads
 
 ENV PYTHONUNBUFFERED=1 \
-    ENVIRONMENT=development \
+    ENVIRONMENT=production \
     PYTHONPATH=/app
 
 ENTRYPOINT []
