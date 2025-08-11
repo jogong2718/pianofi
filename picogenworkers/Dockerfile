@@ -22,7 +22,6 @@ USER picogen2
 
 COPY picogenworkers/ ./picogenworkers
 COPY packages/ ./packages
-COPY uploads/ ./uploads
 
 ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \

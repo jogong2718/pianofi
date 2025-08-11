@@ -24,7 +24,6 @@ RUN apt-get update && \
 
 COPY amtworkers/ ./amtworkers
 COPY packages/ ./packages
-COPY uploads/ ./uploads
 
 ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
