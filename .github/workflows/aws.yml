@@ -75,35 +75,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # All for picogen to not crash ------------------------------------------------------
-
+      # optional disk cleanup for picogen
       - name: Free up disk space (for large images)
         if: matrix.service == 'picogenworkers'
         run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/share/swift
-          sudo rm -rf /opt/hostedtoolcache
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/lib/jvm
-          docker image prune -af
-          docker builder prune -af
+          sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY" \
+                      /usr/local/lib/android /usr/share/swift /opt/hostedtoolcache /usr/local/.ghcup /usr/lib/jvm
+          docker image prune -af || true
+          docker builder prune -af || true
           df -h
 
-      - name: Prune after build
-        if: matrix.service == 'picogenworkers'
-        run: |
-          docker system prune -af --volumes
-          df -h
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # All for picogen to not crash ------------------------------------------------------
 
       - name: Set up Docker Buildx
+        if: matrix.service == 'picogenworkers'
         uses: docker/setup-buildx-action@v3
 
       - name: Build, tag, and push (Buildx)
-        id: build-image
+        id: buildx-image
         if: matrix.service == 'picogenworkers'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -121,18 +122,6 @@ jobs:
 
       # All for picogen to not crash ------------------------------------------------------
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
@@ -144,6 +133,16 @@ jobs:
           docker push $ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      # Choose whichever image output exists ------------------------
+      - name: Select image uri
+        id: image
+        run: |
+          if [ -n "${{ steps.buildx-image.outputs.image }}" ]; then
+            echo "uri=${{ steps.buildx-image.outputs.image }}" >> $GITHUB_OUTPUT
+          else
+            echo "uri=${{ steps.docker-image.outputs.image }}" >> $GITHUB_OUTPUT
+          fi
+      # -------------------------------------------------------------
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -159,3 +158,11 @@ jobs:
           service: ${{ matrix.ecs_service }}
           cluster: ${{ matrix.ecs_cluster }}
           wait-for-service-stability: true
+
+      # optional disk cleanup for picogen --------------------------------
+
+      - name: Prune after build
+        if: matrix.service == 'picogenworkers'
+        run: |
+          docker system prune -af --volumes || true
+          df -h
