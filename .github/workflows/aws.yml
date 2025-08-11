@@ -32,6 +32,7 @@ on:
 
 env:
   AWS_REGION: us-east-1 # set this to your preferred AWS region, e.g. us-west-1
+  DOCKER_BUILDKIT: 1 # enable Docker BuildKit for better performance
 
 permissions:
   contents: read
@@ -74,6 +75,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # All for picogen to not crash ------------------------------------------------------
+
       - name: Free up disk space (for large images)
         if: matrix.service == 'picogenworkers'
         run: |
@@ -83,8 +86,40 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/swift
-          docker system prune -af
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/lib/jvm
+          docker image prune -af
+          docker builder prune -af
           df -h
+
+      - name: Prune after build
+        if: matrix.service == 'picogenworkers'
+        run: |
+          docker system prune -af --volumes
+          df -h
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build, tag, and push (Buildx)
+        id: build-image
+        if: matrix.service == 'picogenworkers'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build \
+            --progress=plain \
+            --tag $ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG \
+            --file ${{ matrix.dockerfile }} \
+            --push \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            ${{ matrix.context }}
+          echo "image=$ECR_REGISTRY/${{ matrix.ecr_repository }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # All for picogen to not crash ------------------------------------------------------
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

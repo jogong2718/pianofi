@@ -1,4 +1,6 @@
-FROM tanchihpin0517/picogen2:latest-full as base
+FROM tanchihpin0517/picogen2:latest-full
+
+WORKDIR /app
 
 COPY picogenworkers/requirements.txt /app/requirements.txt
 
@@ -8,12 +10,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r /app/requirements.txt \
     " && \
     conda clean -afy
-
-FROM tanchihpin0517/picogen2:latest-full
-
-WORKDIR /app
-
-COPY --from=base /home/picogen2/miniconda/envs/picogen2 /home/picogen2/miniconda/envs/picogen2
 
 USER root
 RUN apt-get update && \
