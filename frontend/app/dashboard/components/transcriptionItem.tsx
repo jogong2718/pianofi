@@ -70,14 +70,20 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                   ? "default"
                   : transcription.status === "processing"
                   ? "secondary"
-                  : "destructive"
+                  : transcription.status === "failed"
+                  ? "destructive"
+                  : "outline" // For initialized/queued
               }
             >
               {transcription.status === "completed"
                 ? "Completed"
                 : transcription.status === "processing"
                 ? "Processing"
-                : "Failed"}
+                : transcription.status === "failed"
+                ? "Failed"
+                : transcription.status === "queued"
+                ? "Queued"
+                : "Initializing"}
             </Badge>
             {transcription.status === "processing" && (
               <div className="w-24">
