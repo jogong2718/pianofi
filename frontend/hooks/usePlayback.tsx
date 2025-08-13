@@ -36,7 +36,8 @@ interface PlaybackData {
     goToPreviousMeasure: () => void;
     goBack5Measures: () => void;
     goForward5Measures: () => void;
-}
+    seekToTime: (timeInSeconds: number) => void;
+    }
 
 export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlaybackProps): PlaybackData {
     // Measure interaction state
@@ -410,6 +411,20 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         };
     }, []);
 
+    const seekToTime = useCallback((timeInSeconds: number) => {
+        if (!audioRef.current) return;
+        
+        audioRef.current.currentTime = timeInSeconds;
+        
+        // Update selected measure based on the new time
+        if (metadata?.measures) {
+            const currentMeasure = findMeasureFromTime(timeInSeconds);
+            if (currentMeasure) {
+                setSelectedMeasure(currentMeasure);
+            }
+        }
+    }, [audioRef, metadata, findMeasureFromTime]);
+
     return {
         measureBounds,
         selectedMeasure,
@@ -426,5 +441,6 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         goToPreviousMeasure,
         goBack5Measures,
         goForward5Measures,
+        seekToTime,
     };
 } 
