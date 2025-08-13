@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/AuthContext";
 import {
   Card,
   CardContent,
@@ -18,6 +19,15 @@ import { Header } from "@/components/ui/header";
 export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (user && !loading) {
+      setIsRedirecting(true);
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
 
   const handleNavigation = (path: string) => {
     setIsRedirecting(true);
