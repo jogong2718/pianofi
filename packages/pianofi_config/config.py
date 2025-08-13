@@ -92,7 +92,7 @@ def get_cors_origins() -> list:
     if env == "development":
         from dotenv import load_dotenv
         load_dotenv()
-        origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
+        origins = os.getenv("CORS_ALLOWED_ORIGINS", "https://www.pianofi.ca,https://pianofi.ca")
         return origins.split(",")
     
     # Production - get from Parameter Store
@@ -103,7 +103,7 @@ def get_cors_origins() -> list:
         return response['Parameter']['Value'].split(",")
     except Exception as e:
         # Fallback to restrictive CORS in production
-        return ["https://yourdomain.com"]
+        return ["https://www.pianofi.ca"]
     
 @lru_cache()
 def get_redis_url() -> str:
