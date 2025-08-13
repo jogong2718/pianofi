@@ -111,8 +111,7 @@ export default function TranscriptionDetailPage() {
                 {/* Music Editor - Grows to fill remaining space */}
                 <Card className="flex-1 min-h-0">
                     <CardContent className="p-0 h-full flex flex-col">
-                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
-                        <div className="h-full flex-1 max-w-6xl w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto">
+                        <div className="h-full flex-1 w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto">
                             {xml && (
                                 <ViewSheetMusic jobId={jobId} musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
                             )}

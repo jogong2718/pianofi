@@ -16,9 +16,21 @@ interface AudioPlayerProps {
     jobId: string;
     audioRef: React.RefObject<HTMLAudioElement | null>;
     metadata: any | null;
+    goToNextMeasure?: () => void;
+    goToPreviousMeasure?: () => void;
+    goBack5Measures?: () => void;
+    goForward5Measures?: () => void;
 }
 
-export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerProps) {
+export default function AudioPlayer({ 
+    jobId, 
+    audioRef, 
+    metadata, 
+    goToNextMeasure, 
+    goToPreviousMeasure,
+    goBack5Measures,
+    goForward5Measures
+}: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -91,7 +103,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goBack5Measures}
+                        onClick={goBack5Measures}
+                        title="Go back 5 measures"
                     >
                         <Rewind className="h-3.5 w-3.5" />
                     </Button>
@@ -101,7 +115,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goToPreviousMeasure}
+                        onClick={goToPreviousMeasure}
+                        title="Previous measure"
                     >
                         <SkipBack className="h-3.5 w-3.5" />
                     </Button>
@@ -126,7 +142,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goToNextMeasure}
+                        onClick={goToNextMeasure}
+                        title="Next measure"
                     >
                         <SkipForward className="h-3.5 w-3.5" />
                     </Button>
@@ -136,7 +154,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goForward5Measures}
+                        onClick={goForward5Measures}
+                        title="Go forward 5 measures"
                     >
                         <FastForward className="h-3.5 w-3.5" />
                     </Button>

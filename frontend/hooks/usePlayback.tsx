@@ -34,6 +34,8 @@ interface PlaybackData {
     recomputeBounds: () => Promise<void>;
     goToNextMeasure: () => void;
     goToPreviousMeasure: () => void;
+    goBack5Measures: () => void;
+    goForward5Measures: () => void;
 }
 
 export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlaybackProps): PlaybackData {
@@ -337,6 +339,7 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         if (!selectedMeasure || !metadata?.measures) return;
         const nextMeasure = (parseInt(selectedMeasure) + 1).toString();
         if (metadata.measures[nextMeasure]) {
+            console.log('Going to next measure: ', nextMeasure);
             playMeasure(nextMeasure);
         }
     }, [selectedMeasure, metadata, playMeasure]);
@@ -345,7 +348,30 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         if (!selectedMeasure || !metadata?.measures) return;
         const prevMeasure = (parseInt(selectedMeasure) - 1).toString();
         if (metadata.measures[prevMeasure]) {
+            console.log('Going to previous measure: ', prevMeasure);
             playMeasure(prevMeasure);
+        }
+    }, [selectedMeasure, metadata, playMeasure]);
+
+    // Add these functions after goToPreviousMeasure:
+    const goBack5Measures = useCallback(() => {
+        if (!selectedMeasure || !metadata?.measures) return;
+        const currentMeasureNum = parseInt(selectedMeasure);
+        const targetMeasure = Math.max(1, currentMeasureNum - 5).toString();
+        if (metadata.measures[targetMeasure]) {
+            console.log(`Going back 5 measures: ${selectedMeasure} → ${targetMeasure}`);
+            playMeasure(targetMeasure);
+        }
+    }, [selectedMeasure, metadata, playMeasure]);
+
+    const goForward5Measures = useCallback(() => {
+        if (!selectedMeasure || !metadata?.measures) return;
+        const currentMeasureNum = parseInt(selectedMeasure);
+        const measureCount = Object.keys(metadata.measures).length;
+        const targetMeasure = Math.min(measureCount, currentMeasureNum + 5).toString();
+        if (metadata.measures[targetMeasure]) {
+            console.log(`Going forward 5 measures: ${selectedMeasure} → ${targetMeasure}`);
+            playMeasure(targetMeasure);
         }
     }, [selectedMeasure, metadata, playMeasure]);
 
@@ -398,5 +424,7 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
         recomputeBounds: precomputeMeasureBounds,
         goToNextMeasure,
         goToPreviousMeasure,
+        goBack5Measures,
+        goForward5Measures,
     };
 } 
