@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Music } from "lucide-react";
 import { UpgradeModal } from "@/components/ui/upgradeModal";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/lib/AuthContext"; // Add this import
 
 import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
@@ -23,8 +24,7 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams(); // Now wrapped in Suspense
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("upload");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -45,30 +45,21 @@ function DashboardContent() {
     supabase,
   });
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+    if (!loading && !user) {
+      router.push("/login");
+      return;
+    }
 
-      if (error || !user) {
-        router.push("/login");
-        return;
-      }
-
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
+    // Handle email confirmation toast
     const confirmed = searchParams.get("confirmed");
     if (confirmed === "true") {
       toast.success("Email verified successfully!");
     }
-  }, [searchParams, router, supabase.auth]);
+  }, [user, loading, router, searchParams]);
 
+  // Show loading while auth is being checked or transcriptions are loading
   if (loading || initialLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -80,12 +71,15 @@ function DashboardContent() {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      await signOut();
+    } catch (error: any) {
       toast.error("Logout failed: " + error.message);
-    } else {
-      router.push("/");
     }
   };
 
