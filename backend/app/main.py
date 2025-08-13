@@ -6,6 +6,7 @@ import time
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
 from app.routers import uploadUrl, createJob, getDownload, getUserJobs, createSheetMusic, createCheckoutSession, webhooks, getDashboardMetrics, updateProfile, deleteJob  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
+from app.config_loader import Config
 
 load_dotenv()
 
@@ -16,7 +17,8 @@ app = FastAPI()
 # app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
 # app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
 
-cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
+cors_origins = Config.CORS_ORIGINS
+
 if cors_origins:
     origins = [origin.strip() for origin in cors_origins.split(",")]
 else:
