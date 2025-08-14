@@ -24,7 +24,8 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
         goToNextMeasure,
         goToPreviousMeasure,
         goBack5Measures,
-        goForward5Measures
+        goForward5Measures,
+        seekToTime
     } = usePlayback({
         audioRef,
         metadata,
@@ -64,21 +65,31 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
     }, [measureBounds, handleMouseOver, handleMouseLeave, handleClick, osmd]);
 
     return (
-        <div className="w-full min-h-full bg-gray-900 dark:bg-black">
-            <AudioPlayer
-                jobId={jobId}
-                audioRef={audioRef}
-                metadata={metadata}
-                goToNextMeasure={goToNextMeasure}
-                goToPreviousMeasure={goToPreviousMeasure} goBack5Measures={goBack5Measures} goForward5Measures={goForward5Measures}
-            />
-            <div className="w-full bg-gray-900 dark:bg-black">
-                <div ref={(div) => {
-                    if (div) {
-                        containerRef(div);
-                        divRef.current = div;
-                    }
-                }} className="w-full max-w-6xl mx-auto h-auto bg-white dark:bg-gray-50" />
+        <div className="h-full flex flex-col bg-gray-900 dark:bg-black">
+            {/* Audio Player - Fixed at top */}
+            <div className="flex-shrink-0">
+                <AudioPlayer
+                    jobId={jobId}
+                    audioRef={audioRef}
+                    metadata={metadata}
+                    goToNextMeasure={goToNextMeasure}
+                    goToPreviousMeasure={goToPreviousMeasure}
+                    goBack5Measures={goBack5Measures}
+                    goForward5Measures={goForward5Measures}
+                    seekToTime={seekToTime}
+                />
+            </div>
+            
+            {/* Sheet Music - Scrollable */}
+            <div className="flex-1 overflow-y-auto bg-gray-900 dark:bg-black">
+                <div className="w-full max-w-6xl mx-auto bg-white dark:bg-gray-50 min-h-full">
+                    <div ref={(div) => {
+                        if (div) {
+                            containerRef(div);
+                            divRef.current = div;
+                        }
+                    }} className="w-full h-auto" />
+                </div>
             </div>
         </div>
     );
