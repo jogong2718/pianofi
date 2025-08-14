@@ -32,8 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } = await supabase.auth.getUser()
 
         if (error) {
-          if (error.name === 'AuthSessionMissingError' || error.message.includes('Auth session missing')) {
-            console.log('No active session found (user not logged in)')
+          // Handle refresh token errors specifically
+          if (error.message.includes('refresh_token_not_found') || 
+              error.message.includes('Invalid Refresh Token') ||
+              error.message.includes('Auth session missing')) {
+            console.log('Session expired - refresh token invalid')
+            setUser(null)
+            // Don't automatically redirect here, let the user stay on current page
           } else {
             console.error('Auth error:', error)
           }
@@ -42,11 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(user)
         }
       } catch (error: any) {
-        if (error.name === 'AuthSessionMissingError' || error.message?.includes('Auth session missing')) {
-          console.log('No session found - user not authenticated')
-        } else {
-          console.error('Failed to get user:', error)
-        }
+        console.error('Failed to get user:', error)
         setUser(null)
       } finally {
         setLoading(false)
@@ -57,7 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
+        console.log('Auth event:', event)
+        
+        if (!session && user) {
+          console.log('Session lost - likely token expired')
+          setUser(null)
+          toast.error('Your session has expired. Please log in again.')
+          router.push('/login')
+        } else if (session?.user) {
           setUser(session.user)
         } else {
           setUser(null)

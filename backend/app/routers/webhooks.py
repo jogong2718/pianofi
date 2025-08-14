@@ -2,32 +2,13 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from app.config_loader import Config
 import stripe
 import logging
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from datetime import datetime
 import json
+from app.database import get_db
 
 router = APIRouter()
-
-DATABASE_URL = Config.DATABASE_URL
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 async def create_or_update_customer(db: Session, stripe_customer_id: str, user_id: str):
     """Create or update customer in database"""
