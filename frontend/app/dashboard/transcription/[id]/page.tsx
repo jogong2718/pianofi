@@ -5,7 +5,7 @@ import { useMIDI, useSheetMusic } from "@/hooks/useSheetMusic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Download, Edit, AlertCircle } from "lucide-react";
+import { ArrowLeft, Download, Edit, AlertCircle, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
 import { useAudio } from "@/hooks/useAudio";
@@ -133,8 +133,8 @@ export default function TranscriptionDetailPage() {
                             Download MIDI
                         </Button>
                         <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Sheet Music
+                            <FileText className="h-4 w-4 mr-2" />
+                            Download PDF
                         </Button>
                     </div>
                 </div>
