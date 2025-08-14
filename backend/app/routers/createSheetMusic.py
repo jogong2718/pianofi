@@ -5,8 +5,7 @@ from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
 from pathlib import Path
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List
 import subprocess
@@ -30,13 +29,12 @@ from app.config_loader import Config
 from app.schemas.createSheetMusic import SheetMusicRequest, SheetMusicResponse
 from app.schemas.user import User
 from app.auth import get_current_user
+from app.database import get_db
 
 router = APIRouter()
 
-DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
 local = Config.USE_LOCAL_STORAGE == "true"
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,23 +45,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 s3_client = None
 if not local:
@@ -160,9 +141,8 @@ async def get_xml_for_job(job_id: str, user_id: str, db: Session) -> str:
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception(f"Unexpected error in get_xml_for_job: {str(e)}")  # .exception() includes stack trace
+        logger.exception(f"Unexpected error in get_xml_for_job: {str(e)}")
         raise HTTPException(status_code=500, detail=f"XML generation failed: {str(e)}")
-
 
 async def get_midi_for_job(job_id: str, user_id: str, db: Session) -> str:
     try:
@@ -206,7 +186,6 @@ async def get_midi_for_job(job_id: str, user_id: str, db: Session) -> str:
     except Exception as e:
         logger.exception(f"Unexpected error in get_midi_for_job: {str(e)}")
         raise HTTPException(status_code=500, detail=f"MIDI generation failed: {str(e)}")
-
 
 async def get_audio_for_job(job_id: str, user_id: str, db: Session) -> tuple[bytes, dict]:
     try:
@@ -253,7 +232,6 @@ async def get_audio_for_job(job_id: str, user_id: str, db: Session) -> tuple[byt
     except Exception as e:
         logger.exception(f"Unexpected error in get_audio_for_job: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Audio generation failed: {str(e)}")
-
 
 @router.post("/convertToXml")
 async def convert_to_xml_endpoint(

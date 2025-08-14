@@ -3,8 +3,7 @@ from pathlib import Path
 from app.schemas.createJob import CreateJobPayload
 from app.schemas.createJob import CreateJobResponse
 from app.schemas.user import User
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.config_loader import Config 
 import time
@@ -12,27 +11,9 @@ import redis
 import json
 import logging
 from app.auth import get_current_user
+from app.database import get_db
 
 router = APIRouter()
-
-DATABASE_URL = Config.DATABASE_URL
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 r = redis.from_url(Config.REDIS_URL, decode_responses=True)
 

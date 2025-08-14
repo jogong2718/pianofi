@@ -5,7 +5,7 @@ import { useMIDI, useSheetMusic } from "@/hooks/useSheetMusic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Download, Edit, AlertCircle } from "lucide-react";
+import { ArrowLeft, Download, Edit, AlertCircle, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
 import { useAudio } from "@/hooks/useAudio";
@@ -43,10 +43,41 @@ export default function TranscriptionDetailPage() {
 
     if (xmlLoading || audioLoading) {
         return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="animate-pulse space-y-4">
-                    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="h-screen flex flex-col">
+                <div className="container mx-auto md:px-4 pt-8 flex flex-col h-full">
+                    {/* Header with 3 button skeletons */}
+                    <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                        <div className="flex items-center space-x-4">
+                            <div className="animate-pulse h-9 w-32 bg-gray-700 rounded"></div> {/* Back button */}
+                            <h1 className="text-2xl font-bold"></h1>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <div className="animate-pulse h-9 w-32 bg-gray-700 rounded"></div> {/* Download MIDI button */}
+                            <div className="animate-pulse h-9 w-36 bg-gray-700 rounded"></div> {/* Edit Sheet Music button */}
+                        </div>
+                    </div>
+
+                    {/* Music Editor */}
+                    <Card className="flex-1 min-h-0">
+                        <CardContent className="p-0 h-full flex flex-col">
+                            <div className="h-full flex-1 w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto min-h-0">
+                                <div className="w-full min-h-full bg-gray-900 dark:bg-black flex flex-col">
+                                    {/* Audio Player skeleton */}
+                                    <div className="w-full bg-gray-900 dark:bg-black border-b border-gray-700 dark:border-gray-800 p-3 flex-shrink-0">
+                                        <div className="animate-pulse h-16 w-full bg-gray-700 rounded"></div> {/* Audio player */}
+                                    </div>
+                                    
+                                    {/* Sheet Music Editor skeleton */}
+                                    <div className="w-full flex-1 bg-gray-900 dark:bg-black min-h-0">
+                                        <div className="w-full relative max-w-6xl mx-auto rounded-lg p-3" style={{ height: 'calc(100vh - 200px)' }}>
+                                            <div className="animate-pulse h-full w-full bg-gray-700 rounded"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         );
@@ -102,8 +133,8 @@ export default function TranscriptionDetailPage() {
                             Download MIDI
                         </Button>
                         <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Sheet Music
+                            <FileText className="h-4 w-4 mr-2" />
+                            Download PDF
                         </Button>
                     </div>
                 </div>
@@ -111,8 +142,7 @@ export default function TranscriptionDetailPage() {
                 {/* Music Editor - Grows to fill remaining space */}
                 <Card className="flex-1 min-h-0">
                     <CardContent className="p-0 h-full flex flex-col">
-                        <AudioPlayer jobId={jobId} audioRef={audioRef} metadata={metadata} />
-                        <div className="h-full flex-1 max-w-6xl w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto">
+                        <div className="h-full flex-1 w-full mx-auto bg-gray-50 overflow-x-hidden overflow-y-auto min-h-0">
                             {xml && (
                                 <ViewSheetMusic jobId={jobId} musicXmlString={xml} audioRef={audioRef} metadata={metadata} />
                             )}

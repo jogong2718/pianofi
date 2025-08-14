@@ -6,8 +6,7 @@ from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
 from pathlib import Path
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 # app/schemas/uploadUrl.py
@@ -16,11 +15,11 @@ from app.schemas.uploadUrl import UploadUrlResponse
 from app.schemas.uploadUrl import CreateUrlPayload
 from app.schemas.user import User
 from app.auth import get_current_user
+from app.database import get_db
 
 router = APIRouter()
 
 # 2) Grab S3 settings from environment
-DATABASE_URL = Config.DATABASE_URL
 aws_creds = Config.AWS_CREDENTIALS
 local = Config.USE_LOCAL_STORAGE == "true"
 
@@ -28,29 +27,10 @@ if local:
     UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
     UPLOAD_DIR.mkdir(exist_ok=True)
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 # 3) Create a boto3 S3 client
 if not local:
     s3_client = boto3.client(
         "s3",
-        # aws_access_key_id=aws_creds["aws_access_key_id"],
-        # aws_secret_access_key=aws_creds["aws_secret_access_key"],
         region_name=aws_creds["aws_region"],
     )
 
@@ -96,8 +76,6 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
                 Params={
                     "Bucket": aws_creds["s3_bucket"],
                     "Key": file_key,
-                    # If you want the client to set content‐type themselves, omit ContentType here.
-                    # Otherwise, you can force a content type:
                     "ContentType": "audio/mpeg"
                 },
                 ExpiresIn=3600,
