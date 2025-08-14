@@ -28,7 +28,7 @@ async def get_user_jobs(
                 created_at,
                 queued_at,
                 started_at,
-                completed_at,
+                finished_at,
                 model,
                 level
             FROM jobs 
@@ -50,7 +50,7 @@ async def get_user_jobs(
                 "createdAt": job.created_at.isoformat() if job.created_at else None,
                 "queuedAt": job.queued_at.isoformat() if job.queued_at else None,
                 "startedAt": job.started_at.isoformat() if job.started_at else None,
-                "completedAt": job.completed_at.isoformat() if job.completed_at else None,
+                "finishedAt": job.finished_at.isoformat() if job.finished_at else None,
                 "model": job.model,
                 "level": job.level
             }
