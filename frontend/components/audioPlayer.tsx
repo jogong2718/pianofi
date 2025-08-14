@@ -16,9 +16,23 @@ interface AudioPlayerProps {
     jobId: string;
     audioRef: React.RefObject<HTMLAudioElement | null>;
     metadata: any | null;
+    goToNextMeasure?: () => void;
+    goToPreviousMeasure?: () => void;
+    goBack5Measures?: () => void;
+    goForward5Measures?: () => void;
+    seekToTime?: (timeInSeconds: number) => void;
 }
 
-export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerProps) {
+export default function AudioPlayer({ 
+    jobId, 
+    audioRef, 
+    metadata, 
+    goToNextMeasure, 
+    goToPreviousMeasure,
+    goBack5Measures,
+    goForward5Measures,
+    seekToTime
+}: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -80,6 +94,17 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
 
     const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+    const handleSeek = (value: number[]) => {
+        if (!duration) return;
+        
+        const seekTime = (value[0] / 100) * duration;
+        if (seekToTime) {
+            seekToTime(seekTime);
+        } else if (audioRef.current) {
+            audioRef.current.currentTime = seekTime;
+        }
+    };
+
     return (
         <div className="w-full bg-gray-900 dark:bg-black border-b border-gray-700 dark:border-gray-800 p-3">
             {/* Main Controls Row */}
@@ -91,7 +116,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goBack5Measures}
+                        onClick={goBack5Measures}
+                        title="Go back 5 measures"
                     >
                         <Rewind className="h-3.5 w-3.5" />
                     </Button>
@@ -101,7 +128,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goToPreviousMeasure}
+                        onClick={goToPreviousMeasure}
+                        title="Previous measure"
                     >
                         <SkipBack className="h-3.5 w-3.5" />
                     </Button>
@@ -126,7 +155,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goToNextMeasure}
+                        onClick={goToNextMeasure}
+                        title="Next measure"
                     >
                         <SkipForward className="h-3.5 w-3.5" />
                     </Button>
@@ -136,7 +167,9 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
                         variant="ghost"
                         size="sm"
                         className="h-7 w-7 p-0 hover:bg-gray-700"
-                        disabled={!audioRef.current}
+                        disabled={!audioRef.current || !goForward5Measures}
+                        onClick={goForward5Measures}
+                        title="Go forward 5 measures"
                     >
                         <FastForward className="h-3.5 w-3.5" />
                     </Button>
@@ -184,10 +217,7 @@ export default function AudioPlayer({ jobId, audioRef, metadata }: AudioPlayerPr
             <div className="w-full">
                 <Slider
                     value={[progressPercentage]}
-                    onValueChange={(value) => {
-                        // Logic will be added later
-                        console.log('Seeking to:', value[0]);
-                    }}
+                    onValueChange={handleSeek}
                     max={100}
                     step={0.1}
                     className="w-full"

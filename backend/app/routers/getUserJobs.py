@@ -5,30 +5,10 @@ from app.auth import get_current_user
 from app.schemas.user import User
 from typing import List
 from app.config_loader import Config 
-from app.schemas.getUserJobs import UserJobResponse  # Assuming this schema exists for the response model
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from app.schemas.getUserJobs import UserJobResponse
+from app.database import get_db
 
 router = APIRouter()
-
-DATABASE_URL = Config.DATABASE_URL
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("/getUserJobs", response_model=List[UserJobResponse])
 async def get_user_jobs(
@@ -38,36 +18,47 @@ async def get_user_jobs(
     try:
         print(f"Fetching jobs for user: {current_user.id}")
 
+        # Use parameterized query to prevent SQL injection
         sql = text("""
-            SELECT job_id, status, created_at, result_key, file_name, file_size, file_duration
+            SELECT 
+                job_id,
+                file_name,
+                file_size,
+                status,
+                created_at,
+                queued_at,
+                started_at,
+                completed_at,
+                model,
+                level
             FROM jobs 
             WHERE user_id = :user_id 
-            AND status != 'deleted'
             ORDER BY created_at DESC
         """)
         
-        result = db.execute(sql, {"user_id": current_user.id}).fetchall()
+        result = db.execute(sql, {"user_id": current_user.id})
+        jobs = result.fetchall()
         
-        jobs = []
-        for row in result:
-            try:
-                created_at_str = row[2].isoformat() if row[2] else ""
-                jobs.append(UserJobResponse(
-                    job_id=str(row[0]),
-                    status=row[1],
-                    created_at=created_at_str,
-                    result_key=row[3] if row[3] is not None else "",
-                    file_name=row[4] if row[4] is not None else "Unknown",
-                    file_size=row[5] if row[5] is not None else 0,
-                    file_duration=row[6] if row[6] is not None else 0
-                ))
-            except Exception as row_error:
-                print(f"Error processing row {row}: {str(row_error)}")
+        # Convert to list of dictionaries
+        jobs_list = []
+        for job in jobs:
+            job_dict = {
+                "jobId": job.job_id,
+                "fileName": job.file_name,
+                "fileSize": job.file_size,
+                "status": job.status,
+                "createdAt": job.created_at.isoformat() if job.created_at else None,
+                "queuedAt": job.queued_at.isoformat() if job.queued_at else None,
+                "startedAt": job.started_at.isoformat() if job.started_at else None,
+                "completedAt": job.completed_at.isoformat() if job.completed_at else None,
+                "model": job.model,
+                "level": job.level
+            }
+            jobs_list.append(job_dict)
         
-        return jobs
+        print(f"Found {len(jobs_list)} jobs for user {current_user.id}")
+        return jobs_list
         
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error in getUserJobs: {str(e)}\n{error_details}")
-        raise HTTPException(status_code=500, detail=f"Error fetching jobs: {str(e)}")
+        print(f"Error fetching jobs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch jobs: {str(e)}")

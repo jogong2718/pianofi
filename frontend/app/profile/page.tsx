@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Music } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/lib/AuthContext";
 import { ProfileSidebar } from "./components/profileSidebar";
 import { ProfileSection } from "./components/profileSection";
 import { BillingSection } from "./components/billingSection";
@@ -14,28 +15,14 @@ import { SidebarSection, User } from "./types";
 export default function ProfilePage() {
   const router = useRouter();
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
   const [activeSection, setActiveSection] = useState<SidebarSection>("profile");
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        router.push("/login");
-        return;
-      }
-
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-  }, [router, supabase.auth]);
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
