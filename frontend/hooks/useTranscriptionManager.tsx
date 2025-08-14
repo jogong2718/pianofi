@@ -214,43 +214,6 @@ export function useTranscriptionManager({
 
         setTranscriptions(transcriptionsList);
 
-        // For completed jobs, fetch download URLs
-        const completedJobs = transcriptionsList.filter(
-          (t) =>
-            t.status === "completed" &&
-            t.midi_download_url === "pending" &&
-            t.xml_download_url === "pending"
-        );
-        for (const job of completedJobs) {
-          try {
-            const { midi_download_url } = await getDownloadUrl(job.id, "midi");
-            const { xml_download_url } = await getDownloadUrl(job.id, "xml");
-            setTranscriptions((prev) =>
-              prev.map((t) =>
-                t.id === job.id
-                  ? { ...t, midi_download_url, xml_download_url }
-                  : t
-              )
-            );
-          } catch (error) {
-            console.error(
-              `Failed to get download URL for job ${job.id}:`,
-              error
-            );
-
-            setTranscriptions((prev) =>
-              prev.map((t) =>
-                t.id === job.id
-                  ? {
-                      ...t,
-                      midi_download_url: "error",
-                      xml_download_url: "error",
-                    }
-                  : t
-              )
-            );
-          }
-        }
       } catch (error) {
         console.error("Failed to load existing transcriptions:", error);
         toast.error("Failed to load your transcriptions");
