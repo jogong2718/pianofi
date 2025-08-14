@@ -43,20 +43,28 @@ export default function AudioPlayer({
         if (audioRef.current) {
             const audio = audioRef.current;
 
-            // Audio event listeners
-            audio.addEventListener('ended', () => setIsPlaying(false));
-            audio.addEventListener('pause', () => setIsPlaying(false));
-            audio.addEventListener('play', () => setIsPlaying(true));
-            audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
-            audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
+            // Create named functions so we can properly remove them
+            const handleEnded = () => setIsPlaying(false);
+            const handlePause = () => setIsPlaying(false);
+            const handlePlay = () => setIsPlaying(true);
+            const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+            const handleLoadedMetadata = () => setDuration(audio.duration);
+
+            // Add event listeners
+            audio.addEventListener('ended', handleEnded);
+            audio.addEventListener('pause', handlePause);
+            audio.addEventListener('play', handlePlay);
+            audio.addEventListener('timeupdate', handleTimeUpdate);
+            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
 
             return () => {
                 audio.pause();
-                audio.removeEventListener('ended', () => setIsPlaying(false));
-                audio.removeEventListener('pause', () => setIsPlaying(false));
-                audio.removeEventListener('play', () => setIsPlaying(true));
-                audio.removeEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
-                audio.removeEventListener('loadedmetadata', () => setDuration(audio.duration));
+                // Remove the exact same function references
+                audio.removeEventListener('ended', handleEnded);
+                audio.removeEventListener('pause', handlePause);
+                audio.removeEventListener('play', handlePlay);
+                audio.removeEventListener('timeupdate', handleTimeUpdate);
+                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
                 audioRef.current = null;
             };
         }
