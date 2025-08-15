@@ -3,12 +3,15 @@ from typing import Optional
 
 class UserJobResponse(BaseModel):
     job_id: str
-    status: str
-    created_at: str
-    result_key: Optional[str] = None  # Make this field optional
-    file_name: Optional[str] = None 
+    file_name: Optional[str] = None
     file_size: Optional[int] = None
-    file_duration: Optional[int] = None
+    status: str
+    created_at: Optional[str] = None
+    queued_at: Optional[str] = None
+    started_at: Optional[str] = None
+    finished_at: Optional[str] = None
+    model: Optional[str] = None
+    level: Optional[int] = None
     
     class Config:
         from_attributes = True

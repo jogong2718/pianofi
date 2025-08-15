@@ -24,51 +24,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    const getUser = async () => {
+    const getSession = async () => {
       try {
         const {
-          data: { user },
+          data: { session },
           error,
-        } = await supabase.auth.getUser()
+        } = await supabase.auth.getSession()
 
         if (error) {
-          // Handle refresh token errors specifically
-          if (error.message.includes('refresh_token_not_found') || 
-              error.message.includes('Invalid Refresh Token') ||
-              error.message.includes('Auth session missing')) {
-            console.log('Session expired - refresh token invalid')
-            setUser(null)
-            // Don't automatically redirect here, let the user stay on current page
-          } else {
-            console.error('Auth error:', error)
-          }
+          console.log('Session error:', error.message)
           setUser(null)
+        } else if (session?.user) {
+          setUser(session.user)
         } else {
-          setUser(user)
+          console.log('No active session found')
+          setUser(null)
         }
       } catch (error: any) {
-        console.error('Failed to get user:', error)
+        console.log('Failed to get session:', error.message)
         setUser(null)
       } finally {
         setLoading(false)
       }
     }
 
-    getUser()
+    getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event)
         
-        if (!session && user) {
-          console.log('Session lost - likely token expired')
+        if (event === 'SIGNED_OUT' || !session) {
           setUser(null)
-          toast.error('Your session has expired. Please log in again.')
-          router.push('/login')
+          if (event === 'TOKEN_REFRESHED' && !session) {
+            toast.error('Your session has expired. Please log in again.')
+            router.push('/login')
+          }
         } else if (session?.user) {
           setUser(session.user)
-        } else {
-          setUser(null)
         }
         
         setLoading(false)
@@ -76,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase.auth, router])
 
   const signOut = async () => {
     try {
