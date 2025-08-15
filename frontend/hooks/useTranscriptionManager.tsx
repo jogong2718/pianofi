@@ -189,7 +189,6 @@ export function useTranscriptionManager({
           );
           // Continue with empty jobs list instead of failing completely
         }
-        console.log("Fetched jobs:", jobs);
         const transcriptionsList: Transcription[] = jobs.map((job) => ({
           id: job.job_id,
           filename: job.file_name || "Unknown File",

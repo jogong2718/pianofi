@@ -12,6 +12,7 @@ import { useAudio } from "@/hooks/useAudio";
 import AudioPlayer from "@/components/audioPlayer";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useDownload } from "@/hooks/useDownload";
 
 export default function TranscriptionDetailPage() {
     const params = useParams();
@@ -21,6 +22,16 @@ export default function TranscriptionDetailPage() {
     const { xml, loading: xmlLoading, error: xmlError } = useSheetMusic({ jobId });
     const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
     const { audioRef, metadata, loading: audioLoading, error: audioError } = useAudio({ jobId });
+    
+    // Use the download hook
+    const { downloadMIDI, downloadXML, downloadPDF, downloading } = useDownload();
+
+    // Simple wrapper functions
+    const handleDownloadMIDI = () => downloadMIDI(midi, jobId);
+    const handleDownloadXML = () => downloadXML(xml, jobId);
+    const handleDownloadPDF = () => {
+        toast.info("PDF download coming soon!");
+    };
 
     // Show toast notifications for non-critical errors
     useEffect(() => {
@@ -53,8 +64,9 @@ export default function TranscriptionDetailPage() {
                         </div>
 
                         <div className="flex items-center space-x-2">
-                            <div className="animate-pulse h-9 w-32 bg-gray-700 rounded"></div> {/* Download MIDI button */}
-                            <div className="animate-pulse h-9 w-36 bg-gray-700 rounded"></div> {/* Edit Sheet Music button */}
+                            <div className="animate-pulse h-9 w-16 lg:w-32 bg-gray-700 rounded"></div> {/* Download XML button */}
+                            <div className="animate-pulse h-9 w-16 lg:w-32 bg-gray-700 rounded"></div> {/* Download MIDI button */}
+                            <div className="animate-pulse h-9 w-20 lg:w-36 bg-gray-700 rounded"></div> {/* Edit Sheet Music button */}
                         </div>
                     </div>
 
@@ -113,29 +125,132 @@ export default function TranscriptionDetailPage() {
     return (
         <div className="h-screen flex flex-col">
             <div className="container mx-auto md:px-4 pt-8 flex flex-col h-full">
-                {/* Header - Fixed size */}
-                <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                    <div className="flex items-center space-x-4">
+                {/* Header - Responsive */}
+                <div className="flex items-center justify-between mb-6 flex-shrink-0 gap-4">
+                    {/* Left side - Back button + Title */}
+                    <div className="flex items-center space-x-4 min-w-0 flex-1">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => router.push("/dashboard")}
+                            className="hover:cursor-pointer flex-shrink-0"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Dashboard
+                            <span className="hidden sm:inline">Back to Dashboard</span>
+                            <span className="sm:hidden">Back</span>
                         </Button>
-                        <h1 className="text-2xl font-bold">Transcription Details</h1>
+                        {/* Hide title on mobile */}
+                        <h1 className="text-2xl font-bold hidden md:block truncate">
+                            Transcription Details
+                        </h1>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download MIDI
-                        </Button>
-                        <Button variant="outline" size="sm">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Download PDF
-                        </Button>
+                    {/* Right side - Download buttons */}
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                        {/* Desktop: All buttons with text */}
+                        <div className="hidden lg:flex items-center space-x-2">
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadXML}
+                                disabled={!xml || xmlLoading || downloading === `transcription-${jobId}.xml`}
+                                className="hover:cursor-pointer"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                {downloading === `transcription-${jobId}.xml` ? "Downloading..." : "Download XML"}
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadMIDI}
+                                disabled={!midi || midiLoading || downloading === `transcription-${jobId}.mid`}
+                                className="hover:cursor-pointer"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                {downloading === `transcription-${jobId}.mid` ? "Downloading..." : "Download MIDI"}
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadPDF}
+                                disabled={downloading !== null}
+                                className="hover:cursor-pointer"
+                            >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Download PDF
+                            </Button>
+                        </div>
+
+                        {/* Tablet: Shorter text */}
+                        <div className="hidden md:flex lg:hidden items-center space-x-2">
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadXML}
+                                disabled={!xml || xmlLoading || downloading === `transcription-${jobId}.xml`}
+                                className="hover:cursor-pointer"
+                            >
+                                <Download className="h-4 w-4 mr-1" />
+                                XML
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadMIDI}
+                                disabled={!midi || midiLoading || downloading === `transcription-${jobId}.mid`}
+                                className="hover:cursor-pointer"
+                            >
+                                <Download className="h-4 w-4 mr-1" />
+                                MIDI
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadPDF}
+                                disabled={downloading !== null}
+                                className="hover:cursor-pointer"
+                            >
+                                <FileText className="h-4 w-4 mr-1" />
+                                PDF
+                            </Button>
+                        </div>
+
+                        {/* Mobile: Compact buttons with text */}
+                        <div className="flex md:hidden items-center space-x-1">
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadXML}
+                                disabled={!xml || xmlLoading || downloading === `transcription-${jobId}.xml`}
+                                className="hover:cursor-pointer px-2"
+                                title="Download XML"
+                            >
+                                <Download className="h-4 w-4 mr-1" />
+                                XML
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadMIDI}
+                                disabled={!midi || midiLoading || downloading === `transcription-${jobId}.mid`}
+                                className="hover:cursor-pointer px-2"
+                                title="Download MIDI"
+                            >
+                                <Download className="h-4 w-4 mr-1" />
+                                MIDI
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleDownloadPDF}
+                                disabled={downloading !== null}
+                                className="hover:cursor-pointer px-2"
+                                title="Download PDF"
+                            >
+                                <FileText className="h-4 w-4 mr-1" />
+                                PDF
+                            </Button>
+                        </div>
                     </div>
                 </div>
 

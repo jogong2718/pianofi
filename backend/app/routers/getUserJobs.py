@@ -43,14 +43,14 @@ async def get_user_jobs(
         jobs_list = []
         for job in jobs:
             job_dict = {
-                "jobId": job.job_id,
-                "fileName": job.file_name,
-                "fileSize": job.file_size,
+                "job_id": str(job.job_id),
+                "file_name": job.file_name,
+                "file_size": job.file_size,
                 "status": job.status,
-                "createdAt": job.created_at.isoformat() if job.created_at else None,
-                "queuedAt": job.queued_at.isoformat() if job.queued_at else None,
-                "startedAt": job.started_at.isoformat() if job.started_at else None,
-                "finishedAt": job.finished_at.isoformat() if job.finished_at else None,
+                "created_at": job.created_at.isoformat() if job.created_at else None,
+                "queued_at": job.queued_at.isoformat() if job.queued_at else None,
+                "started_at": job.started_at.isoformat() if job.started_at else None,
+                "finished_at": job.finished_at.isoformat() if job.finished_at else None,
                 "model": job.model,
                 "level": job.level
             }
