@@ -302,7 +302,7 @@ def convert_midi_to_audio(midi_file, output_file, job_id):
     return audio_path, metadata
 
 if __name__ == "__main__":
-    job_id = "09eded96-ed54-4aab-81f2-6fdb97d32afa"
+    job_id = "30a61da2-db89-4a1f-94d0-4ab9d38ae47e"
     midi_file = Path(f"uploads/{job_id}.mid")
     output_file = Path(f"uploads/{job_id}.wav")
     
