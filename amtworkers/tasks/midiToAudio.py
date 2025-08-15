@@ -15,6 +15,8 @@ class MidiToAudio:
         self.time_signature_changes = []
         self.measures = {}
         self.total_duration = 0
+        # Add note event tracking
+        self.max_note_tick = 0
 
     
     def process_midi_file(self, midi_file, job_id):
@@ -53,6 +55,7 @@ class MidiToAudio:
         # Initialize with defaults
         self.tempo_changes = [{'tick': 0, 'tempo': 500000, 'bpm': 120.0}]
         self.time_signature_changes = [{'tick': 0, 'numerator': 4, 'denominator': 4}]
+        self.max_note_tick = 0
         
         # Parse all tracks for timing events
         while offset < len(data):
@@ -64,12 +67,13 @@ class MidiToAudio:
         
         logging.info(f"Found {len(self.tempo_changes)} tempo changes")
         logging.info(f"Found {len(self.time_signature_changes)} time signature changes")
+        logging.info(f"Latest note event at tick: {self.max_note_tick}")
 
 
     def _parse_track_timing(self, data, offset):
         """
-        Parse single track looking for timing events only
-        Based on midiToXml.py but focused on tempo and time signature changes
+        Parse single track looking for timing events and note events
+        Based on midiToXml.py but focused on tempo, time signature changes, and note events
         """
         track_end = offset + struct.unpack('>I', data[offset-4:offset])[0]
         current_time = 0
@@ -87,10 +91,13 @@ class MidiToAudio:
             
             status = running_status & 0xF0
             
-            # Skip note events, we only care about timing meta events
+            # Track note events to find the true end of musical content
             if status == 0x90:  # Note on
+                if offset + 1 < len(data) and data[offset + 1] > 0:  # Note on with velocity > 0
+                    self.max_note_tick = max(self.max_note_tick, current_time)
                 offset += 2
             elif status == 0x80:  # Note off  
+                self.max_note_tick = max(self.max_note_tick, current_time)
                 offset += 2
             elif status in [0xA0, 0xB0, 0xE0]:  # 2-byte events
                 offset += 2
@@ -171,8 +178,21 @@ class MidiToAudio:
         logging.info("Calculating measure boundaries...")
         
         # Find the last tick with any event
-        last_tick = max([tc['tick'] for tc in self.tempo_changes] + 
-                       [ts['tick'] for ts in self.time_signature_changes])
+        tempo_last_tick = max([tc['tick'] for tc in self.tempo_changes]) if self.tempo_changes else 0
+        time_sig_last_tick = max([ts['tick'] for ts in self.time_signature_changes]) if self.time_signature_changes else 0
+        
+        logging.info(f"Last tempo change tick: {tempo_last_tick}")
+        logging.info(f"Last time signature change tick: {time_sig_last_tick}")
+        logging.info(f"Last note event tick: {self.max_note_tick}")
+        
+        # Use the maximum of tempo, time signature, and note events to determine file length
+        last_tick = max(tempo_last_tick, time_sig_last_tick, self.max_note_tick)
+        logging.info(f"Calculated last_tick from all events: {last_tick}")
+        
+        # If still no events found, create a default minimal duration
+        if last_tick == 0:
+            logging.warning("No events found beyond tick 0, using default duration")
+            last_tick = self.ticks_per_quarter * 4  # Default to 1 measure
         
         current_tick = 0
         measure_num = 1
