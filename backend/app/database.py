@@ -7,9 +7,10 @@ DATABASE_URL = Config.DATABASE_URL
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=5,
-    max_overflow=10
+    pool_recycle=1800,
+    pool_size=2,
+    max_overflow=2,
+    pool_timeout=5
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
