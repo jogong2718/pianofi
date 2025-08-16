@@ -21,6 +21,9 @@ interface AudioPlayerProps {
     goBack5Measures?: () => void;
     goForward5Measures?: () => void;
     seekToTime?: (timeInSeconds: number) => void;
+    onPlay: () => Promise<void>;
+    onPause: () => void;
+    onStop: () => void;
 }
 
 export default function AudioPlayer({ 
@@ -31,7 +34,10 @@ export default function AudioPlayer({
     goToPreviousMeasure,
     goBack5Measures,
     goForward5Measures,
-    seekToTime
+    seekToTime,
+    onPlay,
+    onPause,
+    onStop
 }: AudioPlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -40,59 +46,39 @@ export default function AudioPlayer({
 
     // Initialize audio element when audioUrl is available
     useEffect(() => {
-        if (audioRef.current) {
-            const audio = audioRef.current;
+        const audio = audioRef.current;
+        if (!audio) return;
 
-            // Create named functions so we can properly remove them
-            const handleEnded = () => setIsPlaying(false);
-            const handlePause = () => setIsPlaying(false);
-            const handlePlay = () => setIsPlaying(true);
-            const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-            const handleLoadedMetadata = () => setDuration(audio.duration);
+        // Create handlers with current state
+        const handleEnded = () => setIsPlaying(false);
+        const handlePause = () => setIsPlaying(false);
+        const handlePlay = () => setIsPlaying(true);
+        const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+        const handleLoadedMetadata = () => setDuration(audio.duration);
 
-            // Add event listeners
-            audio.addEventListener('ended', handleEnded);
-            audio.addEventListener('pause', handlePause);
-            audio.addEventListener('play', handlePlay);
-            audio.addEventListener('timeupdate', handleTimeUpdate);
-            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+        // Add event listeners
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('pause', handlePause);
+        audio.addEventListener('play', handlePlay);
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
 
-            return () => {
-                audio.pause();
-                // Remove the exact same function references
-                audio.removeEventListener('ended', handleEnded);
-                audio.removeEventListener('pause', handlePause);
-                audio.removeEventListener('play', handlePlay);
-                audio.removeEventListener('timeupdate', handleTimeUpdate);
-                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-                audioRef.current = null;
-            };
-        }
-    }, [audioRef]);
+        return () => {
+            // Clean up listeners from this specific audio element
+            audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('pause', handlePause);
+            audio.removeEventListener('play', handlePlay);
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        };
+    }, [audioRef.current]);
 
-    const play = async () => {
-        if (audioRef.current) {
-            try {
-                await audioRef.current.play();
-            } catch (error) {
-                console.error('Error playing audio:', error);
-            }
-        }
-    };
-
-    const pause = () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-    };
-
-    const stop = () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
+    // Reset state when audio element changes
+    useEffect(() => {
         setIsPlaying(false);
-    };
+        setCurrentTime(0);
+        setDuration(0);
+    }, [audioRef.current]);
 
     const formatTime = (time: number): string => {
         const minutes = Math.floor(time / 60);
@@ -147,7 +133,7 @@ export default function AudioPlayer({
                     <Button
                         variant="default"
                         size="sm"
-                        onClick={isPlaying ? pause : play}
+                        onClick={isPlaying ? onPause : onPlay}
                         disabled={!audioRef.current}
                         className="h-8 w-8 p-0"
                     >
@@ -186,7 +172,7 @@ export default function AudioPlayer({
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={stop}
+                        onClick={onStop}
                         disabled={!audioRef.current}
                         className="h-7 w-7 p-0 hover:bg-gray-700"
                     >

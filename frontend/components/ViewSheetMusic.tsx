@@ -25,7 +25,10 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
         goToPreviousMeasure,
         goBack5Measures,
         goForward5Measures,
-        seekToTime
+        seekToTime,
+        play,
+        pause,
+        stop
     } = usePlayback({
         audioRef,
         metadata,
@@ -69,6 +72,7 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
             {/* Audio Player - Fixed at top */}
             <div className="flex-shrink-0">
                 <AudioPlayer
+                    key={jobId}
                     jobId={jobId}
                     audioRef={audioRef}
                     metadata={metadata}
@@ -77,6 +81,9 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
                     goBack5Measures={goBack5Measures}
                     goForward5Measures={goForward5Measures}
                     seekToTime={seekToTime}
+                    onPlay={play}
+                    onPause={pause}
+                    onStop={stop}
                 />
             </div>
             
