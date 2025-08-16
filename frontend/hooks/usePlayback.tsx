@@ -293,6 +293,8 @@ export function usePlayback({ audioRef, metadata, osmd, svgContainer }: UsePlayb
     // Audio control functions
     const play = useCallback(async () => {
         if (!audioRef.current) return;
+
+        console.log('Playing audio', selectedMeasure);
         
         // Default to first measure if none selected
         if (!selectedMeasure) {
