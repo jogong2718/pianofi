@@ -9,6 +9,14 @@ from picogenworkers.tasks.midiToXml import convert_midi_to_xml
 from picogenworkers.tasks.midiToAudio import convert_midi_to_audio
 from mutagen import File
 import os
+import signal
+shutdown_requested = False
+
+def signal_handler(sig, frame):
+    global shutdown_requested
+    shutdown_requested = True
+
+signal.signal(signal.SIGTERM, signal_handler)
 
 print("starting worker...")
 
@@ -283,7 +291,7 @@ def main():
     logging.info("Worker started, waiting for jobs…")
     loop_count = 0
     try:
-        while True:
+        while not shutdown_requested:
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
