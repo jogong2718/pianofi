@@ -50,6 +50,16 @@ export function useTranscriptionManager({
     setTranscriptions((prev) => prev.filter((t) => t.id !== jobId));
   }, []);
 
+  const updateTranscriptionFilename = useCallback((jobId: string, newFilename: string) => {
+    setTranscriptions((prev) => 
+      prev.map((t) => 
+        t.id === jobId 
+          ? { ...t, filename: newFilename }
+          : t
+      )
+    );
+  }, []);
+
   const handleJobCompletion = useCallback(
     async (jobId: string, resultKey: string) => {
       let shouldSkip = false;
@@ -342,5 +352,6 @@ export function useTranscriptionManager({
     addTranscription,
     initialLoading,
     deleteTranscription,
+    updateTranscriptionFilename,
   };
 }
