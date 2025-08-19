@@ -354,7 +354,7 @@ export default function LandingPage() {
               Privacy Policy
             </Link>
             <Link
-              href="#"
+              href="/contact"
               className="text-xs hover:underline underline-offset-4"
             >
               Contact
