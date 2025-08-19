@@ -347,6 +347,40 @@ export default function LandingPage() {
           </div>
         </section> */}
 
+        {/* Donations Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                  Support PianoFi
+                </h2>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
+                  Help us continue improving our AI music transcription
+                  technology and keep building amazing features for musicians
+                  everywhere.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <Button size="lg" asChild>
+                  <a
+                    href="https://ko-fi.com/pianofi"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                  >
+                    <span>☕</span>
+                    <span className="ml-2">Support us on Ko-fi</span>
+                  </a>
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Every contribution helps us make PianoFi better for everyone
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto px-4 md:px-6">
