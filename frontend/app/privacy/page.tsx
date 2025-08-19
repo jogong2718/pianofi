@@ -221,6 +221,13 @@ export default function PrivacyPolicyPage() {
                         className="text-primary hover:underline"
                       >
                         jonathan@pianofi.ca
+                      </a>{" "}
+                      or{" "}
+                      <a
+                        href="mailto:bruce@pianofi.ca"
+                        className="text-primary hover:underline"
+                      >
+                        bruce@pianofi.ca
                       </a>
                     </p>
                   </div>
@@ -293,12 +300,12 @@ export default function PrivacyPolicyPage() {
                       </a>
                     </p>
                     <p>
-                      Support:{" "}
+                      Email:{" "}
                       <a
-                        href="mailto:jonathan@pianofi.ca"
+                        href="mailto:bruce@pianofi.ca"
                         className="text-primary hover:underline"
                       >
-                        jonathan@pianofi.ca
+                        bruce@pianofi.ca
                       </a>
                     </p>
                   </div>

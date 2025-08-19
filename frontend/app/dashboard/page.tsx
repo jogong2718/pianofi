@@ -128,7 +128,7 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="transcriptions" className="space-y-4">
-            <TranscriptionsList 
+            <TranscriptionsList
               transcriptions={transcriptions}
               updateTranscriptionFilename={updateTranscriptionFilename}
             />
