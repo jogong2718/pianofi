@@ -64,12 +64,20 @@ export default function ContactPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <a
-                      href="mailto:jonathan@pianofi.ca"
-                      className="text-primary hover:underline font-medium text-lg"
-                    >
-                      jonathan@pianofi.ca
-                    </a>
+                    <div className="space-y-2">
+                      <a
+                        href="mailto:jonathan@pianofi.ca"
+                        className="text-primary hover:underline font-medium text-lg block"
+                      >
+                        jonathan@pianofi.ca
+                      </a>
+                      <a
+                        href="mailto:bruce@pianofi.ca"
+                        className="text-primary hover:underline font-medium text-lg block"
+                      >
+                        bruce@pianofi.ca
+                      </a>
+                    </div>
                   </CardContent>
                 </Card>
 

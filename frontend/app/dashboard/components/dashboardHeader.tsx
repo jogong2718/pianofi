@@ -36,9 +36,9 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
 
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />
-          <Button variant="default" size="sm" onClick={onUpgradeClick}>
+          {/* <Button variant="default" size="sm" onClick={onUpgradeClick}>
             Upgrade
-          </Button>
+          </Button> */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
