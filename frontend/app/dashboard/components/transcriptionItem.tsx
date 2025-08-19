@@ -2,7 +2,8 @@ import { FC, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Download, MoreHorizontal, Trash2, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, MoreHorizontal, Trash2, Eye, Edit2, Check, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TranscriptionStatusBadge from "./transcriptionStatusBadge";
 import { useDeleteJob } from "@/hooks/useDeleteJob";
+import { useUpdateJob } from "@/hooks/useUpdateJob";
 
 import {
   AlertDialog,
@@ -30,29 +32,108 @@ interface TranscriptionItemProps {
   transcription: any;
   onDownload: (transcription: any, downloadType: string) => void;
   onClick: (transcription: any) => void;
+  updateTranscriptionFilename: (jobId: string, newFilename: string) => void;
 }
 
 const TranscriptionItem: FC<TranscriptionItemProps> = ({
   transcription,
   onDownload,
   onClick,
+  updateTranscriptionFilename,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(transcription.filename || "");
+  
   const { deleteJob, loading: deleteLoading } = useDeleteJob();
+  const { updateJob, loading: updateLoading } = useUpdateJob();
 
   const handleDelete = async () => {
     await deleteJob(transcription.id);
     setShowDeleteDialog(false);
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedName(transcription.filename || "");
+  };
+
+  const handleSave = async () => {
+    if (editedName.trim() === "") {
+      toast.error("Filename cannot be empty");
+      return;
+    }
+
+    try {
+      await updateJob({
+        job_id: transcription.id,
+        file_name: editedName.trim(),
+      });
+      
+      // Instantly update UI
+      updateTranscriptionFilename(transcription.id, editedName.trim());
+      setIsEditing(false);
+      
+    } catch (error) {
+      // Reset input on error
+      setEditedName(transcription.filename || "");
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedName(transcription.filename || "");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 items-center justify-between p-4 border rounded-lg">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 items-start sm:items-center justify-between p-4 border rounded-lg">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <TranscriptionStatusBadge status={transcription.status} />
+            <div className="min-w-4 min-h-4">
+              <TranscriptionStatusBadge status={transcription.status} />
+            </div>
             <div>
-              <p className="font-medium">{transcription.filename}</p>
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="text-base font-medium bg-gray-100 dark:bg-gray-800 border-none shadow-none outline-none focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 m-0 h-6 max-w-72"
+                    autoFocus
+                    disabled={updateLoading}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleSave}
+                    disabled={updateLoading}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleCancel}
+                    disabled={updateLoading}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <p className="font-medium">{transcription.filename}</p>
+              )}
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <span>{transcription.duration}</span>
                 <span>{transcription.size}</span>
@@ -62,7 +143,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 ml-4 sm:ml-0">
           <div className="flex items-center space-x-2">
             <Badge
               variant={
@@ -94,8 +175,9 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
 
           {transcription.status === "completed" && (
             <Button size="sm" variant="outline" onClick={onClick}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Transcription
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">View Transcription</span>
+              <span className="sm:hidden">View</span>
             </Button>
           )}
 
@@ -106,6 +188,11 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit} disabled={isEditing}>
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   if (
@@ -114,7 +201,6 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                     transcription.xml_download_url === "error" ||
                     transcription.status === "missing"
                   ) {
-                    // Show a toast or message to the user
                     toast.error("Midi file not available for download.");
                     return;
                   }
@@ -132,7 +218,6 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                     transcription.xml_download_url === "error" ||
                     transcription.status === "missing"
                   ) {
-                    // Show a toast or message to the user
                     toast.error("MusicXML file not available for download.");
                     return;
                   }
@@ -142,7 +227,6 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 <Download className="h-4 w-4 mr-2" />
                 XML
               </DropdownMenuItem>
-              {/* <DropdownMenuItem>Reprocess</DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"

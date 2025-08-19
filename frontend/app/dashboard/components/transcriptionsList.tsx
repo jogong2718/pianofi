@@ -13,10 +13,12 @@ import { useRouter } from "next/navigation";
 
 interface TranscriptionsListProps {
   transcriptions: any[];
+  updateTranscriptionFilename: (jobId: string, newFilename: string) => void;
 }
 
 const TranscriptionsList: FC<TranscriptionsListProps> = ({
   transcriptions,
+  updateTranscriptionFilename,
 }) => {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -113,6 +115,7 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
               onClick={() =>
                 handleNavigation(`/dashboard/transcription/${transcription.id}`)
               }
+              updateTranscriptionFilename={updateTranscriptionFilename}
             />
           ))}
         </div>

@@ -38,6 +38,7 @@ function DashboardContent() {
     updateTranscriptionStatus,
     addTranscription,
     initialLoading,
+    updateTranscriptionFilename,
   } = useTranscriptionManager({
     getDownloadUrl,
     getUserJobs,
@@ -127,7 +128,10 @@ function DashboardContent() {
           </TabsContent>
 
           <TabsContent value="transcriptions" className="space-y-4">
-            <TranscriptionsList transcriptions={transcriptions} />
+            <TranscriptionsList 
+              transcriptions={transcriptions}
+              updateTranscriptionFilename={updateTranscriptionFilename}
+            />
           </TabsContent>
         </Tabs>
       </div>
