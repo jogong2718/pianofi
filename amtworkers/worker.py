@@ -47,7 +47,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
     if local:
         # Local development - use a local file
         UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
-        local_raw = UPLOAD_DIR / job_id / file_key
+        local_raw = UPLOAD_DIR / file_key  # Use original file_key path
         if not local_raw.exists():
             raise FileNotFoundError(f"Local file {local_raw} does not exist.")
         logging.info(f"Using local file {local_raw} for job {job_id}")
@@ -56,7 +56,9 @@ def process_job(job, engine, s3_client, aws_creds, local):
         if not s3_client:
             raise Exception("S3 client not configured for production.")
         
-        local_raw = Path(f"/tmp/{job_id}.mp3")
+        # Extract original extension from file_key
+        file_extension = Path(file_key).suffix or '.mp3'
+        local_raw = Path(f"/tmp/{job_id}{file_extension}")
         
         logging.info(f"Downloading s3://{bucket}/{file_key} to {local_raw}")
         s3_client.download_file(
