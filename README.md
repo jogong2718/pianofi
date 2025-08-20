@@ -48,7 +48,7 @@ PianoFi is built with a modern microservices architecture designed for scalabili
 
     ```bash
     git clone https://github.com/jogong2718/pianofi.git
-    cd pianofi-app
+    cd pianofi
     ```
 
 2.  Create necessary environment files based on the examples:
