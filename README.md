@@ -1,60 +1,98 @@
-# AWS SSO Setup and project-aws Directory Creation
+# PianoFi - AI-Powered Piano Transcription
 
-Before you begin, ensure you have AWS CLI installed and configured for SSO.
+PianoFi is an advanced AI-powered music transcription service that turns any audio file into professional piano sheet music. Simply upload your audio, and our cutting-edge AI models will generate accurate piano transcriptions in multiple formats.
 
-## 0. Configure AWS SSO
+Visit us at [pianofi.ca](https://pianofi.ca)
 
-If you haven't already configured SSO, run the following command and follow the prompts:
+## 🎹 Features
 
-```sh
-aws configure sso
-```
+- **AI-Powered Transcription**: Convert audio files (MP3, WAV, FLAC) to piano sheet music.
+- **Advanced AI Models**: Choose between AMT (faster processing, better musicality) and PiCoGen (higher accuracy, currently in beta).
+- **Customizable Difficulty**: Generate Easy, Medium, or Hard arrangements to suit your skill level.
+- **Multiple Output Formats**: Download as MusicXML, MIDI, and PDF (coming soon).
+- **Interactive Sheet Music Player**: View and play your transcriptions with synchronized audio playback.
+- **Measure Navigation**: Click on any measure to jump directly to that section in the audio.
+- **User Dashboard**: Track and manage all your transcriptions in one place.
+- **Subscription Plans**: Choose a plan that fits your needs, with secure payments via Stripe.
 
-You will be asked for:
-- SSO session name (i named it pianofi-app)
-- SSO Start URL (it's in the email i sent yall)
-- SSO Region (us-east-1)
-- SSO registration scopes (sso:account:access)
-- SSO Account ID (should be automatic)
-- SSO Role Name (should be automatic)
-- Default client region (ca-central-1)
-- CLI default output format (used default json)
-- CLI profile name (e.g., jonny-dev, choose your own {cli_p_name})
+## ⚡ How It Works
 
-This will create a profile in your AWS CLI config for SSO authentication.
+1.  **Upload Audio**: Upload any song or audio file in MP3, WAV, or FLAC format.
+2.  **AI Processing**: Our advanced neural networks analyze and transcribe your music in minutes.
+3.  **Get Sheet Music**: Download professional piano sheet music or view it in our interactive player.
 
-## 1. Log in to AWS SSO
+## 🛠️ Technical Overview
 
-Refresh your AWS SSO tokens by running:
+PianoFi is built with a modern microservices architecture designed for scalability and performance.
 
-```sh
-aws sso login --profile {cli_p_name}
-```
+### Key Technologies
 
-Replace {cli_p_name} with your AWS profile name.
+- **Frontend**: Next.js, TypeScript, Tailwind CSS, OpenSheetMusicDisplay (OSMD)
+- **Backend**: FastAPI, PostgreSQL, Redis, Supabase Auth
+- **AI Models**: AMT-APC and PiCoGen (finetuned piano transcription models)
+- **Audio Processing**: FluidSynth, FFmpeg, midi2audio
+- **Infrastructure**: Docker, AWS (ECS, Fargate, EC2, S3), Stripe
 
-## 2. Create the project-aws Directory Structure
+## 🚀 Development
 
-In your project root, create the necessary directories for AWS SSO cache:
+### Prerequisites
 
-```sh
-mkdir -p project-aws/sso/cache
-```
+- Docker and Docker Compose
+- Node.js 18+
+- Python 3.10+
+- AWS CLI configured with SSO
 
-## 3. Copy SSO Cache Files
+### Local Setup
 
-Copy your AWS SSO cache files from your home directory to the project directory:
+1.  Clone the repository:
 
-```sh
-cp ~/.aws/sso/cache/* project-aws/sso/cache/
-```
+    ```bash
+    git clone https://github.com/jogong2718/pianofi.git
+    cd pianofi-app
+    ```
 
-This ensures your project has access to the required SSO credentials.
+2.  Create necessary environment files based on the examples:
 
-## 4. Add AWS_PROFILE to env file in packages
+    - `frontend/.env.local`
+    - `packages/pianofi_config/.env`
 
-Add your AWS profile name to the AWS_PROFILE parameter in the env file
+3.  Log in to AWS SSO profile:
 
----
+    ```bash
+    ./dev-start.sh
+    ```
 
-You are now ready to use AWS resources with your project!
+    This script will also start the development environment using Docker Compose.
+
+4.  The services will be available at:
+    - Frontend: `http://localhost:3000`
+    - Backend API: `http://localhost:8000`
+
+## 🏗️ Architecture Deep Dive
+
+### Model Workers and acknowledgements
+
+- **AMT Worker**: Optimized for faster transcription with excellent musicality. Runs on AWS Fargate for cost-effective, serverless scaling.
+- **PiCoGen Worker**: Provides higher note and timing accuracy, ideal for complex piano pieces. Requires GPU and runs on dedicated EC2 instances within an ECS cluster.
+
+### Data Flow
+
+1.  User uploads an audio file from the frontend.
+2.  Frontend requests a pre-signed upload URL from the backend.
+3.  The file is uploaded directly to an AWS S3 bucket.
+4.  Backend creates a job in the database and enqueues it in Redis, targeting the appropriate worker (AMT or PiCoGen).
+5.  The designated worker picks up the job, downloads the audio from S3, and performs AI transcription.
+6.  The worker generates a MIDI file, converts it to MusicXML, and synthesizes a preview audio file (MP3).
+7.  All generated artifacts are uploaded back to S3.
+8.  The backend is notified, and the job status is updated in the database.
+9.  The user sees the completed transcription in their dashboard and can view, play, and download the files.
+
+## 🔗 Links
+
+- **Website**: [pianofi.ca](https://pianofi.ca)
+- **Contact**: [jonathan@pianofi.ca](mailto:jonathan@pianofi.ca) or [bruce@pianofi.ca](mailto:bruce@pianofi.ca)
+- **Support**: Visit [pianofi.ca/contact](https://pianofi.ca/contact)
+
+## 📜 License
+
+© 2025 PianoFi. All rights reserved.
