@@ -255,14 +255,15 @@ class MidiToAudio:
         }
 
     def _synthesize_audio(self, midi_file_path, output_file, job_id):
-        """Generate audio using midi2audio library with explicit soundfont"""
+        """Generate audio using midi2audio library with MP3 conversion"""
         
-        audio_file = output_file
-        audio_file.parent.mkdir(parents=True, exist_ok=True)
+        # Generate WAV first
+        wav_file = output_file.with_suffix('.wav')
+        wav_file.parent.mkdir(parents=True, exist_ok=True)
         
         # Try to find a soundfont
         soundfont_paths = [
-            "./FluidR3_GM.sf2",  # Downloaded file
+            "./FluidR3_GM.sf2",
             "./FluidR3_GM.sf3", 
             "./Piano.sf2",
             "/usr/share/soundfonts/FluidR3_GM.sf2",
@@ -283,10 +284,24 @@ class MidiToAudio:
                 logging.warning("No soundfont found, using default (may be silent)")
                 fs = FluidSynth()
             
-            fs.midi_to_audio(str(midi_file_path), str(audio_file))
+            # Generate WAV
+            fs.midi_to_audio(str(midi_file_path), str(wav_file))
+            logging.info(f"WAV synthesis complete: {wav_file}")
             
-            logging.info(f"Audio synthesis complete: {audio_file}")
-            return str(audio_file)
+            # Convert to MP3 with FFmpeg
+            mp3_file = output_file.with_suffix('.mp3')
+            subprocess.run([
+                'ffmpeg', '-i', str(wav_file), 
+                '-b:a', '128k',
+                '-y',
+                str(mp3_file)
+            ], check=True, capture_output=True)
+            
+            wav_file.unlink()
+            
+            file_size = mp3_file.stat().st_size
+            logging.info(f"MP3 conversion complete: {mp3_file} ({file_size / (1024*1024):.1f} MB)")
+            return str(mp3_file)
             
         except Exception as e:
             logging.error(f"MIDI to audio conversion failed: {e}")
@@ -302,9 +317,9 @@ def convert_midi_to_audio(midi_file, output_file, job_id):
     return audio_path, metadata
 
 if __name__ == "__main__":
-    job_id = "30a61da2-db89-4a1f-94d0-4ab9d38ae47e"
+    job_id = "ROSÉ & Bruno Mars - APT"
     midi_file = Path(f"uploads/{job_id}.mid")
-    output_file = Path(f"uploads/{job_id}.wav")
+    output_file = Path(f"uploads/{job_id}.mp3")
     
     audio_path, metadata = convert_midi_to_audio(midi_file, output_file, job_id)
     print(metadata)
