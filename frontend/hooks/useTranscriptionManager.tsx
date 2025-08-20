@@ -236,21 +236,30 @@ export function useTranscriptionManager({
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !supabase) return;
 
-    const deviceId =
-      localStorage.getItem("deviceId") ||
-      (() => {
-        const id = Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("deviceId", id);
-        return id;
-      })();
+    const deviceId = localStorage.getItem("deviceId") || (() => {
+      const id = Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("deviceId", id);
+      return id;
+    })();
 
     const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
-    console.log("Setting up channel:", uniqueChannelName);
+    
+    // Remove any existing channel with this name first
+    const existingChannels = supabase.getChannels();
+    existingChannels.forEach(ch => {
+      if (ch.topic === uniqueChannelName) {
+        supabase.removeChannel(ch);
+      }
+    });
 
     const channel = supabase
-      .channel(uniqueChannelName)
+      .channel(uniqueChannelName, {
+        config: {
+          presence: { key: deviceId }
+        }
+      })
       .on(
         "postgres_changes",
         {
@@ -299,7 +308,10 @@ export function useTranscriptionManager({
 
     return () => {
       console.log("Cleaning up channel:", uniqueChannelName);
-      supabase.removeChannel(channel);
+      if (channel) {
+        channel.unsubscribe();
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id, supabase]);
 
