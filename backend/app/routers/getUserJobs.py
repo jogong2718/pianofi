@@ -32,7 +32,8 @@ async def get_user_jobs(
                 model,
                 level
             FROM jobs 
-            WHERE user_id = :user_id 
+            WHERE user_id = :user_id
+            AND status != 'deleted' 
             ORDER BY created_at DESC
         """)
         
