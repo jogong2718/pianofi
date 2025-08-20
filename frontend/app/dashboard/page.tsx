@@ -63,7 +63,7 @@ function DashboardContent() {
   // Show loading while auth is being checked or transcriptions are loading
   if (loading || initialLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
         <div className="text-center">
           <Music className="h-8 w-8 text-primary mx-auto mb-4" />
           <p>Loading recent transcriptions...</p>
@@ -85,7 +85,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
       <UpgradeModal
         open={showUpgradeModal}
         onOpenChange={setShowUpgradeModal}
@@ -144,7 +144,7 @@ export default function DashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
           <div className="text-center">
             <Music className="h-8 w-8 text-primary mx-auto mb-4" />
             <p>Loading dashboard...</p>
