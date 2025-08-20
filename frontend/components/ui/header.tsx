@@ -40,8 +40,8 @@ export function Header() {
   }
 
   const navigationItems = [
-    { href: "#features", label: "Features" },
-    { href: "#pricing", label: "Pricing" },
+    { href: "/#features", label: "Features" },
+    // { href: "/#pricing", label: "Pricing" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
