@@ -169,7 +169,10 @@ export default function ContactPage() {
             © {new Date().getFullYear()} PianoFi. All rights reserved.
           </p>
           <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-            <a href="#" className="text-xs hover:underline underline-offset-4">
+            <a
+              href="/terms"
+              className="text-xs hover:underline underline-offset-4"
+            >
               Terms of Service
             </a>
             <a

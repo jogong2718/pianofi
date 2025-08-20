@@ -89,6 +89,15 @@ const FileUploader: FC<FileUploaderProps> = ({
   const handleFiles = async (files: FileList) => {
     if (!user) return;
 
+    // Check if PiCoGen is selected and show error
+    if (selectedModel === "picogen") {
+      toast.error(
+        "PiCoGen model is currently unavailable. Please select AMT model."
+      );
+      return;
+    }
+    // remove when picogen is available
+
     if (metricsLoading) {
       toast.error("Please wait while we check your subscription limits...");
       return;
@@ -216,16 +225,18 @@ const FileUploader: FC<FileUploaderProps> = ({
   // helper styling builders
   const modelOptionClass = (v: "amt" | "picogen") =>
     `cursor-pointer rounded-md border px-4 py-3 text-sm transition-all flex items-start gap-2 w-full
-     ${selectedModel === v
-        ? "bg-primary/10 border-primary ring-2 ring-primary/40"
-        : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
+     ${
+       selectedModel === v
+         ? "bg-primary/10 border-primary ring-2 ring-primary/40"
+         : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
      }`;
 
   const levelOptionClass = (v: 1 | 2 | 3) =>
     `cursor-pointer rounded-md border px-4 py-4 text-xs sm:text-sm font-medium transition-all flex items-center gap-2
-     ${selectedLevel === v
-        ? "bg-primary/10 border-primary ring-2 ring-primary/40"
-        : "border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/5"
+     ${
+       selectedLevel === v
+         ? "bg-primary/10 border-primary ring-2 ring-primary/40"
+         : "border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/5"
      } ${levelsDisabled ? "opacity-50" : ""}`;
 
   return (
@@ -233,6 +244,27 @@ const FileUploader: FC<FileUploaderProps> = ({
       <CardHeader>
         <CardTitle>Upload Audio File</CardTitle>
         <CardDescription>
+          {selectedModel === "picogen" ? (
+            <span className="text-orange-600 font-medium">
+              PiCoGen model is currently unavailable. Please select AMT to
+              continue.
+            </span>
+          ) : metrics?.transcriptions_left !== undefined &&
+            metrics.transcriptions_left !== null &&
+            metrics.transcriptions_left <= 2 ? (
+            <span className="text-yellow-600 font-medium">
+              You have only {metrics.transcriptions_left} transcription
+              {metrics.transcriptions_left === 1 ? "" : "s"} left this month.
+            </span>
+          ) : metrics?.transcriptions_left === 0 ? (
+            <span className="text-red-600 font-medium">
+              You have reached your monthly limit. Please upgrade to continue.
+            </span>
+          ) : (
+            "Upload your audio file to convert it to piano sheet music"
+          )}
+        </CardDescription>
+        {/* <CardDescription>
           {metrics?.transcriptions_left !== undefined &&
           metrics.transcriptions_left !== null &&
           metrics.transcriptions_left <= 2 ? (
@@ -247,7 +279,7 @@ const FileUploader: FC<FileUploaderProps> = ({
           ) : (
             "Upload your audio file to convert it to piano sheet music"
           )}
-        </CardDescription>
+        </CardDescription> */}
       </CardHeader>
       <CardContent>
         {/* Reworked selection layout */}
@@ -267,7 +299,11 @@ const FileUploader: FC<FileUploaderProps> = ({
                   className={modelOptionClass("amt")}
                   onClick={() => setSelectedModel("amt")}
                 >
-                  <RadioGroupItem value="amt" id="model-amt" className="mt-0.5" />
+                  <RadioGroupItem
+                    value="amt"
+                    id="model-amt"
+                    className="mt-0.5"
+                  />
                   <div>
                     <div className="font-medium">AMT</div>
                     <p className="text-xs text-muted-foreground">
@@ -277,6 +313,33 @@ const FileUploader: FC<FileUploaderProps> = ({
                 </Label>
 
                 <Label
+                  htmlFor="model-picogen"
+                  className={`${modelOptionClass(
+                    "picogen"
+                  )} opacity-60 cursor-not-allowed`}
+                  onClick={() => {
+                    setSelectedModel("picogen");
+                    toast.warning("PiCoGen model is currently unavailable");
+                  }}
+                >
+                  <RadioGroupItem
+                    value="picogen"
+                    id="model-picogen"
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-medium flex items-center gap-2">
+                      PiCoGen
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                        Unavailable
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Higher timing precision & note accuracy
+                    </p>
+                  </div>
+                </Label>
+                {/* <Label
                   htmlFor="model-picogen"
                   className={modelOptionClass("picogen")}
                   onClick={() => setSelectedModel("picogen")}
@@ -292,7 +355,7 @@ const FileUploader: FC<FileUploaderProps> = ({
                       Higher timing precision & note accuracy
                     </p>
                   </div>
-                </Label>
+                </Label> */}
               </RadioGroup>
             </div>
           </div>
@@ -367,14 +430,22 @@ const FileUploader: FC<FileUploaderProps> = ({
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive
+            // remove when picogen is available
+            selectedModel === "picogen"
+              ? "border-muted-foreground/25 opacity-50 cursor-not-allowed"
+              : // remove when picogen is available
+              dragActive
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25"
           }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
+          onDragEnter={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDragLeave={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDragOver={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDrop={selectedModel !== "picogen" ? handleDrop : undefined}
+          // onDragEnter={handleDrag}
+          // onDragLeave={handleDrag}
+          // onDragOver={handleDrag}
+          // onDrop={handleDrop}
         >
           <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">
@@ -383,8 +454,19 @@ const FileUploader: FC<FileUploaderProps> = ({
           <p className="text-muted-foreground mb-4">or click to browse files</p>
           <Button
             onClick={() => {
+              // remove when picogen is available
+              if (selectedModel === "picogen") {
+                toast.error(
+                  "PiCoGen model is currently unavailable. Please select AMT model."
+                );
+                return;
+              }
+              // remove when picogen is available
               handleFileInput();
             }}
+            // remove when picogen is available
+            disabled={selectedModel === "picogen"}
+            // remove when picogen is available
           >
             Choose File
           </Button>

@@ -51,7 +51,8 @@ def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), 
     
     try:
         job_id = str(uuid.uuid4())
-        file_key = f"mp3/{job_id}.mp3"
+        file_ext = '.' + payload.file_name.lower().split('.')[-1] if '.' in payload.file_name else '.mp3'
+        file_key = f"mp3/{job_id}{file_ext}"
         authenticated_user_id = current_user.id
 
         sql = text("""
