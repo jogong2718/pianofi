@@ -46,7 +46,7 @@ export function useAudio({ jobId }: UseAudioProps): AudioData {
                 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
                 const response = await fetch(`${backendUrl}/getAudio/${jobId}`, {
                     headers: {
-                        'Accept': 'audio/wav',
+                        'Accept': 'audio/mp3',
                         'Authorization': `Bearer ${session.access_token}`,
                     },
                 });

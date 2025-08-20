@@ -186,15 +186,15 @@ def process_job(job, engine, s3_client, aws_creds, local):
         return
     
     # 6) Convert MIDI to audio
-    audio_path = f"/tmp/{job_id}.wav"
-    audio_key = f"processed_audio/{job_id}.wav"
+    audio_path = f"/tmp/{job_id}.mp3"
+    audio_key = f"processed_audio/{job_id}.mp3"
     try:
         audio_file_path, metadata = convert_midi_to_audio(Path(final_mid), Path(audio_path), job_id)
         
         logging.info(f"Audio file generated at {audio_file_path} with metadata: {metadata}")
 
         if local:
-            audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.wav"
+            audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.mp3"
             if not audio_final.parent.exists():
                 audio_final.parent.mkdir(parents=True, exist_ok=True)
             with open(audio_final, "wb") as f:
@@ -209,7 +209,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 """), {"audio_metadata": json.dumps(metadata), "job_id": job_id})
                 db.commit()
         else:
-            audio_key = f"processed_audio/{job_id}.wav"
+            audio_key = f"processed_audio/{job_id}.mp3"
             s3_client.upload_file(audio_path, bucket, audio_key)
 
             with engine.connect() as db:

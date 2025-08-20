@@ -211,7 +211,7 @@ async def get_audio_for_job(job_id: str, user_id: str, db: Session) -> tuple[byt
             raise HTTPException(status_code=400, detail=f"Job not completed. Current status: {status}")
         
         # Get audio file from S3
-        s3_key = f"processed_audio/{job_id}.wav"
+        s3_key = f"processed_audio/{job_id}.mp3"
         try:
             response = s3_client.get_object(
                 Bucket=aws_creds["s3_bucket"],
@@ -329,7 +329,7 @@ async def get_audio_endpoint(
         
         # Return audio with metadata in headers
         headers = {
-            'Content-Disposition': f'attachment; filename="{job_id}.wav"',
+            'Content-Disposition': f'attachment; filename="{job_id}.mp3"',
             'X-Audio-Metadata': json.dumps(audio_metadata) if audio_metadata else '{}'
         }
         
