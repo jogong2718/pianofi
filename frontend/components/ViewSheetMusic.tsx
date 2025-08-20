@@ -88,7 +88,7 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
             </div>
             
             {/* Sheet Music - Scrollable */}
-            <div className="flex-1 overflow-y-auto bg-gray-900 dark:bg-black">
+            <div className="flex-1 overflow-y-auto bg-slate-300 dark:bg-black">
                 <div className="w-full max-w-6xl mx-auto bg-white dark:bg-gray-50 min-h-full">
                     <div ref={(div) => {
                         if (div) {

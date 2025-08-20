@@ -100,7 +100,7 @@ export default function AudioPlayer({
     };
 
     return (
-        <div className="w-full bg-gray-900 dark:bg-black border-b border-gray-700 dark:border-gray-800 p-3">
+        <div className="w-full bg-gradient-to-br from-purple-100 to-blue-100 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background border-b border-gray-700 dark:border-gray-800 p-3">
             {/* Main Controls Row */}
             <div className="flex items-center justify-center space-x-4 mb-2">
                 {/* Playback Controls */}
@@ -109,7 +109,7 @@ export default function AudioPlayer({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 hover:bg-gray-700"
+                        className="h-7 w-7 p-0 hover:bg-gray-400 dark:hover:bg-gray-700"
                         disabled={!audioRef.current || !goBack5Measures}
                         onClick={goBack5Measures}
                         title="Go back 5 measures"
@@ -121,7 +121,7 @@ export default function AudioPlayer({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 hover:bg-gray-700"
+                        className="h-7 w-7 p-0 hover:bg-gray-400 dark:hover:bg-gray-700"
                         disabled={!audioRef.current || !goToPreviousMeasure}
                         onClick={goToPreviousMeasure}
                         title="Previous measure"
@@ -148,7 +148,7 @@ export default function AudioPlayer({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 hover:bg-gray-700"
+                        className="h-7 w-7 p-0 hover:bg-gray-400 dark:hover:bg-gray-700"
                         disabled={!audioRef.current || !goToNextMeasure}
                         onClick={goToNextMeasure}
                         title="Next measure"
@@ -160,7 +160,7 @@ export default function AudioPlayer({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 p-0 hover:bg-gray-700"
+                        className="h-7 w-7 p-0 hover:bg-gray-400 dark:hover:bg-gray-700"
                         disabled={!audioRef.current || !goForward5Measures}
                         onClick={goForward5Measures}
                         title="Go forward 5 measures"
@@ -174,14 +174,14 @@ export default function AudioPlayer({
                         size="sm"
                         onClick={onStop}
                         disabled={!audioRef.current}
-                        className="h-7 w-7 p-0 hover:bg-gray-700"
+                        className="h-7 w-7 p-0 hover:bg-gray-400 dark:hover:bg-gray-700"
                     >
                         <Square className="h-3.5 w-3.5" />
                     </Button>
                 </div>
 
                 {/* Time Display */}
-                <div className="flex items-center space-x-2 text-sm text-gray-300 min-w-[100px]">
+                <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 min-w-[100px]">
                     <span>{formatTime(currentTime)}</span>
                     <span>/</span>
                     <span>{formatTime(duration)}</span>
@@ -189,7 +189,7 @@ export default function AudioPlayer({
 
                 {/* Volume Control */}
                 <div className="flex items-center space-x-2 min-w-[120px]">
-                    <Volume2 className="h-4 w-4 text-gray-300" />
+                    <Volume2 className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                     <Slider
                         value={[volume]}
                         onValueChange={(value) => setVolume(value[0])}
@@ -201,7 +201,7 @@ export default function AudioPlayer({
 
                 {/* Measure Info */}
                 {metadata && (
-                    <div className="text-sm text-gray-400 ml-4">
+                    <div className="text-sm text-gray-700 dark:text-gray-300 ml-4">
                         {metadata.total_measures} measures
                     </div>
                 )}

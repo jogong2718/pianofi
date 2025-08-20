@@ -47,7 +47,7 @@ export function Header() {
   ];
 
   return (
-    <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+    <header className="absolute top-0 left-0 right-0 z-50 px-4 lg:px-6 h-14 flex items-center">
       <Link className="flex items-center justify-center space-x-4" href="/">
         <Music className="h-8 w-8 text-primary" />
         <span className="font-bold text-xl">PianoFi</span>
