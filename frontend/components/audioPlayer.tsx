@@ -71,7 +71,7 @@ export default function AudioPlayer({
             audio.removeEventListener('timeupdate', handleTimeUpdate);
             audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
         };
-    }, [audioRef.current]);
+    }, [audioRef.current, jobId]);
 
     // Reset state when audio element changes
     useEffect(() => {
@@ -79,6 +79,13 @@ export default function AudioPlayer({
         setCurrentTime(0);
         setDuration(0);
     }, [audioRef.current]);
+
+    // Handle volume changes
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume / 100;
+        }
+    }, [volume, audioRef]);
 
     const formatTime = (time: number): string => {
         const minutes = Math.floor(time / 60);
