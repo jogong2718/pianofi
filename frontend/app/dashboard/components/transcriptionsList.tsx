@@ -21,27 +21,27 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
   updateTranscriptionFilename,
 }) => {
   const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  // const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const handleNavigation = (path: string) => {
-    setIsRedirecting(true);
-    router.push(path);
+  // const handleNavigation = (path: string) => {
+  //   setIsRedirecting(true);
+  //   router.push(path);
 
-    setTimeout(() => {
-      setIsRedirecting(false);
-    }, 10000);
-  };
+  //   setTimeout(() => {
+  //     setIsRedirecting(false);
+  //   }, 10000);
+  // };
 
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (isRedirecting) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center">
+  //       <div className="text-center">
+  //         <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+  //         <p>Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const handleDownload = async (transcription: any, downloadType: string) => {
     if (!transcription.midi_download_url && !transcription.xml_download_url) {
@@ -113,7 +113,7 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
               transcription={transcription}
               onDownload={handleDownload}
               onClick={() =>
-                handleNavigation(`/dashboard/transcription/${transcription.id}`)
+                router.push(`/dashboard/transcription/${transcription.id}`)
               }
               updateTranscriptionFilename={updateTranscriptionFilename}
             />
