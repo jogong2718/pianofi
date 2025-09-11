@@ -77,6 +77,8 @@ PianoFi is built with a modern microservices architecture designed for scalabili
 
 ### Data Flow
 
+<img width="7680" height="4320" alt="pianofi us-east-1" src="https://github.com/user-attachments/assets/945cb4f3-9ce4-4229-81ac-8fa94cf567c1" />
+
 1.  User uploads an audio file from the frontend.
 2.  Frontend requests a pre-signed upload URL from the backend.
 3.  The file is uploaded directly to an AWS S3 bucket.
