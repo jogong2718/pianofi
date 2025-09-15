@@ -13,13 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Upload, FileText, Zap, Users, Star } from "lucide-react";
+import { Music, Upload, FileText, Zap, Users, Star, X } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
 export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const { user, loading } = useAuth();
 
@@ -66,6 +67,14 @@ export default function LandingPage() {
     input.click();
   };
 
+  const openDemoModal = () => {
+    setShowDemoModal(true);
+  };
+
+  const closeDemoModal = () => {
+    setShowDemoModal(false);
+  };
+
   if (isRedirecting) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -80,6 +89,37 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+
+      {/* Demo Video Modal */}
+      {showDemoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
+            <button
+              onClick={closeDemoModal}
+              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="mt-8">
+              <h3 className="text-2xl font-bold text-center mb-4 text-black">
+                PianoFi Demo
+              </h3>
+              <video
+                controls
+                autoPlay
+                className="w-full h-auto rounded-lg"
+                style={{ maxHeight: "70vh" }}
+              >
+                <source
+                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1">
         {/* Hero Section */}
@@ -105,7 +145,11 @@ export default function LandingPage() {
                   <Button size="lg" onClick={() => handleNavigation("/signup")}>
                     Start Converting Music
                   </Button>
-                  <Button variant="outline" size="lg">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={openDemoModal}
+                  >
                     Watch Demo
                   </Button>
                 </div>
@@ -398,7 +442,11 @@ export default function LandingPage() {
                 <Button size="lg" onClick={() => handleNavigation("/signup")}>
                   Start Transcribing!
                 </Button>
-                <Button variant="outline" size="lg">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={openDemoModal}
+                >
                   Schedule Demo
                 </Button>
               </div>
