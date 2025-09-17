@@ -12,6 +12,14 @@ export const metadata: Metadata = {
   title: "PianoFi - Turn Any Song Into Piano Sheet Music",
   description:
     "Upload any audio file and get professional piano sheet music in minutes. Powered by advanced AI models.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+    ],
+    apple: [
+      { url: "/favicon.ico" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -21,10 +29,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
-      </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
