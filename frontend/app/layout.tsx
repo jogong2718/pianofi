@@ -21,6 +21,9 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" },
     ],
   },
+  alternates: {
+    canonical: "https://www.pianofi.ca/",
+  },
 };
 
 export default function RootLayout({
