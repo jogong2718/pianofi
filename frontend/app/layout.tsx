@@ -21,6 +21,11 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" },
     ],
   },
+
+  other: {
+    'apple-mobile-web-app-title': 'Pianofi',
+    'mobile-web-app-capable': 'yes',
+  },
   alternates: {
     canonical: "https://www.pianofi.ca/",
   },
@@ -33,6 +38,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon_logo.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icon_logo.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/icon_logo.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon_logo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icon_logo.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
