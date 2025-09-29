@@ -45,6 +45,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icon_logo.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon_logo.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="canonical" href="https://www.pianofi.ca/" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider

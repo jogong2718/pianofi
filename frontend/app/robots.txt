@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://www.pianofi.ca/sitemap.xml
