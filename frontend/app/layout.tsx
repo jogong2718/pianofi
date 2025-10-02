@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "PianoFi - Turn Any Song Into Piano Sheet Music",
   description:
     "Upload any audio file and get professional piano sheet music in minutes. Powered by advanced AI models.",
+  metadataBase: new URL("https://www.pianofi.ca"),
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -25,10 +26,7 @@ export const metadata: Metadata = {
   other: {
     'apple-mobile-web-app-title': 'Pianofi',
     'mobile-web-app-capable': 'yes',
-  },
-  alternates: {
-    canonical: "https://www.pianofi.ca/",
-  },
+  }
 };
 
 export default function RootLayout({
@@ -45,7 +43,6 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icon_logo.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon_logo.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="canonical" href="https://www.pianofi.ca/" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
