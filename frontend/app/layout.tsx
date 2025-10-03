@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   description:
     "Upload any audio file and get professional piano sheet music in minutes. Powered by advanced AI models.",
   metadataBase: new URL("https://www.pianofi.ca"),
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },
