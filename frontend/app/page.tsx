@@ -25,6 +25,13 @@ export default function LandingPage() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      canonical.setAttribute('href', 'https://www.pianofi.ca/');
+    }
+  }, []);
+  
+  useEffect(() => {
     if (user && !loading) {
       setIsRedirecting(true);
       router.push("/dashboard");
