@@ -13,10 +13,10 @@ export const metadata: Metadata = {
   title: "PianoFi - Turn Any Song Into Piano Sheet Music",
   description:
     "Upload any audio file and get professional piano sheet music in minutes. Powered by advanced AI models.",
-  metadataBase: new URL("https://www.pianofi.ca"),
-  alternates: {
-    canonical: "./",
-  },
+  metadataBase: new URL("https://www.pianofi.ca/"),
+  // alternates: {
+  //   canonical: "./",
+  // },
   icons: {
     icon: [
       { url: "/favicon.ico" },
