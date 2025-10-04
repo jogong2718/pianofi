@@ -9,6 +9,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      // Apex → www (canonical)
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'pianofi.ca' }],
+        destination: 'https://www.pianofi.ca/:path*',
+        permanent: true, // 308
+      },
+    ];
+  },
 }
 
 export default nextConfig
