@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Music, User, LogOut } from "lucide-react";
+import { Music, User, LogOut, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -12,6 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 
 interface DashboardHeaderProps {
   user: any;
@@ -27,6 +29,14 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
   const router = useRouter();
 
   return (
+    <>
+    {/* Announcement Banner */}
+      <Alert className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-purple-500/15 to-blue-500/15 dark:from-purple-500/20 dark:to-blue-500/20">
+        <div className="flex items-center justify-center gap-2 w-full">
+          <span>We're currently building our next generation of bigger and better models — stay tuned!</span>
+          <span className="sr-only">Announcement: building next-generation models</span>
+        </div>
+      </Alert>
     <header className="border-b">
       <div className="flex h-16 items-center px-4 lg:px-6">
         <div className="flex items-center space-x-4">
@@ -84,6 +94,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
         </div>
       </div>
     </header>
+    </>
   );
 };
 
