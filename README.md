@@ -1,8 +1,10 @@
-# PianoFi - AI-Powered Piano Transcription
+# PianoFi - AI-Powered Piano Transcription with [WAT.ai](https://watai.ca/)
 
 PianoFi is an advanced AI-powered music transcription service that turns any audio file into professional piano sheet music. Simply upload your audio, and our cutting-edge AI models will generate accurate piano transcriptions in multiple formats.
 
 Visit us at [pianofi.ca](https://pianofi.ca)
+
+## 🧏‍♂️ [Check out our full team!](https://github.com/jogong2718/pianofi/wiki/About-Us)
 
 ## 🎹 Features
 
