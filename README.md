@@ -4,7 +4,7 @@ PianoFi is an advanced AI-powered music transcription service that turns any aud
 
 Visit us at [www.pianofi.ca](https://www.pianofi.ca)
 
-## 🧏‍♂️ [Check out our full team!](https://github.com/jogong2718/pianofi/wiki/About-Us)
+## 🧏‍♂️ [Check out our full team!](https://github.com/jogong2718/pianofi/wiki/About%E2%80%90Us)
 
 ## 🎹 Features
 
