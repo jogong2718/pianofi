@@ -48,3 +48,14 @@ uploads/
 project-aws/
 dev-start.sh
 dev-start.bat
+
+# terraform
+.terraform/
+terraform.tfstate*
+*.tfvars
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
