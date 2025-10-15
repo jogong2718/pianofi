@@ -64,11 +64,12 @@ async def process_youtube_url(
             if local:
                 download_path = UPLOAD_DIR / "mp3"
                 download_path.mkdir(exist_ok=True, parents=True)
-                output_file = download_path / f"{job_id}.mp3"
+                # don't include extension in outtmpl - yt-dlp will add it
+                output_file_base = download_path / job_id
 
                 ydl_opts = {
                     'format': 'bestaudio/best',
-                    'outtmpl': str(output_file),
+                    'outtmpl': str(output_file_base),
                     'postprocessors': [{
                         'key': 'FFmpegExtractAudio',
                         'preferredcodec': 'mp3',
@@ -76,6 +77,7 @@ async def process_youtube_url(
                     }],
                     'quiet': True,
                     'no_warnings': True,
+                    'noplaylist': True,  # Only download single video, not playlist
                 }
 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -83,17 +85,20 @@ async def process_youtube_url(
                     video_title = info.get('title', 'Unknown')
                     duration = info.get('duration', 0)
 
+                # yt-dlp adds .mp3 extension automatically
+                output_file = download_path / f"{job_id}.mp3"
                 file_size = output_file.stat().st_size
 
             else:
                 # download to temp location then upload to S3
                 import tempfile
                 with tempfile.TemporaryDirectory() as temp_dir:
-                    temp_output = Path(temp_dir) / f"{job_id}.mp3"
+                    # don't include extension in outtmpl - yt-dlp will add it
+                    temp_output_base = Path(temp_dir) / job_id
 
                     ydl_opts = {
                         'format': 'bestaudio/best',
-                        'outtmpl': str(temp_output),
+                        'outtmpl': str(temp_output_base),
                         'postprocessors': [{
                             'key': 'FFmpegExtractAudio',
                             'preferredcodec': 'mp3',
@@ -101,12 +106,16 @@ async def process_youtube_url(
                         }],
                         'quiet': True,
                         'no_warnings': True,
+                        'noplaylist': True,  # Only download single video, not playlist
                     }
 
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         info = ydl.extract_info(payload.youtube_url, download=True)
                         video_title = info.get('title', 'Unknown')
                         duration = info.get('duration', 0)
+
+                    # yt-dlp adds .mp3 extension automatically
+                    temp_output = Path(temp_dir) / f"{job_id}.mp3"
 
                     # upload to S3
                     file_size = temp_output.stat().st_size
