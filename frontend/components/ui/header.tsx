@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, Music } from "lucide-react";
@@ -19,24 +19,16 @@ export function Header() {
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   const handleNavigation = (path: string) => {
     if (pathname === path) return;
     setIsRedirecting(true);
-
-    startTransition(() => {
-      router.push(path);
-    });
+    router.push(path);
   };
 
   useEffect(() => {
    if (isRedirecting) setIsRedirecting(false);
   }, [pathname]);
-
-  useEffect(() => {
-    if (!isPending && isRedirecting) setIsRedirecting(false);
-  }, [isPending, isRedirecting]);
 
   useEffect(() => {
     if (!isRedirecting) return;
