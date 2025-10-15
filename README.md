@@ -2,7 +2,7 @@
 
 PianoFi is an advanced AI-powered music transcription service that turns any audio file into professional piano sheet music. Simply upload your audio, and our cutting-edge AI models will generate accurate piano transcriptions in multiple formats.
 
-Visit us at [pianofi.ca](https://pianofi.ca)
+Visit us at [www.pianofi.ca](https://www.pianofi.ca)
 
 ## 🧏‍♂️ [Check out our full team!](https://github.com/jogong2718/pianofi/wiki/About%E2%80%90Us)
 
@@ -93,9 +93,9 @@ PianoFi is built with a modern microservices architecture designed for scalabili
 
 ## 🔗 Links
 
-- **Website**: [pianofi.ca](https://pianofi.ca)
+- **Website**: [www.pianofi.ca](https://www.pianofi.ca)
 - **Contact**: [jonathan@pianofi.ca](mailto:jonathan@pianofi.ca) or [bruce@pianofi.ca](mailto:bruce@pianofi.ca)
-- **Support**: Visit [pianofi.ca/contact](https://pianofi.ca/contact)
+- **Support**: Visit [www.pianofi.ca/contact](https://www.pianofi.ca/contact)
 
 ## 📜 License
 
