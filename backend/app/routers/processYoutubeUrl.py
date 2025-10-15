@@ -50,6 +50,21 @@ async def process_youtube_url(
         authenticated_user_id = current_user.id
         logging.info(f"User authenticated: {authenticated_user_id}")
 
+        # rate limiting to 100 downloads per hour globally 
+        one_hour_ago = time.time() - 3600 # 3600 seconds in an hour
+        r.zremrangebyscore("youtube_downloads", 0, one_hour_ago) # remove entries older than one hour
+        download_count = r.zcard("youtube_downloads")
+
+        if download_count >= 100:
+            # get oldest entry to inform user when they can try again
+            oldest_downloads = r.zrange("youtube_downloads", 0, 0, withscores=True) 
+            if oldest_downloads:
+                oldest_timestamp = oldest_downloads[0][1]  # timestamp of the oldest entry
+                wait_time = int(oldest_timestamp + 3600 - time.time())  # time until the oldest entry is one hour old
+                if wait_time > 0:
+                    logging.warning(f"Rate limit exceeded. User must wait {wait_time} seconds.")
+                    raise HTTPException(status_code=429, detail=f"Rate limit exceeded. Please try again in {wait_time} seconds.")
+
         # validate YouTube URL
         if not is_valid_youtube_url(payload.youtube_url):
             raise HTTPException(status_code=400, detail="Invalid YouTube URL")
@@ -159,6 +174,9 @@ async def process_youtube_url(
             "model": payload.model,
             "level": payload.level
         }
+
+        # add to rate limiting sorted set, so that downloads per hour can be tracked
+        r.zadd("youtube_downloads", {job_id: time.time()})
 
         if payload.model == "picogen":
             r.lpush("picogen_job_queue", json.dumps(job_data))
