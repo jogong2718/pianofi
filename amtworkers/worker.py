@@ -189,34 +189,35 @@ def process_job(job, engine, s3_client, aws_creds, local):
     # 5.5?) Convert xml to pdf
     pdf_path = f"/tmp/{job_id}.pdf"
     pdf_key = f"pdf/{job_id}.pdf"
-    
+
     try:
-        logging.info(f"Converting XML file: {xml_path}")
-        convert_musicxml_to_pdf(xml_path, pdf_path)
-        
+        # Assuming you already have xml_path from previous step
+        convert_musicxml_to_pdf(xml_path, pdf_path, job_id, sheet_music_title)
+
         if local:
             pdf_final = UPLOAD_DIR / f"pdf/{job_id}.pdf"
-            if not pdf_final.parent.exists():
-                pdf_final.parent.mkdir(parents=True, exist_ok=True)
-            with open(pdf_final, "wb") as f:
-                with open(pdf_path, "rb") as pdf_file:
-                    f.write(pdf_file.read())
+            pdf_final.parent.mkdir(parents=True, exist_ok=True)
+            with open(pdf_final, "wb") as f_out, open(pdf_path, "rb") as f_in:
+                f_out.write(f_in.read())
             pdf_key = f"pdf/{job_id}.pdf"
         else:
             s3_client.upload_file(pdf_path, bucket, pdf_key)
             pdf_key = f"pdf/{job_id}.pdf"
+
     except Exception as e:
         logging.error(f"Error in PDF conversion step for job {job_id}: {e}")
-        # You might want to set job status to 'failed' here
         with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
+            db.execute(
+                text("""
+                    UPDATE jobs
+                    SET status='error', finished_at=NOW()
+                    WHERE job_id=:jobId
+                """),
+                {"jobId": job_id}
+            )
             db.commit()
         return
+
     
     # 6) Convert MIDI to audio
     audio_path = f"/tmp/{job_id}.mp3"

@@ -1,35 +1,37 @@
-# amtworkers/tasks/xmlToPdf.py
 import subprocess
-from pathlib import Path
 import logging
+from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
-def convert_musicxml_to_pdf(xml_path: str, pdf_path: str, timeout: int = 60):
+def convert_musicxml_to_pdf(xml_path, pdf_path, job_id=None, title=None):
     """
-    Convert a MusicXML file to PDF using the verovio CLI.
-    Expects `verovio` binary to be available on PATH.
+    Converts a MusicXML file to a PDF using LilyPond CLI.
     """
-    xml = Path(xml_path)
-    pdf = Path(pdf_path)
-
-    if not xml.exists():
-        raise FileNotFoundError(f"Input XML not found: {xml}")
-
-    cmd = ["verovio", str(xml), "-o", str(pdf)]
-    logger.info(f"Running verovio: {' '.join(cmd)}")
     try:
-        result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout)
-        logger.info(f"verovio stdout: {result.stdout}")
-        logger.info(f"verovio stderr: {result.stderr}")
+        xml_path = Path(xml_path)
+        pdf_path = Path(pdf_path)
+        tmp_dir = pdf_path.parent
+
+        logging.info(f"[Job {job_id}] Converting {xml_path.name} → PDF via LilyPond")
+
+        # LilyPond automatically outputs a .pdf next to the .ly file
+        cmd = [
+            "lilypond",
+            "--pdf",
+            f"--output={tmp_dir}",
+            str(xml_path)
+        ]
+
+        subprocess.run(cmd, check=True)
+
+        # LilyPond will create filename.pdf with same basename as input
+        generated_pdf = tmp_dir / f"{xml_path.stem}.pdf"
+        if generated_pdf.exists():
+            generated_pdf.rename(pdf_path)
+            logging.info(f"[Job {job_id}] PDF generated at {pdf_path}")
+        else:
+            logging.error(f"[Job {job_id}] Expected PDF not found after LilyPond run")
+
     except subprocess.CalledProcessError as e:
-        logger.error(f"Verovio conversion failed: {e.stderr}")
-        raise
-    except Exception:
-        logger.exception("Verovio conversion exception")
-        raise
-
-    if not pdf.exists():
-        raise RuntimeError(f"Verovio did not produce PDF at {pdf}")
-
-    return str(pdf)
+        logging.error(f"[Job {job_id}] LilyPond conversion failed: {e}")
+    except Exception as e:
+        logging.error(f"[Job {job_id}] Unexpected error in PDF conversion: {e}")
