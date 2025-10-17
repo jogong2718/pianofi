@@ -111,106 +111,112 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
+
+      {/* Embedded Demo Video under hero section */}
+
       <main className="flex-1">
         {/* Hero Section */}
-  <section className="relative w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 
-  bg-gradient-to-br from-purple-50 to-blue-50 
-  dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background 
-  flex items-center justify-center"
->
-  <div className="container mx-auto px-4 md:px-6 relative">
-    <div className="grid gap-6 lg:grid-cols-[1fr_450px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
-      {/* LEFT COLUMN */}
-      <div className="flex flex-col justify-center space-y-4 relative z-10">
-        <div className="space-y-2">
-          <Badge variant="secondary" className="w-fit">
-            🎹 AI-Powered Music Transcription
-          </Badge>
-          <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-            Turn Any Song Into
-            <span className="text-primary"> Piano Sheet Music</span>
-          </h1>
-          <p className="max-w-[600px] text-muted-foreground md:text-xl">
-            Upload any audio file – pop songs, instrumentals, classical
-            pieces – and get professional piano sheet music in minutes.
-            Powered by advanced AI models.
-          </p>
-        </div>
-
-        {/* CTA BUTTONS */}
-        <div className="flex flex-col gap-2 min-[400px]:flex-row">
-          <Button size="lg" onClick={() => handleNavigation("/signup")}>
-            Start Converting Music
-          </Button>
-        </div>
-
-        {/* RATING */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span>4.9/5 rating</span>
+  <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+              <div className="flex flex-col justify-center space-y-4">
+                <div className="space-y-2">
+                  <Badge variant="secondary" className="w-fit">
+                    🎹 AI-Powered Music Transcription
+                  </Badge>
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                    Turn Any Song Into
+                    <span className="text-primary"> Piano Sheet Music</span>
+                  </h1>
+                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                    Upload any audio file - pop songs, instrumentals, classical
+                    pieces - and get professional piano sheet music in minutes.
+                    Powered by advanced AI models.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                  <Button size="lg" onClick={() => handleNavigation("/signup")}> 
+                    Start Converting Music
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span>4.9/5 rating</span>
+                  </div>
+                  {/* <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span>10,000+ musicians</span>
+                  </div> */}
+                </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
+                  <Card className="relative w-full max-w-md">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Upload className="h-5 w-5" />
+                        Upload Your Music
+                      </CardTitle>
+                      <CardDescription>
+                        Drag and drop any audio file to get started
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                          dragActive
+                            ? "border-primary bg-primary/5"
+                            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
+                        }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                        onClick={handleFileInput}
+                      >
+                        <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-sm text-muted-foreground">
+                          MP3, WAV, FLAC supported
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* RIGHT COLUMN */}
-      <div className="flex items-center justify-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
-          <Card className="relative w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Upload Your Music
-              </CardTitle>
-              <CardDescription>
-                Drag and drop any audio file to get started
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  dragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                onClick={handleFileInput}
-              >
-                <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-sm text-muted-foreground">
-                  MP3, WAV, FLAC supported
+        {/* Video Demo Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="space-y-4 text-center">
+                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl">
+                  See PianoFi in Action
+                </h2>
+                <p className="max-w-[1000px] text-muted-foreground">
+                  Watch how easily you can transform any song into professional piano sheet music!
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-
-    {/* FLOATING VIDEO */}
-    <div
-      className="absolute left-[37.5%] transform -translate-x-[37.5%] -translate-y-16
-      w-full max-w-3xl px-6 z-0"
-    >
-      <video
-        id="landing-demo-video"
-        src="/pianofi demo_v1 - Made with Clipchamp.mp4"
-        className="rounded-lg shadow-2xl w-full"
-        muted
-        playsInline
-        controls
-        style={{ maxHeight: "350px" }}
-      >
-        Your browser does not support the video tag.
-      </video>
-    </div>
-  </div>
-</section>
-
+              <div className="w-full max-w-6xl">
+                <video
+                  id="landing-demo-video"
+                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                  className="rounded-lg shadow-2xl w-full"
+                  muted
+                  playsInline
+                  controls
+                  style={{ maxHeight: "1000px" }}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Features Section */}
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
