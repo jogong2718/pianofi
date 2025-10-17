@@ -20,7 +20,6 @@ export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const { user, loading } = useAuth();
 
@@ -74,13 +73,27 @@ export default function LandingPage() {
     input.click();
   };
 
-  const openDemoModal = () => {
-    setShowDemoModal(true);
-  };
 
-  const closeDemoModal = () => {
-    setShowDemoModal(false);
-  };
+  // IntersectionObserver for video autoplay
+  useEffect(() => {
+    const video = document.getElementById('landing-demo-video') as HTMLVideoElement | null;
+    if (!video) return;
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
 
   if (isRedirecting) {
     return (
@@ -97,40 +110,9 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      {/* Demo Video Modal */}
-      {showDemoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
-            <button
-              onClick={closeDemoModal}
-              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <div className="mt-8">
-              <h3 className="text-2xl font-bold text-center mb-4 text-black">
-                PianoFi Demo
-              </h3>
-              <video
-                controls
-                autoPlay
-                className="w-full h-auto rounded-lg"
-                style={{ maxHeight: "70vh" }}
-              >
-                <source
-                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
-                  type="video/mp4"
-                />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </div>
-        </div>
-      )}
-
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
+  <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -149,15 +131,8 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" onClick={() => handleNavigation("/signup")}>
+                  <Button size="lg" onClick={() => handleNavigation("/signup")}> 
                     Start Converting Music
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={openDemoModal}
-                  >
-                    Watch Demo
                   </Button>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -205,6 +180,35 @@ export default function LandingPage() {
                     </CardContent>
                   </Card>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Video Demo Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="space-y-4 text-center">
+                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl">
+                  See PianoFi in Action
+                </h2>
+                <p className="max-w-[1000px] text-muted-foreground">
+                  Watch how easily you can transform any song into professional piano sheet music!
+                </p>
+              </div>
+              <div className="w-full max-w-6xl">
+                <video
+                  id="landing-demo-video"
+                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                  className="rounded-lg shadow-2xl w-full"
+                  muted
+                  playsInline
+                  controls
+                  style={{ maxHeight: "1000px" }}
+                >
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>
@@ -448,13 +452,6 @@ export default function LandingPage() {
               <div className="space-x-4">
                 <Button size="lg" onClick={() => handleNavigation("/signup")}>
                   Start Transcribing!
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={openDemoModal}
-                >
-                  Schedule Demo
                 </Button>
               </div>
             </div>
