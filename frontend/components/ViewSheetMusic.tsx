@@ -14,7 +14,6 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
     const { containerRef, osmd } = useSheetMusicDisplay({ musicXml: musicXmlString });
     const divRef = useRef<HTMLDivElement>(null);
 
-
     const {
         measureBounds,
         handleMouseOver,
@@ -67,6 +66,33 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
         };
     }, [measureBounds, handleMouseOver, handleMouseLeave, handleClick, osmd]);
 
+    // Download rendered osmd as png
+    const handleDownloadPng = () => {
+        const svgElement = divRef.current?.querySelector('svg');
+        if (!svgElement) return;
+
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            if (ctx) ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            const pngUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = 'sheet_music.png';
+            link.click();
+        };
+
+        img.src = url;
+    };
+
     return (
         <div className="h-full flex flex-col bg-gray-900 dark:bg-black">
             {/* Audio Player - Fixed at top */}
@@ -90,6 +116,16 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
             {/* Sheet Music - Scrollable */}
             <div className="flex-1 overflow-y-auto bg-slate-300 dark:bg-black">
                 <div className="w-full max-w-6xl mx-auto bg-white dark:bg-gray-50 min-h-full">
+                    {/* Added download button */}
+                    <div className="flex justify-end p-2">
+                        <button
+                            onClick={handleDownloadPng}
+                            className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+                        >
+                            Download PNG
+                        </button>
+                    </div>
+
                     <div ref={(div) => {
                         if (div) {
                             containerRef(div);

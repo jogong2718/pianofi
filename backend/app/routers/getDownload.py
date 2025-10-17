@@ -152,6 +152,7 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
         error_details = traceback.format_exc()
         print(f"Error in getDownload: {str(e)}\n{error_details}")
         raise HTTPException(status_code=500, detail=f"Error getting download link: {str(e)}")
+
     
 @router.get("/download/{job_id}")
 def download_file(job_id: str, db: Session = Depends(get_db)):

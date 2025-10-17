@@ -7,7 +7,6 @@ from packages.pianofi_config.config import Config
 from amtworkers.tasks.amtapc import run_amtapc
 from amtworkers.tasks.midiToXml import convert_midi_to_xml
 from amtworkers.tasks.midiToAudio import convert_midi_to_audio
-from amtworkers.tasks.xmlToPdf import convert_musicxml_to_pdf
 from mutagen import File
 import os
 import signal
@@ -185,40 +184,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
             db.execute(update_sql, {"jobId": job_id})
             db.commit()
         return
-    
-    # 5.5?) Convert xml to pdf
-    pdf_path = f"/tmp/{job_id}.pdf"
-    pdf_key = f"pdf/{job_id}.pdf"
-
-    try:
-        # Assuming you already have xml_path from previous step
-        convert_musicxml_to_pdf(xml_path, pdf_path, job_id, sheet_music_title)
-
-        if local:
-            pdf_final = UPLOAD_DIR / f"pdf/{job_id}.pdf"
-            pdf_final.parent.mkdir(parents=True, exist_ok=True)
-            with open(pdf_final, "wb") as f_out, open(pdf_path, "rb") as f_in:
-                f_out.write(f_in.read())
-            pdf_key = f"pdf/{job_id}.pdf"
-        else:
-            s3_client.upload_file(pdf_path, bucket, pdf_key)
-            pdf_key = f"pdf/{job_id}.pdf"
-
-    except Exception as e:
-        logging.error(f"Error in PDF conversion step for job {job_id}: {e}")
-        with engine.connect() as db:
-            db.execute(
-                text("""
-                    UPDATE jobs
-                    SET status='error', finished_at=NOW()
-                    WHERE job_id=:jobId
-                """),
-                {"jobId": job_id}
-            )
-            db.commit()
-        return
-
-    
+     
     # 6) Convert MIDI to audio
     audio_path = f"/tmp/{job_id}.mp3"
     audio_key = f"processed_audio/{job_id}.mp3"
