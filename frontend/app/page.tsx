@@ -20,7 +20,7 @@ export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
+  // Remove demo modal state
 
   const { user, loading } = useAuth();
 
@@ -74,13 +74,27 @@ export default function LandingPage() {
     input.click();
   };
 
-  const openDemoModal = () => {
-    setShowDemoModal(true);
-  };
 
-  const closeDemoModal = () => {
-    setShowDemoModal(false);
-  };
+  // IntersectionObserver for video autoplay
+  useEffect(() => {
+    const video = document.getElementById('landing-demo-video') as HTMLVideoElement | null;
+    if (!video) return;
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
 
   if (isRedirecting) {
     return (
@@ -97,118 +111,106 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      {/* Demo Video Modal */}
-      {showDemoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
-            <button
-              onClick={closeDemoModal}
-              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <div className="mt-8">
-              <h3 className="text-2xl font-bold text-center mb-4 text-black">
-                PianoFi Demo
-              </h3>
-              <video
-                controls
-                autoPlay
-                className="w-full h-auto rounded-lg"
-                style={{ maxHeight: "70vh" }}
-              >
-                <source
-                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
-                  type="video/mp4"
-                />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </div>
-        </div>
-      )}
-
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="w-fit">
-                    🎹 AI-Powered Music Transcription
-                  </Badge>
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Turn Any Song Into
-                    <span className="text-primary"> Piano Sheet Music</span>
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Upload any audio file - pop songs, instrumentals, classical
-                    pieces - and get professional piano sheet music in minutes.
-                    Powered by advanced AI models.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" onClick={() => handleNavigation("/signup")}>
-                    Start Converting Music
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={openDemoModal}
-                  >
-                    Watch Demo
-                  </Button>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>4.9/5 rating</span>
-                  </div>
-                  {/* <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>10,000+ musicians</span>
-                  </div> */}
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
-                  <Card className="relative w-full max-w-md">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Upload className="h-5 w-5" />
-                        Upload Your Music
-                      </CardTitle>
-                      <CardDescription>
-                        Drag and drop any audio file to get started
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                          dragActive
-                            ? "border-primary bg-primary/5"
-                            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={handleFileInput}
-                      >
-                        <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">
-                          MP3, WAV, FLAC supported
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </div>
+  <section className="relative w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 
+  bg-gradient-to-br from-purple-50 to-blue-50 
+  dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background 
+  flex items-center justify-center"
+>
+  <div className="container mx-auto px-4 md:px-6 relative">
+    <div className="grid gap-6 lg:grid-cols-[1fr_450px] lg:gap-12 xl:grid-cols-[1fr_550px] items-center">
+      {/* LEFT COLUMN */}
+      <div className="flex flex-col justify-center space-y-4 relative z-10">
+        <div className="space-y-2">
+          <Badge variant="secondary" className="w-fit">
+            🎹 AI-Powered Music Transcription
+          </Badge>
+          <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+            Turn Any Song Into
+            <span className="text-primary"> Piano Sheet Music</span>
+          </h1>
+          <p className="max-w-[600px] text-muted-foreground md:text-xl">
+            Upload any audio file – pop songs, instrumentals, classical
+            pieces – and get professional piano sheet music in minutes.
+            Powered by advanced AI models.
+          </p>
+        </div>
+
+        {/* CTA BUTTONS */}
+        <div className="flex flex-col gap-2 min-[400px]:flex-row">
+          <Button size="lg" onClick={() => handleNavigation("/signup")}>
+            Start Converting Music
+          </Button>
+        </div>
+
+        {/* RATING */}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span>4.9/5 rating</span>
           </div>
-        </section>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN */}
+      <div className="flex items-center justify-center">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
+          <Card className="relative w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Upload Your Music
+              </CardTitle>
+              <CardDescription>
+                Drag and drop any audio file to get started
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                  dragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={handleFileInput}
+              >
+                <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-sm text-muted-foreground">
+                  MP3, WAV, FLAC supported
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+
+    {/* FLOATING VIDEO */}
+    <div
+      className="absolute left-[37.5%] transform -translate-x-[37.5%] -translate-y-16
+      w-full max-w-3xl px-6 z-0"
+    >
+      <video
+        id="landing-demo-video"
+        src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+        className="rounded-lg shadow-2xl w-full"
+        muted
+        playsInline
+        controls
+        style={{ maxHeight: "350px" }}
+      >
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+</section>
+
 
         {/* Features Section */}
         <section id="features" className="w-full py-12 md:py-24 lg:py-32">
@@ -448,13 +450,6 @@ export default function LandingPage() {
               <div className="space-x-4">
                 <Button size="lg" onClick={() => handleNavigation("/signup")}>
                   Start Transcribing!
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={openDemoModal}
-                >
-                  Schedule Demo
                 </Button>
               </div>
             </div>
