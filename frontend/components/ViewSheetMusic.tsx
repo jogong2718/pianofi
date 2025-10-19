@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { jsPDF } from 'jspdf';
 import { useSheetMusicDisplay } from '@/hooks/useSheetMusic';
 import { usePlayback } from '@/hooks/usePlayback';
 import AudioPlayer from './audioPlayer';
@@ -66,30 +67,39 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
         };
     }, [measureBounds, handleMouseOver, handleMouseLeave, handleClick, osmd]);
 
-    // Download rendered osmd as png
-    const handleDownloadPng = () => {
+    // Download rendered osmd as pdf
+    const handleDownloadPdf = () => {
         const svgElement = divRef.current?.querySelector('svg');
         if (!svgElement) return;
 
+        const svgWidth = svgElement.viewBox.baseVal.width || 1200;
+        const svgHeight = svgElement.viewBox.baseVal.height || 1600;
+
         const svgData = new XMLSerializer().serializeToString(svgElement);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
         const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(svgBlob);
 
+        const img = new Image();
         img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            if (ctx) ctx.drawImage(img, 0, 0);
-            URL.revokeObjectURL(url);
-            const pngUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = pngUrl;
-            link.download = 'sheet_music.png';
-            link.click();
-        };
+            const scale = 1; // quality can be improved by changing this number but it also makes the file size like massive lmao
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = svgWidth * scale;
+            canvas.height = svgHeight * scale;
+            ctx?.scale(scale, scale);
+            ctx?.drawImage(img, 0, 0, svgWidth, svgHeight);
 
+            const pngData = canvas.toDataURL('image/png', 1.0);
+            const pdf = new jsPDF({
+                orientation: svgWidth > svgHeight ? 'landscape' : 'portrait',
+                unit: 'pt',
+                format: [svgWidth, svgHeight],
+            });
+
+            pdf.addImage(pngData, 'PNG', 0, 0, svgWidth, svgHeight);
+            pdf.save('Transcription.pdf');
+            URL.revokeObjectURL(url);
+        };
         img.src = url;
     };
 
@@ -119,10 +129,10 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
                     {/* Added download button */}
                     <div className="flex justify-end p-2">
                         <button
-                            onClick={handleDownloadPng}
+                            onClick={handleDownloadPdf}
                             className="px-3 py-1 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
                         >
-                            Download PNG
+                            Download PDF
                         </button>
                     </div>
 

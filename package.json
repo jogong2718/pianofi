@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "jspdf": "^3.0.3"
+  }
+}
