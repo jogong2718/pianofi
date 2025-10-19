@@ -81,7 +81,7 @@ export default function MusicSheetViewer({ jobId, musicXmlString, audioRef, meta
 
         const img = new Image();
         img.onload = () => {
-            const scale = 1; // quality can be improved by changing this number but it also makes the file size like massive lmao
+            const scale = 3; // quality can be improved by changing this number but it also makes the file size like massive lmao
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = svgWidth * scale;
