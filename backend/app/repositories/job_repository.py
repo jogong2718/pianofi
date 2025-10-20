@@ -112,35 +112,36 @@ def find_by_user_id(
     raise NotImplementedError()
 
 
-def update(db: Session, job_id: UUID, updates: Dict[str, Any]) -> Dict[str, Any]:
+def update(db: Session, job_id: str, user_id: str, updates: Dict[str, Any]) -> int:
     """
-    Update a job's fields.
+    Update a job's fields (with user ownership check).
     
     Args:
         db: Database session
-        job_id: UUID of the job to update
+        job_id: ID of the job to update
+        user_id: ID of the user (for authorization)
         updates: Dict of fields to update
     
     Returns:
-        Updated job dict
-    
-    Raises:
-        NotFoundError: Job not found
+        Number of rows updated (0 if not found or access denied)
     """
+    from sqlalchemy import text
+    
     logger.info(f"Updating job {job_id} with {updates}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = db.query(Job).filter(Job.id == job_id).first()
-    # if not job:
-    #     raise NotFoundError(f"Job {job_id} not found")
-    # for key, value in updates.items():
-    #     setattr(job, key, value)
-    # db.commit()
-    # db.refresh(job)
-    # return job.to_dict()
+    update_sql = text("""
+        UPDATE jobs 
+        SET file_name = :file_name
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(update_sql, {
+        "file_name": updates.get("file_name"),
+        "job_id": job_id,
+        "user_id": user_id
+    })
+    
+    return result.rowcount
 
 
 def delete(db: Session, job_id: UUID) -> bool:
