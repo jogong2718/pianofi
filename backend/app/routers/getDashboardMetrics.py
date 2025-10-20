@@ -53,7 +53,7 @@ async def get_dashboard_metrics(
     )
 
     subscription_row = subscription_result.fetchone()
-    monthly_limit = subscription_row[0] if subscription_row else 1  # Default to 1 for free users
+    monthly_limit = subscription_row[0] if subscription_row else 3  # Default to 3 for free users
     
     # Calculate transcriptions left this month
     transcriptions_left = None if monthly_limit is None else max(0, monthly_limit - this_month_count)
