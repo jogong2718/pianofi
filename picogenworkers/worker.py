@@ -298,8 +298,6 @@ def main():
     loop_count = 0
     try:
         while not shutdown_requested:
-            if shutdown_requested:
-                break
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
