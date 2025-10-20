@@ -95,43 +95,97 @@ def generate_upload_url(
 
 
 def generate_download_url(
-    file_key: str,
-    user_id: UUID,
-    expiry_seconds: int,
+    job_id: str,
+    file_type: str,
     s3_client,
-    file_repository=None
-) -> str:
+    aws_creds: Dict[str, str],
+    use_local: bool = False,
+    backend_base_url: Optional[str] = None
+) -> Dict[str, Any]:
     """
-    Generate a presigned URL for downloading a file from S3.
-    
-    Business logic:
-    1. Verify user has access to this file
-    2. Check file exists in S3
-    3. Generate presigned GET URL
+    Generate a download URL for a MIDI or XML file.
     
     Args:
-        file_key: S3 key of the file
-        user_id: UUID of the requesting user (for authorization)
-        expiry_seconds: URL expiry time in seconds
+        job_id: ID of the job
+        file_type: Type of file ("midi" or "xml")
         s3_client: Client for S3 operations
-        file_repository: Optional repository for checking ownership
+        aws_creds: AWS credentials dict with s3_bucket
+        use_local: Whether to use local storage
+        backend_base_url: Base URL for local downloads
     
     Returns:
-        Presigned download URL (string)
+        Dict containing:
+            - job_id: Job ID
+            - status: "completed" or "missing"
+            - midi_download_url or xml_download_url: Download URL
     
     Raises:
-        NotFoundError: File not found in S3
-        UnauthorizedError: User doesn't have access to this file
-        StorageError: S3 operation failed
+        Exception: S3 operation failed
     """
-    logger.info(f"Generating download URL for file {file_key}, user {user_id}")
+    from botocore.exceptions import ClientError
+    import logging as log
     
-    # TODO: Implement
-    # 1. Verify ownership/access
-    # 2. Check file exists: s3_client.head_object(bucket, file_key)
-    # 3. Generate presigned URL: s3_client.generate_presigned_url('get_object', ...)
+    logger.info(f"Generating {file_type} download URL for job {job_id}")
     
-    raise NotImplementedError("Download URL logic to be moved from router")
+    if use_local:
+        # Use absolute URL with backend base URL
+        base = backend_base_url or "http://localhost:8000"
+        if file_type == "midi":
+            download_url = f"{base}/downloadMidi/{job_id}"
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "midi_download_url": download_url,
+            }
+        else:  # xml
+            download_url = f"{base}/downloadXml/{job_id}"
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "xml_download_url": download_url,
+            }
+    
+    else:
+        # Production: Generate S3 presigned URL
+        bucket_name = aws_creds["s3_bucket"]
+        
+        if file_type == "midi":
+            s3_key = f"midi/{job_id}.mid"
+            url_field = "midi_download_url"
+        else:  # xml
+            s3_key = f"xml/{job_id}.musicxml"
+            url_field = "xml_download_url"
+        
+        print(bucket_name, s3_key)
+        
+        try:
+            # Check if file exists in S3
+            s3_client.head_object(Bucket=bucket_name, Key=s3_key)
+        except ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                log.getLogger("uvicorn.error").error(f"File not found in S3: {s3_key}")
+                log.getLogger("uvicorn.error").error(f"Bucket: {bucket_name}")
+                log.getLogger("uvicorn.error").error(f"Error details: {e}")
+                return {
+                    "job_id": job_id,
+                    "status": "missing",
+                    url_field: None,
+                }
+            else:
+                raise Exception("Error checking S3 file")
+        
+        # Generate presigned URL (valid for 1 hour)
+        presigned_url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': s3_key},
+            ExpiresIn=3600  # 1 hour
+        )
+        
+        return {
+            "job_id": job_id,
+            "status": "completed",
+            url_field: presigned_url,
+        }
 
 
 def delete_file(file_key: str, user_id: UUID, s3_client, file_repository=None) -> bool:
