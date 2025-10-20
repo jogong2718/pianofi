@@ -6,9 +6,6 @@ services:
     image: pianofi-backend:dev
     ports:
       - "8000:8000"
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     env_file:
       - packages/pianofi_config/.env
     volumes:
