@@ -1,4 +1,5 @@
-import boto3, os
+import boto3
+import os
 ecs = boto3.client("ecs", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 def enable_task_protection():
