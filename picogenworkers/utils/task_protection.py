@@ -2,7 +2,10 @@ import boto3
 import os
 ecs = boto3.client("ecs", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
-def enable_task_protection():
+def enable_task_protection(local=False):
+    if local:
+        print("Local environment detected; skipping task protection.")
+        return
     try:
         cluster = os.environ["ECS_CLUSTER"]
         task_arn = os.environ["ECS_TASK_ARN"]
@@ -16,7 +19,10 @@ def enable_task_protection():
     except Exception as e:
         print(f"Could not enable task protection: {e}")
 
-def disable_task_protection():
+def disable_task_protection(local=False):
+    if local:
+        print("Local environment detected; skipping task protection.")
+        return
     try:
         cluster = os.environ["ECS_CLUSTER"]
         task_arn = os.environ["ECS_TASK_ARN"]

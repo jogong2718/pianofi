@@ -1,5 +1,3 @@
-print("starting worker...")
-
 import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
@@ -10,6 +8,8 @@ from picogenworkers.tasks.midiToXml import convert_midi_to_xml
 from picogenworkers.tasks.midiToAudio import convert_midi_to_audio
 
 from picogenworkers.utils.task_protection import enable_task_protection, disable_task_protection
+
+from picogenworkers.utils.error import mark_job_as_error
 
 from mutagen import File
 import os
@@ -23,7 +23,7 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 
-print("starting worker...")
+logging.info("starting worker...")
 
 def process_job(job, engine, s3_client, aws_creds, local):
     job_id   = job["jobId"]
@@ -87,6 +87,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
             db.commit()
     except Exception as e:
         logging.warning(f"Could not extract duration for {job_id}: {e}")
+        mark_job_as_error(engine, job_id, f"Duration extraction error: {e}")
 
     # 3) picogen processing
     logging.info(f"Running picogen for job {job_id} on {local_raw}")
@@ -164,26 +165,19 @@ def process_job(job, engine, s3_client, aws_creds, local):
     except Exception as e:
         logging.error(f"Error in XML conversion step for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
+        mark_job_as_error(engine, job_id, f"XML conversion error: {e}")
         return
     
     # 6) Convert MIDI to audio
-    audio_path = f"/tmp/{job_id}.wav"
-    audio_key = f"processed_audio/{job_id}.wav"
+    audio_path = f"/tmp/{job_id}.mp3"
+    audio_key = f"processed_audio/{job_id}.mp3"
     try:
         audio_file_path, metadata = convert_midi_to_audio(Path(final_mid), Path(audio_path), job_id)
         
         logging.info(f"Audio file generated at {audio_file_path} with metadata: {metadata}")
 
         if local:
-            audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.wav"
+            audio_final = UPLOAD_DIR / f"processed_audio/{job_id}.mp3"
             if not audio_final.parent.exists():
                 audio_final.parent.mkdir(parents=True, exist_ok=True)
             with open(audio_final, "wb") as f:
@@ -198,7 +192,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 """), {"audio_metadata": json.dumps(metadata), "job_id": job_id})
                 db.commit()
         else:
-            audio_key = f"processed_audio/{job_id}.wav"
+            audio_key = f"processed_audio/{job_id}.mp3"
             s3_client.upload_file(audio_path, bucket, audio_key)
 
             with engine.connect() as db:
@@ -213,14 +207,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
     except Exception as e:
         logging.error(f"Error converting MIDI to audio for job {job_id}: {e}")
         # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
+        mark_job_as_error(engine, job_id, f"MIDI to audio conversion error: {e}")
         return
 
     # 7) DB → status=done, file_key=midi_key, xml_key=xml_key
@@ -246,6 +233,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 logging.info(f"Deleted temporary file: {path}")
     except Exception as e:
         logging.error(f"Error cleaning up temporary files: {e}")
+        mark_job_as_error(engine, job_id, f"Cleanup error: {e}")
 
 def main():
 
@@ -271,15 +259,6 @@ def main():
             pool_size=1,
             max_overflow=2
         )
-
-        # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-        # def get_db():
-        #     db = SessionLocal()
-        #     try:
-        #         yield db
-        #     finally:
-        #         db.close()
 
         s3_client = None
         if not local:
@@ -324,7 +303,7 @@ def main():
 
                         protection_enabled = False
                         try:
-                            enable_task_protection()
+                            enable_task_protection(local=local)
                             protection_enabled = True
                         except Exception:
                             logging.exception("Error enabling task protection; continuing without it.")
@@ -336,7 +315,7 @@ def main():
                         finally:
                             if protection_enabled:
                                 try:
-                                    disable_task_protection()
+                                    disable_task_protection(local=local)
                                 except Exception:
                                     logging.exception("Error disabling task protection; will continue.")
                     except Exception:
