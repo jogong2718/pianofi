@@ -4,12 +4,17 @@ import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
+
 from picogenworkers.tasks.picogen import run_picogen
 from picogenworkers.tasks.midiToXml import convert_midi_to_xml
 from picogenworkers.tasks.midiToAudio import convert_midi_to_audio
+
+from picogenworkers.utils.task_protection import enable_task_protection, disable_task_protection
+
 from mutagen import File
 import os
 import signal
+
 shutdown_requested = False
 
 def signal_handler(sig, frame):
@@ -25,7 +30,6 @@ def process_job(job, engine, s3_client, aws_creds, local):
     file_key = job["fileKey"]
     user_id  = job["userId"]
     bucket   = aws_creds["s3_bucket"]
-    # db       = next(get_db())
 
     # 1) DB → status=processing
     with engine.connect() as db:
@@ -294,19 +298,51 @@ def main():
     loop_count = 0
     try:
         while not shutdown_requested:
+            if shutdown_requested:
+                break
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
-                item = r.brpop("picogen_job_queue", timeout=50)
+                item = r.brpop("picogen_job_queue", timeout=5)
+
+                if item is None:
+                    continue
+
+                if shutdown_requested:
+                    _, raw = item
+                    try:
+                        r.lpush("picogen_job_queue", raw)
+                        logging.info("Shutdown requested; requeued job and exiting.")
+                    except Exception as e:
+                        logging.error(f"Error requeuing job: {e}")
+                    break
+                
                 if item:
                     logging.info(f"Got job: {item}")
                     _, raw = item
                     try:
                         job = json.loads(raw)
                         logging.info(f"Dequeued {job['jobId']}")
-                        process_job(job, engine, s3_client, aws_creds, local)
+
+                        protection_enabled = False
+                        try:
+                            enable_task_protection()
+                            protection_enabled = True
+                        except Exception:
+                            logging.exception("Error enabling task protection; continuing without it.")
+
+                        try:
+                            process_job(job, engine, s3_client, aws_creds, local)
+                        except Exception:
+                            logging.exception("Error processing job; will continue.")
+                        finally:
+                            if protection_enabled:
+                                try:
+                                    disable_task_protection()
+                                except Exception:
+                                    logging.exception("Error disabling task protection; will continue.")
                     except Exception:
-                        logging.exception("Error processing job; will continue.")
+                        logging.exception("Error parsing job; will continue.")
                 else:
                     logging.info("No jobs in queue, waiting…")
                     time.sleep(1)
