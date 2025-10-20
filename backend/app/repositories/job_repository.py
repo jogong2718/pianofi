@@ -19,7 +19,7 @@ def save(db: Session, job_data: Dict[str, Any]) -> Dict[str, Any]:
     
     Args:
         db: Database session
-        job_data: Dict containing job fields (user_id, audio_url, status, etc.)
+        job_data: Dict containing job fields (job_id, file_key, user_id, status, etc.)
     
     Returns:
         Dict representing the saved job with id
@@ -29,15 +29,30 @@ def save(db: Session, job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger.info(f"Saving new job for user {job_data.get('user_id')}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = Job(**job_data)
-    # db.add(job)
-    # db.commit()
-    # db.refresh(job)
-    # return job.to_dict()
+    from sqlalchemy import text
     
-    raise NotImplementedError("Move DB logic from router here")
+    sql = text("""
+        INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration)
+        VALUES (:job_id, :file_key, :status, :user_id, :file_name, :file_size, :file_duration)
+        RETURNING job_id, file_key, status, user_id, file_name, file_size, file_duration, created_at
+    """)
+    
+    result = db.execute(sql, job_data)
+    row = result.fetchone()
+    
+    if row:
+        return {
+            "job_id": str(row[0]),
+            "file_key": row[1],
+            "status": row[2],
+            "user_id": str(row[3]),
+            "file_name": row[4],
+            "file_size": row[5],
+            "file_duration": row[6],
+            "created_at": row[7]
+        }
+    
+    raise Exception("Failed to save job")
 
 
 def find_by_id(db: Session, job_id: UUID) -> Optional[Dict[str, Any]]:
