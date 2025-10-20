@@ -78,7 +78,7 @@ def find_by_id(db: Session, job_id: UUID) -> Optional[Dict[str, Any]]:
 
 def find_by_user_id(
     db: Session,
-    user_id: UUID,
+    user_id: str,
     filters: Optional[Dict[str, Any]] = None,
     limit: int = 50,
     offset: int = 0
@@ -88,7 +88,7 @@ def find_by_user_id(
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
         filters: Optional dict with keys like "status", "created_after", etc.
         limit: Maximum number of jobs to return
         offset: Pagination offset
@@ -96,20 +96,49 @@ def find_by_user_id(
     Returns:
         List of job dicts
     """
+    from sqlalchemy import text
+    
     logger.info(f"Finding jobs for user {user_id} with filters {filters}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # query = db.query(Job).filter(Job.user_id == user_id)
-    # if filters:
-    #     if "status" in filters:
-    #         query = query.filter(Job.status == filters["status"])
-    #     if "created_after" in filters:
-    #         query = query.filter(Job.created_at >= filters["created_after"])
-    # jobs = query.limit(limit).offset(offset).all()
-    # return [job.to_dict() for job in jobs]
+    sql = text("""
+        SELECT 
+            job_id,
+            file_name,
+            file_size,
+            status,
+            created_at,
+            queued_at,
+            started_at,
+            finished_at,
+            model,
+            level
+        FROM jobs 
+        WHERE user_id = :user_id
+        AND status != 'deleted' 
+        ORDER BY created_at DESC
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(sql, {"user_id": user_id})
+    jobs = result.fetchall()
+    
+    # Convert to list of dictionaries
+    jobs_list = []
+    for job in jobs:
+        job_dict = {
+            "job_id": str(job.job_id),
+            "file_name": job.file_name,
+            "file_size": job.file_size,
+            "status": job.status,
+            "created_at": job.created_at,
+            "queued_at": job.queued_at,
+            "started_at": job.started_at,
+            "finished_at": job.finished_at,
+            "model": job.model,
+            "level": job.level
+        }
+        jobs_list.append(job_dict)
+    
+    return jobs_list
 
 
 def update(db: Session, job_id: str, user_id: str, updates: Dict[str, Any]) -> int:
