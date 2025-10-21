@@ -173,29 +173,33 @@ def update(db: Session, job_id: str, user_id: str, updates: Dict[str, Any]) -> i
     return result.rowcount
 
 
-def delete(db: Session, job_id: UUID) -> bool:
+def delete(db: Session, job_id: str, user_id: str) -> Optional[str]:
     """
-    Delete a job from the database.
+    Soft delete a job by setting status to 'deleted'.
     
     Args:
         db: Database session
-        job_id: UUID of the job to delete
+        job_id: ID of the job to delete
+        user_id: User ID for ownership verification
     
     Returns:
-        True if deleted, False if not found
+        Job ID if deleted successfully, None if not found or access denied
     """
-    logger.info(f"Deleting job {job_id}")
+    from sqlalchemy import text
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = db.query(Job).filter(Job.id == job_id).first()
-    # if job:
-    #     db.delete(job)
-    #     db.commit()
-    #     return True
-    # return False
+    logger.info(f"Soft deleting job {job_id} for user {user_id}")
     
-    raise NotImplementedError()
+    sql = text("""
+        UPDATE jobs 
+        SET status = 'deleted'
+        WHERE job_id = :job_id AND user_id = :user_id
+        RETURNING job_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id})
+    deleted_job = result.fetchone()
+    
+    return str(deleted_job[0]) if deleted_job else None
 
 
 def count_by_user_id(db: Session, user_id: str) -> int:

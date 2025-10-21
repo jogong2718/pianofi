@@ -178,38 +178,39 @@ def update_job(
     }
 
 
-def delete_job(job_id: UUID, user_id: UUID, job_repository, storage_service) -> bool:
+def delete_job(job_id: str, user_id: str, db) -> Dict[str, Any]:
     """
-    Delete a job and clean up associated resources.
+    Soft delete a job by setting status to 'deleted'.
     
     Business logic:
-    1. Verify ownership
-    2. Cancel any running tasks
-    3. Delete associated files from S3
-    4. Delete database record
+    1. Verify ownership and delete job (atomic operation in repository)
+    2. Return success message
     
     Args:
-        job_id: UUID of the job to delete
-        user_id: UUID of the requesting user (for authorization)
-        job_repository: Repository for job data access
-        storage_service: Service for file operations
+        job_id: ID of the job to delete
+        user_id: ID of the requesting user (for authorization)
+        db: Database session
     
     Returns:
-        True if deleted successfully
+        Dict with message and jobId
     
     Raises:
-        NotFoundError: Job not found
-        UnauthorizedError: User doesn't own this job
+        PermissionError: Job not found or access denied
     """
+    from app.repositories import job_repository
+    
     logger.info(f"Deleting job {job_id} for user {user_id}")
     
-    # TODO: Implement
-    # 1. Verify ownership
-    # 2. Cancel background task if running
-    # 3. Delete S3 files via storage_service
-    # 4. Delete DB record: job_repository.delete(job_id)
+    # Call repository to soft delete
+    deleted_job_id = job_repository.delete(db, job_id, user_id)
     
-    raise NotImplementedError("Delete job logic to be moved from router")
+    if not deleted_job_id:
+        raise PermissionError("Job not found or access denied")
+    
+    return {
+        "message": "Job successfully deleted",
+        "jobId": deleted_job_id
+    }
 
 
 def update_job_status(
