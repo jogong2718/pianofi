@@ -210,3 +210,73 @@ def count_all(db: Session) -> int:
     # return db.query(Job).count()
     
     raise NotImplementedError()
+
+
+# ========================================
+# Functions for createJob.py (queue job)
+# ========================================
+
+def check_job_exists_for_user(db: Session, job_id: str, user_id: str) -> bool:
+    """
+    Check if a job exists and belongs to the specified user.
+    Used for permission checks before queueing job.
+    
+    Args:
+        db: Database session
+        job_id: Job ID to check
+        user_id: User ID for ownership verification
+    
+    Returns:
+        True if job exists and belongs to user, False otherwise
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Checking if job {job_id} exists for user {user_id}")
+    
+    sql = text("""
+        SELECT EXISTS(SELECT 1 FROM jobs 
+                     WHERE job_id = :jobId AND user_id = :userId)
+    """)
+    
+    result = db.execute(sql, {"jobId": job_id, "userId": user_id}).fetchone()
+    return result[0] if result else False
+
+
+def update_job_to_queued(
+    db: Session, 
+    job_id: str, 
+    file_key: str, 
+    model: str, 
+    level: int
+) -> int:
+    """
+    Update job status to 'queued' and set model, level, queued_at timestamp.
+    
+    Args:
+        db: Database session
+        job_id: Job ID to update
+        file_key: File key for additional validation
+        model: Model name ('amt' or 'picogen')
+        level: Processing level (1-3)
+    
+    Returns:
+        Number of rows affected (0 if job not found or file_key mismatch)
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Updating job {job_id} to queued status with model={model}, level={level}")
+    
+    sql = text("""
+        UPDATE jobs
+        SET status = 'queued', queued_at = NOW(), model = :model, level = :level
+        WHERE job_id = :jobId AND file_key = :fileKey
+    """)
+    
+    result = db.execute(sql, {
+        "jobId": job_id,
+        "fileKey": file_key,
+        "model": model,
+        "level": level
+    })
+    
+    return result.rowcount

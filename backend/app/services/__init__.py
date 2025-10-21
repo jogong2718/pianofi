@@ -10,13 +10,13 @@ Each service file exports functions that can be imported and used directly.
 """
 
 # Import all service functions for easy access
-from backend.app.services import job_service
-from backend.app.services import storage_service
-from backend.app.services import payment_service
-from backend.app.services import user_service
-from backend.app.services import webhook_service
-from backend.app.services import sheet_music_service
-from backend.app.services import analytics_service
+from . import job_service
+from . import storage_service
+from . import payment_service
+from . import user_service
+from . import webhook_service
+from . import sheet_music_service
+from . import analytics_service
 
 __all__ = [
     "job_service",
