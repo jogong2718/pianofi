@@ -64,33 +64,45 @@ def create_job(
 
 
 def get_user_jobs(
-    user_id: UUID,
-    status: Optional[str],
-    limit: int,
-    offset: int,
+    user_id: str,
+    db,
     job_repository
 ) -> List[Dict[str, Any]]:
     """
-    Retrieve jobs for a user with optional filtering.
+    Retrieve jobs for a user.
     
     Args:
-        user_id: UUID of the user
-        status: Optional status filter (pending, processing, completed, failed)
-        limit: Maximum number of jobs to return
-        offset: Pagination offset
+        user_id: ID of the user (string)
+        db: Database session
         job_repository: Repository for job data access
     
     Returns:
-        List of job dictionaries
+        List of job dictionaries with formatted timestamps
     """
-    logger.info(f"Fetching jobs for user {user_id}, status={status}")
+    logger.info(f"Fetching jobs for user {user_id}")
     
-    # TODO: Implement
-    # filters = {"status": status} if status else {}
-    # jobs = job_repository.find_by_user_id(user_id, filters, limit, offset)
-    # return [job.to_dict() for job in jobs]
+    # Fetch jobs from repository
+    jobs = job_repository.find_by_user_id(db, user_id)
     
-    raise NotImplementedError("Get jobs logic to be moved from router")
+    # Format timestamps to ISO format
+    jobs_list = []
+    for job in jobs:
+        job_dict = {
+            "job_id": job["job_id"],
+            "file_name": job["file_name"],
+            "file_size": job["file_size"],
+            "status": job["status"],
+            "created_at": job["created_at"].isoformat() if job["created_at"] else None,
+            "queued_at": job["queued_at"].isoformat() if job["queued_at"] else None,
+            "started_at": job["started_at"].isoformat() if job["started_at"] else None,
+            "finished_at": job["finished_at"].isoformat() if job["finished_at"] else None,
+            "model": job["model"],
+            "level": job["level"]
+        }
+        jobs_list.append(job_dict)
+    
+    logger.info(f"Found {len(jobs_list)} jobs for user {user_id}")
+    return jobs_list
 
 
 def get_job_by_id(job_id: UUID, user_id: UUID, job_repository) -> Dict[str, Any]:
@@ -123,37 +135,47 @@ def get_job_by_id(job_id: UUID, user_id: UUID, job_repository) -> Dict[str, Any]
 
 
 def update_job(
-    job_id: UUID,
-    user_id: UUID,
-    updates: Dict[str, Any],
+    job_id: str,
+    user_id: str,
+    file_name: str,
+    db,
     job_repository
 ) -> Dict[str, Any]:
     """
-    Update a job's metadata or status.
+    Update a job's file_name.
     
     Args:
-        job_id: UUID of the job to update
-        user_id: UUID of the requesting user (for authorization)
-        updates: Dictionary of fields to update
+        job_id: ID of the job to update
+        user_id: ID of the requesting user (for authorization)
+        file_name: New file name
+        db: Database session
         job_repository: Repository for job data access
     
     Returns:
-        Updated job details
+        Dict with success and message
     
     Raises:
-        NotFoundError: Job not found
-        UnauthorizedError: User doesn't own this job
-        ValidationError: Invalid update fields
+        HTTPException: If job not found or access denied
     """
+    from fastapi import HTTPException
+    
     logger.info(f"Updating job {job_id} for user {user_id}")
     
-    # TODO: Implement
-    # 1. Verify ownership
-    # 2. Validate updates
-    # 3. Update job: updated_job = job_repository.update(job_id, updates)
-    # 4. Handle side effects (e.g., status change notifications)
+    # Update job with ownership check
+    result = job_repository.update(db, job_id, user_id, {
+        "file_name": file_name
+    })
     
-    raise NotImplementedError("Update job logic to be moved from router")
+    if result == 0:
+        db.rollback()
+        raise HTTPException(status_code=404, detail="Job not found or access denied")
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Job updated successfully"
+    }
 
 
 def delete_job(job_id: UUID, user_id: UUID, job_repository, storage_service) -> bool:

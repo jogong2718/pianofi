@@ -13,25 +13,39 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def find_by_id(db: Session, user_id: UUID) -> Optional[Dict[str, Any]]:
+def find_by_id(db: Session, user_id: str) -> Optional[Dict[str, Any]]:
     """
     Find a user by ID.
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
     
     Returns:
         User dict or None if not found
     """
+    from sqlalchemy import text
+    
     logger.info(f"Finding user {user_id}")
     
-    # TODO: Implement
-    # from backend.app.models.user import User
-    # user = db.query(User).filter(User.id == user_id).first()
-    # return user.to_dict() if user else None
+    user_sql = text("""
+        SELECT id, first_name, last_name, created_at
+        FROM users 
+        WHERE id = :user_id
+    """)
     
-    raise NotImplementedError()
+    user_result = db.execute(user_sql, {"user_id": user_id})
+    user_row = user_result.fetchone()
+    
+    if user_row:
+        return {
+            "id": str(user_row[0]),
+            "first_name": user_row[1],
+            "last_name": user_row[2],
+            "created_at": user_row[3]
+        }
+    
+    return None
 
 
 def find_by_email(db: Session, email: str) -> Optional[Dict[str, Any]]:
@@ -79,35 +93,36 @@ def save(db: Session, user_data: Dict[str, Any]) -> Dict[str, Any]:
     raise NotImplementedError()
 
 
-def update(db: Session, user_id: UUID, updates: Dict[str, Any]) -> Dict[str, Any]:
+def update(db: Session, user_id: str, updates: Dict[str, Any]) -> int:
     """
     Update user fields.
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
         updates: Dict of fields to update
     
     Returns:
-        Updated user dict
-    
-    Raises:
-        NotFoundError: User not found
+        Number of rows updated (0 if user not found)
     """
+    from sqlalchemy import text
+    
     logger.info(f"Updating user {user_id} with {updates}")
     
-    # TODO: Implement
-    # from backend.app.models.user import User
-    # user = db.query(User).filter(User.id == user_id).first()
-    # if not user:
-    #     raise NotFoundError(f"User {user_id} not found")
-    # for key, value in updates.items():
-    #     setattr(user, key, value)
-    # db.commit()
-    # db.refresh(user)
-    # return user.to_dict()
+    update_sql = text("""
+        UPDATE users 
+        SET first_name = :first_name, last_name = :last_name
+        WHERE id = :user_id
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(update_sql, {
+        "first_name": updates.get("first_name"),
+        "last_name": updates.get("last_name"),
+        "user_id": user_id
+    })
+    
+    logger.info(f"Update/Insert affected {result.rowcount} rows")
+    return result.rowcount
 
 
 def delete(db: Session, user_id: UUID) -> bool:

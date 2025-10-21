@@ -19,7 +19,7 @@ def save(db: Session, job_data: Dict[str, Any]) -> Dict[str, Any]:
     
     Args:
         db: Database session
-        job_data: Dict containing job fields (user_id, audio_url, status, etc.)
+        job_data: Dict containing job fields (job_id, file_key, user_id, status, etc.)
     
     Returns:
         Dict representing the saved job with id
@@ -29,15 +29,30 @@ def save(db: Session, job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger.info(f"Saving new job for user {job_data.get('user_id')}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = Job(**job_data)
-    # db.add(job)
-    # db.commit()
-    # db.refresh(job)
-    # return job.to_dict()
+    from sqlalchemy import text
     
-    raise NotImplementedError("Move DB logic from router here")
+    sql = text("""
+        INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration)
+        VALUES (:job_id, :file_key, :status, :user_id, :file_name, :file_size, :file_duration)
+        RETURNING job_id, file_key, status, user_id, file_name, file_size, file_duration, created_at
+    """)
+    
+    result = db.execute(sql, job_data)
+    row = result.fetchone()
+    
+    if row:
+        return {
+            "job_id": str(row[0]),
+            "file_key": row[1],
+            "status": row[2],
+            "user_id": str(row[3]),
+            "file_name": row[4],
+            "file_size": row[5],
+            "file_duration": row[6],
+            "created_at": row[7]
+        }
+    
+    raise Exception("Failed to save job")
 
 
 def find_by_id(db: Session, job_id: UUID) -> Optional[Dict[str, Any]]:
@@ -63,7 +78,7 @@ def find_by_id(db: Session, job_id: UUID) -> Optional[Dict[str, Any]]:
 
 def find_by_user_id(
     db: Session,
-    user_id: UUID,
+    user_id: str,
     filters: Optional[Dict[str, Any]] = None,
     limit: int = 50,
     offset: int = 0
@@ -73,7 +88,7 @@ def find_by_user_id(
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
         filters: Optional dict with keys like "status", "created_after", etc.
         limit: Maximum number of jobs to return
         offset: Pagination offset
@@ -81,51 +96,81 @@ def find_by_user_id(
     Returns:
         List of job dicts
     """
+    from sqlalchemy import text
+    
     logger.info(f"Finding jobs for user {user_id} with filters {filters}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # query = db.query(Job).filter(Job.user_id == user_id)
-    # if filters:
-    #     if "status" in filters:
-    #         query = query.filter(Job.status == filters["status"])
-    #     if "created_after" in filters:
-    #         query = query.filter(Job.created_at >= filters["created_after"])
-    # jobs = query.limit(limit).offset(offset).all()
-    # return [job.to_dict() for job in jobs]
+    sql = text("""
+        SELECT 
+            job_id,
+            file_name,
+            file_size,
+            status,
+            created_at,
+            queued_at,
+            started_at,
+            finished_at,
+            model,
+            level
+        FROM jobs 
+        WHERE user_id = :user_id
+        AND status != 'deleted' 
+        ORDER BY created_at DESC
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(sql, {"user_id": user_id})
+    jobs = result.fetchall()
+    
+    # Convert to list of dictionaries
+    jobs_list = []
+    for job in jobs:
+        job_dict = {
+            "job_id": str(job.job_id),
+            "file_name": job.file_name,
+            "file_size": job.file_size,
+            "status": job.status,
+            "created_at": job.created_at,
+            "queued_at": job.queued_at,
+            "started_at": job.started_at,
+            "finished_at": job.finished_at,
+            "model": job.model,
+            "level": job.level
+        }
+        jobs_list.append(job_dict)
+    
+    return jobs_list
 
 
-def update(db: Session, job_id: UUID, updates: Dict[str, Any]) -> Dict[str, Any]:
+def update(db: Session, job_id: str, user_id: str, updates: Dict[str, Any]) -> int:
     """
-    Update a job's fields.
+    Update a job's fields (with user ownership check).
     
     Args:
         db: Database session
-        job_id: UUID of the job to update
+        job_id: ID of the job to update
+        user_id: ID of the user (for authorization)
         updates: Dict of fields to update
     
     Returns:
-        Updated job dict
-    
-    Raises:
-        NotFoundError: Job not found
+        Number of rows updated (0 if not found or access denied)
     """
+    from sqlalchemy import text
+    
     logger.info(f"Updating job {job_id} with {updates}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = db.query(Job).filter(Job.id == job_id).first()
-    # if not job:
-    #     raise NotFoundError(f"Job {job_id} not found")
-    # for key, value in updates.items():
-    #     setattr(job, key, value)
-    # db.commit()
-    # db.refresh(job)
-    # return job.to_dict()
+    update_sql = text("""
+        UPDATE jobs 
+        SET file_name = :file_name
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(update_sql, {
+        "file_name": updates.get("file_name"),
+        "job_id": job_id,
+        "user_id": user_id
+    })
+    
+    return result.rowcount
 
 
 def delete(db: Session, job_id: UUID) -> bool:
@@ -153,24 +198,74 @@ def delete(db: Session, job_id: UUID) -> bool:
     raise NotImplementedError()
 
 
-def count_by_user_id(db: Session, user_id: UUID) -> int:
+def count_by_user_id(db: Session, user_id: str) -> int:
     """
     Count total jobs for a user.
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
     
     Returns:
         Total number of jobs
     """
+    from sqlalchemy import text
+    
     logger.info(f"Counting jobs for user {user_id}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # return db.query(Job).filter(Job.user_id == user_id).count()
+    sql = text("SELECT COUNT(*) FROM jobs WHERE user_id = :user_id")
+    result = db.execute(sql, {"user_id": user_id})
+    return result.scalar()
+
+
+def count_by_user_id_and_status(db: Session, user_id: str, statuses: List[str]) -> int:
+    """
+    Count jobs for a user with specific statuses.
     
-    raise NotImplementedError()
+    Args:
+        db: Database session
+        user_id: ID of the user (string)
+        statuses: List of status values to filter by
+    
+    Returns:
+        Number of jobs matching the criteria
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Counting jobs for user {user_id} with statuses {statuses}")
+    
+    # Create placeholders for the IN clause
+    status_placeholders = ", ".join([f":status_{i}" for i in range(len(statuses))])
+    sql = text(f"SELECT COUNT(*) FROM jobs WHERE user_id = :user_id AND status IN ({status_placeholders})")
+    
+    # Build parameters dict
+    params = {"user_id": user_id}
+    for i, status in enumerate(statuses):
+        params[f"status_{i}"] = status
+    
+    result = db.execute(sql, params)
+    return result.scalar()
+
+
+def count_by_user_id_since_date(db: Session, user_id: str, start_date) -> int:
+    """
+    Count jobs for a user created since a specific date.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user (string)
+        start_date: Start date for the count
+    
+    Returns:
+        Number of jobs created since start_date
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Counting jobs for user {user_id} since {start_date}")
+    
+    sql = text("SELECT COUNT(*) FROM jobs WHERE user_id = :user_id AND created_at >= :start_date")
+    result = db.execute(sql, {"user_id": user_id, "start_date": start_date})
+    return result.scalar()
 
 
 def find_by_status(db: Session, status: str, limit: int = 100) -> List[Dict[str, Any]]:

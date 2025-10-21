@@ -96,28 +96,40 @@ def save_checkout_session(db: Session, session_data: Dict[str, Any]) -> Dict[str
     raise NotImplementedError()
 
 
-def get_active_subscription(db: Session, user_id: UUID) -> Optional[Dict[str, Any]]:
+def get_active_subscription(db: Session, user_id: str) -> Optional[Dict[str, Any]]:
     """
-    Get user's active subscription.
+    Get user's active subscription with monthly transcription limit.
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
     
     Returns:
-        Subscription dict or None if no active subscription
+        Subscription dict with monthly_transcription_limit or None if no active subscription
     """
+    from sqlalchemy import text
+    
     logger.info(f"Getting active subscription for user {user_id}")
     
-    # TODO: Implement
-    # from backend.app.models.subscription import Subscription
-    # subscription = db.query(Subscription).filter(
-    #     Subscription.user_id == user_id,
-    #     Subscription.status == "active"
-    # ).first()
-    # return subscription.to_dict() if subscription else None
+    sql = text("""
+        SELECT p.monthly_transcription_limit 
+        FROM subscriptions s
+        JOIN prices p ON s.price_id = p.id
+        WHERE s.user_id = :user_id 
+        AND s.status = 'active'
+        ORDER BY s.created_at DESC
+        LIMIT 1
+    """)
     
-    raise NotImplementedError()
+    result = db.execute(sql, {"user_id": user_id})
+    row = result.fetchone()
+    
+    if row:
+        return {
+            "monthly_transcription_limit": row[0]
+        }
+    
+    return None
 
 
 def update_subscription(

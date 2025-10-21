@@ -284,7 +284,7 @@ def convert_midi_to_audio(midi_file, output_file, job_id):
 if __name__ == "__main__":
     job_id = "09eded96-ed54-4aab-81f2-6fdb97d32afa"
     midi_file = Path(f"uploads/{job_id}.mid")
-    output_file = Path(f"uploads/{job_id}.wav")
+    output_file = Path(f"uploads/{job_id}.mp3")
     
     audio_path, metadata = convert_midi_to_audio(midi_file, output_file, job_id)
     print(metadata)

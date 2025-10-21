@@ -108,10 +108,8 @@ const FileUploader: FC<FileUploaderProps> = ({
       metrics.transcriptions_left !== null &&
       metrics.transcriptions_left <= 0
     ) {
-      toast.error(
-        "You have reached your monthly transcription limit. Please upgrade your plan."
-      );
-      onUpgradeRequired();
+      toast.error("You have reached your monthly transcription limit.");
+      // onUpgradeRequired(); uncomment when payment flow is ready
       return;
     }
 
