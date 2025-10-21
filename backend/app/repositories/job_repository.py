@@ -280,3 +280,63 @@ def update_job_to_queued(
     })
     
     return result.rowcount
+
+
+# ========================================
+# Functions for createSheetMusic.py (download files)
+# ========================================
+
+def get_job_status_for_user(db: Session, job_id: str, user_id: str) -> Optional[str]:
+    """
+    Get job status if job exists and belongs to user.
+    Used for sheet music download endpoints.
+    
+    Args:
+        db: Database session
+        job_id: Job ID
+        user_id: User ID for ownership verification
+    
+    Returns:
+        Job status string, or None if not found/access denied
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Getting job status for job {job_id}, user {user_id}")
+    
+    sql = text("""
+        SELECT status FROM jobs 
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id}).fetchone()
+    return result[0] if result else None
+
+
+def get_job_status_with_audio_metadata(
+    db: Session, 
+    job_id: str, 
+    user_id: str
+) -> Optional[tuple[str, Optional[dict]]]:
+    """
+    Get job status and audio metadata if job exists and belongs to user.
+    Used for audio download endpoint.
+    
+    Args:
+        db: Database session
+        job_id: Job ID
+        user_id: User ID for ownership verification
+    
+    Returns:
+        Tuple of (status, audio_metadata), or None if not found/access denied
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Getting job status and audio metadata for job {job_id}, user {user_id}")
+    
+    sql = text("""
+        SELECT status, audio_metadata FROM jobs 
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id}).fetchone()
+    return (result[0], result[1]) if result else None
