@@ -198,24 +198,74 @@ def delete(db: Session, job_id: UUID) -> bool:
     raise NotImplementedError()
 
 
-def count_by_user_id(db: Session, user_id: UUID) -> int:
+def count_by_user_id(db: Session, user_id: str) -> int:
     """
     Count total jobs for a user.
     
     Args:
         db: Database session
-        user_id: UUID of the user
+        user_id: ID of the user (string)
     
     Returns:
         Total number of jobs
     """
+    from sqlalchemy import text
+    
     logger.info(f"Counting jobs for user {user_id}")
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # return db.query(Job).filter(Job.user_id == user_id).count()
+    sql = text("SELECT COUNT(*) FROM jobs WHERE user_id = :user_id")
+    result = db.execute(sql, {"user_id": user_id})
+    return result.scalar()
+
+
+def count_by_user_id_and_status(db: Session, user_id: str, statuses: List[str]) -> int:
+    """
+    Count jobs for a user with specific statuses.
     
-    raise NotImplementedError()
+    Args:
+        db: Database session
+        user_id: ID of the user (string)
+        statuses: List of status values to filter by
+    
+    Returns:
+        Number of jobs matching the criteria
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Counting jobs for user {user_id} with statuses {statuses}")
+    
+    # Create placeholders for the IN clause
+    status_placeholders = ", ".join([f":status_{i}" for i in range(len(statuses))])
+    sql = text(f"SELECT COUNT(*) FROM jobs WHERE user_id = :user_id AND status IN ({status_placeholders})")
+    
+    # Build parameters dict
+    params = {"user_id": user_id}
+    for i, status in enumerate(statuses):
+        params[f"status_{i}"] = status
+    
+    result = db.execute(sql, params)
+    return result.scalar()
+
+
+def count_by_user_id_since_date(db: Session, user_id: str, start_date) -> int:
+    """
+    Count jobs for a user created since a specific date.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user (string)
+        start_date: Start date for the count
+    
+    Returns:
+        Number of jobs created since start_date
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Counting jobs for user {user_id} since {start_date}")
+    
+    sql = text("SELECT COUNT(*) FROM jobs WHERE user_id = :user_id AND created_at >= :start_date")
+    result = db.execute(sql, {"user_id": user_id, "start_date": start_date})
+    return result.scalar()
 
 
 def find_by_status(db: Session, status: str, limit: int = 100) -> List[Dict[str, Any]]:

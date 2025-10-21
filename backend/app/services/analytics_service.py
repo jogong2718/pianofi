@@ -14,42 +14,64 @@ logger = logging.getLogger(__name__)
 
 
 def get_dashboard_metrics(
-    user_id: UUID,
+    user_id: str,
+    db,
     job_repository,
-    user_repository,
     payment_repository
 ) -> Dict[str, Any]:
     """
     Get comprehensive dashboard metrics for a user.
     
     Metrics include:
-    - Total jobs (all time, this month)
-    - Jobs by status (pending, processing, completed, failed)
-    - Storage usage
-    - Recent activity
-    - Quota usage
+    - Total transcriptions (all time)
+    - Currently processing transcriptions
+    - This month's transcriptions
+    - Transcriptions left this month (based on subscription limit)
     
     Args:
-        user_id: UUID of the user
+        user_id: ID of the user (string)
+        db: Database session
         job_repository: Repository for job data
-        user_repository: Repository for user data
         payment_repository: Repository for payment data
     
     Returns:
-        Dict containing all dashboard metrics
+        Dict containing dashboard metrics:
+        - total_transcriptions: Total count
+        - processing_count: Jobs in processing or queued status
+        - this_month_count: Jobs created this month
+        - transcriptions_left: Remaining quota (None means unlimited)
     """
+    from datetime import datetime
+    
     logger.info(f"Calculating dashboard metrics for user {user_id}")
     
-    # TODO: Implement
-    # return {
-    #     "jobs": _calculate_job_metrics(user_id, job_repository),
-    #     "storage": _calculate_storage_metrics(user_id, user_repository),
-    #     "quota": _calculate_quota_metrics(user_id, user_repository, job_repository),
-    #     "recent_activity": _get_recent_activity(user_id, job_repository),
-    #     "subscription": _get_subscription_info(user_id, payment_repository),
-    # }
+    # Total transcriptions for user
+    total_transcriptions = job_repository.count_by_user_id(db, user_id)
     
-    raise NotImplementedError("Dashboard metrics logic to be moved from router")
+    # Currently processing
+    processing_count = job_repository.count_by_user_id_and_status(
+        db, user_id, ['processing', 'queued']
+    )
+    
+    # This month's transcriptions
+    first_day_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    this_month_count = job_repository.count_by_user_id_since_date(
+        db, user_id, first_day_of_month
+    )
+    
+    # Number of transcriptions left this month
+    subscription = payment_repository.get_active_subscription(db, user_id)
+    monthly_limit = subscription["monthly_transcription_limit"] if subscription else 1  # Default to 1 for free users
+    
+    # Calculate transcriptions left this month
+    transcriptions_left = None if monthly_limit is None else max(0, monthly_limit - this_month_count)
+    
+    return {
+        "total_transcriptions": total_transcriptions,
+        "processing_count": processing_count,
+        "this_month_count": this_month_count,
+        "transcriptions_left": transcriptions_left  # None means unlimited
+    }
 
 
 def _calculate_job_metrics(user_id: UUID, job_repository) -> Dict[str, Any]:
