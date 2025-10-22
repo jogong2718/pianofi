@@ -8,6 +8,9 @@ Serves routers: createJob, getUserJobs, updateJob, deleteJob
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 import logging
+import json
+import time
+from app.repositories import job_repository
 
 logger = logging.getLogger(__name__)
 
@@ -175,38 +178,39 @@ def update_job(
     }
 
 
-def delete_job(job_id: UUID, user_id: UUID, job_repository, storage_service) -> bool:
+def delete_job(job_id: str, user_id: str, db) -> Dict[str, Any]:
     """
-    Delete a job and clean up associated resources.
+    Soft delete a job by setting status to 'deleted'.
     
     Business logic:
-    1. Verify ownership
-    2. Cancel any running tasks
-    3. Delete associated files from S3
-    4. Delete database record
+    1. Verify ownership and delete job (atomic operation in repository)
+    2. Return success message
     
     Args:
-        job_id: UUID of the job to delete
-        user_id: UUID of the requesting user (for authorization)
-        job_repository: Repository for job data access
-        storage_service: Service for file operations
+        job_id: ID of the job to delete
+        user_id: ID of the requesting user (for authorization)
+        db: Database session
     
     Returns:
-        True if deleted successfully
+        Dict with message and jobId
     
     Raises:
-        NotFoundError: Job not found
-        UnauthorizedError: User doesn't own this job
+        PermissionError: Job not found or access denied
     """
+    from app.repositories import job_repository
+    
     logger.info(f"Deleting job {job_id} for user {user_id}")
     
-    # TODO: Implement
-    # 1. Verify ownership
-    # 2. Cancel background task if running
-    # 3. Delete S3 files via storage_service
-    # 4. Delete DB record: job_repository.delete(job_id)
+    # Call repository to soft delete
+    deleted_job_id = job_repository.delete(db, job_id, user_id)
     
-    raise NotImplementedError("Delete job logic to be moved from router")
+    if not deleted_job_id:
+        raise PermissionError("Job not found or access denied")
+    
+    return {
+        "message": "Job successfully deleted",
+        "jobId": deleted_job_id
+    }
 
 
 def update_job_status(
@@ -234,3 +238,88 @@ def update_job_status(
     # _notify_user_of_status_change(job_id, status)
     
     raise NotImplementedError()
+
+
+# ========================================
+# Functions for createJob.py (queue job)
+# ========================================
+
+def queue_job(
+    job_id: str,
+    file_key: str,
+    user_id: str,
+    model: str,
+    level: int,
+    db,
+    redis_client
+) -> Dict[str, Any]:
+    """
+    Queue an existing job for processing.
+    
+    Business logic:
+    1. Validate job_id and file_key are provided
+    2. Check job exists and belongs to user (permission check)
+    3. Update job status to 'queued' in database
+    4. Push job to appropriate Redis queue (amt or picogen)
+    
+    Args:
+        job_id: ID of the job to queue
+        file_key: File key for validation
+        user_id: ID of the user (for permission check)
+        model: Model to use ('amt' or 'picogen')
+        level: Processing level (1-3)
+        db: Database session
+        redis_client: Redis client for queue operations
+    
+    Returns:
+        Dict with success status
+    
+    Raises:
+        ValueError: Missing required fields
+        PermissionError: Job not found or access denied
+        RuntimeError: Update failed or queue operation failed
+    """
+    logger.info(f"Queueing job {job_id} for user {user_id} with model={model}")
+    
+    # 1. Validate inputs
+    if not job_id or not file_key:
+        raise ValueError("jobId and fileKey are required")
+    
+    # 2. Check permission (job exists and belongs to user)
+    job_exists = job_repository.check_job_exists_for_user(db, job_id, user_id)
+    if not job_exists:
+        raise PermissionError("Job not found or access denied")
+    
+    # 3. Update job status to 'queued' in database
+    rows_updated = job_repository.update_job_to_queued(
+        db, job_id, file_key, model, level
+    )
+    
+    if rows_updated == 0:
+        raise RuntimeError("Job not found or fileKey mismatch")
+    
+    # Commit database changes
+    db.commit()
+    
+    # 4. Push job to Redis queue
+    job_data = {
+        "jobId": job_id,
+        "fileKey": file_key,
+        "userId": user_id,
+        "createdAt": time.time(),
+        "model": model,
+        "level": level
+    }
+    
+    # Route to correct queue based on model
+    if model == "picogen":
+        queue_name = "picogen_job_queue"
+    elif model == "amt":
+        queue_name = "amt_job_queue"
+    else:
+        raise ValueError(f"Unknown model: {model}")
+    
+    redis_client.lpush(queue_name, json.dumps(job_data))
+    logger.info(f"Job {job_id} pushed to {queue_name}")
+    
+    return {"success": True}
