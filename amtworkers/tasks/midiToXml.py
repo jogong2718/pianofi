@@ -338,9 +338,29 @@ class MidiToMusicXML:
                 # Calculate actual duration (clip to measure boundary)
                 actual_duration = min(moment['duration'], measure_end - moment_time)
                 
-                # Split notes between treble and bass
-                treble_notes = [note for note in moment['notes'] if note['midi_note'] >= 60]  # Middle C and above
-                bass_notes = [note for note in moment['notes'] if note['midi_note'] < 60]  # Below middle C
+                # Step 1: split obvious notes
+                obvious_treble = [n for n in moment['notes'] if n['midi_note'] > 66]
+                obvious_bass = [n for n in moment['notes'] if n['midi_note'] < 54]
+
+                # Step 2: remaining notes
+                middle_notes = [n for n in moment['notes'] if n not in obvious_treble + obvious_bass]
+
+                # Step 3: compute averages of obvious notes
+                avg_treble = sum(n['midi_note'] for n in obvious_treble) / len(obvious_treble) if obvious_treble else 66
+                avg_bass = sum(n['midi_note'] for n in obvious_bass) / len(obvious_bass) if obvious_bass else 54
+
+                # Step 4: assign middle notes
+                treble_notes = obvious_treble.copy()
+                bass_notes = obvious_bass.copy()
+
+                for n in middle_notes:
+                    dist_to_treble = abs(n['midi_note'] - avg_treble)
+                    dist_to_bass = abs(n['midi_note'] - avg_bass)
+                    
+                    if dist_to_treble < dist_to_bass:
+                        treble_notes.append(n)
+                    else:
+                        bass_notes.append(n)
                 
                 # Handle treble part
                 if treble_notes:
