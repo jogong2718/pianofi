@@ -23,13 +23,14 @@ interface Transcription {
   size: string;
   midi_download_url?: string;
   xml_download_url?: string;
+  pdf_download_url?: string;
 }
 
 interface UseTranscriptionManagerProps {
   getDownloadUrl: (
     jobId: string,
     downloadType: string
-  ) => Promise<{ midi_download_url?: string; xml_download_url?: string }>;
+  ) => Promise<{ midi_download_url?: string; xml_download_url?: string; pdf_download_url?: string }>;
   getUserJobs?: () => Promise<any[]>;
   user?: any;
   supabase?: any; // Optional, if you need to use supabase directly
@@ -67,7 +68,8 @@ export function useTranscriptionManager({
       const existingJob = transcriptions.find((t) => t.id === jobId);
       if (
         existingJob?.midi_download_url === "error" ||
-        existingJob?.xml_download_url === "error"
+        existingJob?.xml_download_url === "error" || 
+        existingJob?.pdf_download_url === "error"
       ) {
         console.log(`Skipping repeated download URL attempt for job ${jobId}`);
         shouldSkip = true;
@@ -80,6 +82,7 @@ export function useTranscriptionManager({
         // Get download URL from backend
         const { midi_download_url } = await getDownloadUrl(jobId, "midi");
         const { xml_download_url } = await getDownloadUrl(jobId, "xml");
+        const { pdf_download_url } = await getDownloadUrl(jobId, "pdf");
 
         // Update transcription with download URL
         setTranscriptions((prev) => {
@@ -91,6 +94,7 @@ export function useTranscriptionManager({
                   progress: 100,
                   midi_download_url: midi_download_url,
                   xml_download_url: xml_download_url,
+                  pdf_download_url: pdf_download_url,
                 }
               : t
           );
@@ -122,6 +126,7 @@ export function useTranscriptionManager({
                   progress: 100,
                   xml_download_url: "error", // Mark as error
                   midi_download_url: "error", // Mark as error
+                  pdf_download_url: "error",
                 }
               : t
           )
@@ -218,6 +223,10 @@ export function useTranscriptionManager({
           xml_download_url:
             job.status === "done" && job.xml_download_url
               ? job.xml_download_url
+              : "pending",
+            pdf_download_url:
+            job.status === "done" && job.pdf_download_url
+              ? job.pdf_download_url
               : "pending",
         }));
 

@@ -140,6 +140,65 @@ export function useMIDI({ jobId }: UseMIDIProps) {
     return data;
 }
 
+export function usePDF({ jobId }: { jobId: string }) {
+    const [data, setData] = useState<{
+        pdf: ArrayBuffer | null;
+        loading: boolean;
+        error: string | null;
+    }>({
+        pdf: null,
+        loading: true,
+        error: null,
+    });
+
+    const supabase = createClient();
+
+    useEffect(() => {
+        if (!jobId) return;
+
+        const fetchPDF = async () => {
+            try {
+                console.log("Getting PDF for jobId:", jobId);
+                setData(prev => ({ ...prev, loading: true, error: null }));
+
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
+
+                if (!session?.access_token) {
+                    throw new Error("No authentication token found");
+                }
+
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+                const response = await fetch(`${backendUrl}/getPDF/${jobId}`, {
+                    headers: {
+                        'Accept': 'application/pdf',
+                        'Authorization': `Bearer ${session.access_token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+                }
+
+                const pdfData = await response.arrayBuffer();
+                setData({ pdf: pdfData, loading: false, error: null });
+
+                console.log("PDF fetched successfully");
+            } catch (error) {
+                setData({
+                    pdf: null,
+                    loading: false,
+                    error: error instanceof Error ? error.message : "Failed to fetch PDF",
+                });
+            }
+        };
+
+        fetchPDF();
+    }, [jobId, supabase]);
+
+    return data;
+}
 
 export function useSheetMusicDisplay({ musicXml }: UseOSMDProps) {
     const [osmd, setOSMD] = useState<OpenSheetMusicDisplay | null>(null);
