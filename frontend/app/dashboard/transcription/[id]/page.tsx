@@ -34,31 +34,31 @@ export default function TranscriptionDetailPage() {
 
     // Show toast notifications for non-critical errors
     useEffect(() => {
-        if (midiError) {
+        if (!midiLoading && midiError) {
             toast.error("MIDI Download Unavailable", {
                 description: midiError,
                 duration: 5000,
             });
         }
-    }, [midiError]);
+    }, [midiError, midiLoading]);
 
     useEffect(() => {
-        if (audioError) {
+        if (!audioLoading && audioError) {
             toast.error("Audio Playback Unavailable", {
                 description: audioError,
                 duration: 5000,
             });
         }
-    }, [audioError]);
+    }, [audioError, audioLoading]);
 
     useEffect(() => {
-        if (pdfError) {
+        if (!pdfLoading && pdfError) {
             toast.error("PDF Download Unavailable", {
             description: pdfError,
             duration: 5000,
             });
         }
-    }, [pdfError]);
+    }, [pdfError, pdfLoading]);
 
     if (xmlLoading || audioLoading) {
         return (
