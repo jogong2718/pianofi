@@ -6,6 +6,7 @@ interface getDownloadResponse {
   status: string;
   midi_download_url?: string;
   xml_download_url?: string;
+  pdf_download_url?: string;
   result_key?: string;
 }
 
@@ -38,16 +39,21 @@ export function useDownloadUrl() {
             },
           });
           console.log("Fetching MIDI download for jobId:", jobId);
-        } else {
+        } else if (downloadType === "xml") {
           res = await fetch(`${backendUrl}/getXmlDownload/${jobId}`, {
             method: "GET",
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
+            headers: { Authorization: `Bearer ${session.access_token}` },
           });
+          console.log("Fetching XML download for jobId:", jobId);
+        } else if (downloadType === "pdf") {
+          res = await fetch(`${backendUrl}/getPdfDownload/${jobId}`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          console.log("Fetching PDF download for jobId:", jobId);
+        } else {
+          throw new Error(`Invalid download type: ${downloadType}`);
         }
-        console.log("Fetching job details for jobId:", jobId);
-        console.log(res);
 
         if (!res.ok) {
           throw new Error(`Get job request failed: ${res.statusText}`);
@@ -71,16 +77,16 @@ export function useDownloadUrl() {
           throw new Error("Job is not completed yet");
         }
 
-        if (!data.midi_download_url && !data.xml_download_url) {
+        if (!data.midi_download_url && !data.xml_download_url && !data.pdf_download_url) {
           throw new Error("Download URL not available");
         }
 
         if (downloadType === "midi") {
           return { midi_download_url: data.midi_download_url };
-        }
-
-        if (downloadType === "xml") {
+        } else if (downloadType === "xml") {
           return { xml_download_url: data.xml_download_url };
+        } else if (downloadType === "pdf") {
+          return { pdf_download_url: data.pdf_download_url };
         }
         // If we reach here, it means an invalid download type was specified
         throw new Error("Invalid download type specified");
