@@ -11,6 +11,7 @@ import logging
 import json
 import time
 from app.repositories import job_repository
+from app.config_loader import Config
 
 logger = logging.getLogger(__name__)
 
@@ -244,6 +245,19 @@ def update_job_status(
 # Functions for createJob.py (queue job)
 # ========================================
 
+def get_queue_name(model: str, environment: str) -> str:
+    """Get Redis queue name for model and environment."""
+    queue_map = {
+        ("picogen", "production"): "picogen_job_queue_prod",
+        ("picogen", "development"): "picogen_job_queue_dev",
+        ("amt", "production"): "amt_job_queue_prod",
+        ("amt", "development"): "amt_job_queue_dev",
+    }
+    queue_name = queue_map.get((model, environment))
+    if not queue_name:
+        raise ValueError(f"Invalid model '{model}' or environment '{environment}'")
+    return queue_name
+
 def queue_job(
     job_id: str,
     file_key: str,
@@ -312,14 +326,10 @@ def queue_job(
     }
     
     # Route to correct queue based on model
-    if model == "picogen":
-        queue_name = "picogen_job_queue"
-    elif model == "amt":
-        queue_name = "amt_job_queue"
-    else:
-        raise ValueError(f"Unknown model: {model}")
+    queue_name = get_queue_name(model, Config.ENVIRONMENT)
     
     redis_client.lpush(queue_name, json.dumps(job_data))
     logger.info(f"Job {job_id} pushed to {queue_name}")
     
     return {"success": True}
+
