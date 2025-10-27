@@ -67,9 +67,20 @@ async def create_job(payload: CreateJobPayload, db: Session = Depends(get_db), c
         }
 
         if payload.model == "picogen":
-            r.lpush("picogen_job_queue", json.dumps(job_data))
+            if Config.ENVIRONMENT == "development":
+                r.lpush("picogen_job_queue_dev", json.dumps(job_data))
+            elif Config.ENVIRONMENT == "production":
+                r.lpush("picogen_job_queue_prod", json.dumps(job_data))
+            else:
+                logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
+                
         elif payload.model == "amt":
-            r.lpush("amt_job_queue", json.dumps(job_data))
+            if Config.ENVIRONMENT == "development":
+                r.lpush("amt_job_queue_dev", json.dumps(job_data))
+            elif Config.ENVIRONMENT == "production":
+                r.lpush("amt_job_queue_prod", json.dumps(job_data))
+            else:
+                logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
         # Log the job creation
         logging.info(f"Job created: {payload.jobId} in {payload.model}, fileKey: {payload.fileKey}, userId: {authenticated_user_id}")
 

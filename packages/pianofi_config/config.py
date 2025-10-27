@@ -6,7 +6,7 @@ from typing import Dict, Any
 @lru_cache()
 def get_environment() -> str:
     """Get current environment (development, staging, production)"""
-    return os.getenv("ENVIRONMENT", "development")
+    return os.getenv("ENVIRONMENT", "production")
 
 @lru_cache()
 def get_storage() -> str:
