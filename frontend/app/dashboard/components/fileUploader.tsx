@@ -89,15 +89,6 @@ const FileUploader: FC<FileUploaderProps> = ({
   const handleFiles = async (files: FileList) => {
     if (!user) return;
 
-    // Check if PiCoGen is selected and show error
-    if (selectedModel === "picogen") {
-      toast.error(
-        "PiCoGen model is currently unavailable. Please select AMT model."
-      );
-      return;
-    }
-    // remove when picogen is available
-
     if (metricsLoading) {
       toast.error("Please wait while we check your subscription limits...");
       return;
@@ -149,7 +140,7 @@ const FileUploader: FC<FileUploaderProps> = ({
       const newTranscription = {
         id: newJobId,
         filename: file.name,
-        status: "processing" as const,
+        status: "initialized" as const,
         progress: 0,
         uploadedAt: new Date().toISOString().split("T")[0],
         duration: "Processing...", // Placeholder until we get actual duration
@@ -241,7 +232,7 @@ const FileUploader: FC<FileUploaderProps> = ({
     <Card>
       <CardHeader>
         <CardTitle>Upload Audio File</CardTitle>
-        <CardDescription>
+        {/* <CardDescription>
           {selectedModel === "picogen" ? (
             <span className="text-orange-600 font-medium">
               PiCoGen model is currently unavailable. Please select AMT to
@@ -261,8 +252,8 @@ const FileUploader: FC<FileUploaderProps> = ({
           ) : (
             "Upload your audio file to convert it to piano sheet music"
           )}
-        </CardDescription>
-        {/* <CardDescription>
+        </CardDescription> */}
+        <CardDescription>
           {metrics?.transcriptions_left !== undefined &&
           metrics.transcriptions_left !== null &&
           metrics.transcriptions_left <= 2 ? (
@@ -277,7 +268,7 @@ const FileUploader: FC<FileUploaderProps> = ({
           ) : (
             "Upload your audio file to convert it to piano sheet music"
           )}
-        </CardDescription> */}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {/* Reworked selection layout */}
@@ -310,7 +301,7 @@ const FileUploader: FC<FileUploaderProps> = ({
                   </div>
                 </Label>
 
-                <Label
+                {/* <Label
                   htmlFor="model-picogen"
                   className={`${modelOptionClass(
                     "picogen"
@@ -336,8 +327,8 @@ const FileUploader: FC<FileUploaderProps> = ({
                       Higher timing precision & note accuracy
                     </p>
                   </div>
-                </Label>
-                {/* <Label
+                </Label> */}
+                <Label
                   htmlFor="model-picogen"
                   className={modelOptionClass("picogen")}
                   onClick={() => setSelectedModel("picogen")}
@@ -353,7 +344,7 @@ const FileUploader: FC<FileUploaderProps> = ({
                       Higher timing precision & note accuracy
                     </p>
                   </div>
-                </Label> */}
+                </Label>
               </RadioGroup>
             </div>
           </div>
@@ -428,11 +419,7 @@ const FileUploader: FC<FileUploaderProps> = ({
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            // remove when picogen is available
-            selectedModel === "picogen"
-              ? "border-muted-foreground/25 opacity-50 cursor-not-allowed"
-              : // remove when picogen is available
-              dragActive
+            dragActive
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25"
           }`}
@@ -452,19 +439,8 @@ const FileUploader: FC<FileUploaderProps> = ({
           <p className="text-muted-foreground mb-4">or click to browse files</p>
           <Button
             onClick={() => {
-              // remove when picogen is available
-              if (selectedModel === "picogen") {
-                toast.error(
-                  "PiCoGen model is currently unavailable. Please select AMT model."
-                );
-                return;
-              }
-              // remove when picogen is available
               handleFileInput();
             }}
-            // remove when picogen is available
-            disabled={selectedModel === "picogen"}
-            // remove when picogen is available
           >
             Choose File
           </Button>
