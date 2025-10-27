@@ -4,9 +4,14 @@ import json, time, logging, redis, boto3
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
+
 from amtworkers.tasks.amtapc import run_amtapc
 from amtworkers.tasks.midiToXml import convert_midi_to_xml
 from amtworkers.tasks.midiToAudio import convert_midi_to_audio
+
+from utils.task_protection import enable_task_protection, disable_task_protection
+from utils.error import mark_job_as_error
+
 from mutagen import File
 import os
 import signal
@@ -54,8 +59,10 @@ def process_job(job, engine, s3_client, aws_creds, local):
     else:
         # Production - download from S3
         if not s3_client:
-            raise Exception("S3 client not configured for production.")
-        
+            logging.error(f"S3 client not available for job {job_id}")
+            mark_job_as_error(engine, job_id, "S3 client not available")
+            return
+
         # Extract original extension from file_key
         file_extension = Path(file_key).suffix or '.mp3'
         local_raw = Path(f"/tmp/{job_id}{file_extension}")
@@ -84,6 +91,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
             db.commit()
     except Exception as e:
         logging.warning(f"Could not extract duration for {job_id}: {e}")
+        mark_job_as_error(engine, job_id, f"Duration extraction error: {e}")
 
     # 3) amt-apc processing
     try:
@@ -93,15 +101,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
         logging.info(f"AMT-APC generated MIDI file: {final_mid}")
     except Exception as e:
         logging.error(f"Error running AMT-APC for job {job_id}: {e}")
-        # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
+        mark_job_as_error(engine, job_id, f"AMT-APC error: {e}")
         return
     # 4) Upload result
     midi_key = f"midi/{job_id}.mid"
@@ -174,15 +174,8 @@ def process_job(job, engine, s3_client, aws_creds, local):
             xml_key = f"xml/{job_id}.musicxml"
     except Exception as e:
         logging.error(f"Error in XML conversion step for job {job_id}: {e}")
-        # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
+        
+        mark_job_as_error(engine, job_id, f"XML conversion error: {e}")
         return
     
     # 6) Convert MIDI to audio
@@ -223,15 +216,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
             audio_final = f"s3://{bucket}/{audio_key}"
     except Exception as e:
         logging.error(f"Error converting MIDI to audio for job {job_id}: {e}")
-        # You might want to set job status to 'failed' here
-        with engine.connect() as db:
-            update_sql = text("""
-                UPDATE jobs
-                SET status='error', finished_at=NOW()
-                WHERE job_id=:jobId
-            """)
-            db.execute(update_sql, {"jobId": job_id})
-            db.commit()
+        mark_job_as_error(engine, job_id, f"MIDI to audio conversion error: {e}")
         return
 
     # 7) DB → status=done, file_key=midi_key, xml_key=xml_key
@@ -258,6 +243,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 logging.info(f"Deleted temporary file: {path}")
     except Exception as e:
         logging.error(f"Error cleaning up temporary files: {e}")
+        mark_job_as_error(engine, job_id, f"Temporary file cleanup error: {e}")
 
 def main():
 
@@ -266,6 +252,7 @@ def main():
 
     aws_creds = Config.AWS_CREDENTIALS
     local = Config.USE_LOCAL_STORAGE == "true"
+    development = Config.ENVIRONMENT == "development"
 
     try:
         logging.info("Loading configuration for redis...")
@@ -283,15 +270,6 @@ def main():
             pool_size=1,
             max_overflow=2
         )
-
-        # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-        # def get_db():
-        #     db = SessionLocal()
-        #     try:
-        #         yield db
-        #     finally:
-        #         db.close()
 
         s3_client = None
         if not local:
@@ -314,21 +292,56 @@ def main():
             logging.info(f"Loop iteration {loop_count}")
             try:
                 if Config.ENVIRONMENT == "development":
-                    item = r.brpop("amt_job_queue_dev", timeout=50)
+                    item = r.brpop("picogen_job_queue_dev", timeout=5)
                 elif Config.ENVIRONMENT == "production":
-                    item = r.brpop("amt_job_queue_prod", timeout=50)
+                    item = r.brpop("picogen_job_queue_prod", timeout=5)
                 else:
                     logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
                     continue
+
+                if item is None:
+                    continue
+
+                if shutdown_requested:
+                    _, raw = item
+                    try:
+                        if Config.ENVIRONMENT == "development":
+                            r.lpush("picogen_job_queue_dev", raw)
+                        elif Config.ENVIRONMENT == "production":
+                            r.lpush("picogen_job_queue_prod", raw)
+                        else:
+                            logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
+                        logging.info("Shutdown requested; requeued job and exiting.")
+                    except Exception as e:
+                        logging.error(f"Error requeuing job: {e}")
+                    break
+                
                 if item:
                     logging.info(f"Got job: {item}")
                     _, raw = item
                     try:
                         job = json.loads(raw)
                         logging.info(f"Dequeued {job['jobId']}")
-                        process_job(job, engine, s3_client, aws_creds, local)
+
+                        protection_enabled = False
+                        try:
+                            enable_task_protection(local=development)
+                            protection_enabled = True
+                        except Exception:
+                            logging.exception("Error enabling task protection; continuing without it.")
+
+                        try:
+                            process_job(job, engine, s3_client, aws_creds, local)
+                        except Exception:
+                            logging.exception("Error processing job; will continue.")
+                        finally:
+                            if protection_enabled:
+                                try:
+                                    disable_task_protection(local=development)
+                                except Exception:
+                                    logging.exception("Error disabling task protection; will continue.")
                     except Exception:
-                        logging.exception("Error processing job; will continue.")
+                        logging.exception("Error parsing job; will continue.")
                 else:
                     logging.info("No jobs in queue, waiting…")
                     time.sleep(1)
