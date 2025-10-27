@@ -271,12 +271,12 @@ class MidiToMusicXML:
         # Treble part
         score_part1 = ET.SubElement(part_list, 'score-part', id="P1")
         part_name1 = ET.SubElement(score_part1, 'part-name')
-        # part_name1.text = "Treble"
+        part_name1.text = ""
         
         # Bass part
         score_part2 = ET.SubElement(part_list, 'score-part', id="P2")
         part_name2 = ET.SubElement(score_part2, 'part-name')
-        # part_name2.text = "Bass"
+        part_name2.text = ""
         
         # Treble part
         treble_part = ET.SubElement(root, 'part', id="P1")
