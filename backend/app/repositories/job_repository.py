@@ -173,29 +173,33 @@ def update(db: Session, job_id: str, user_id: str, updates: Dict[str, Any]) -> i
     return result.rowcount
 
 
-def delete(db: Session, job_id: UUID) -> bool:
+def delete(db: Session, job_id: str, user_id: str) -> Optional[str]:
     """
-    Delete a job from the database.
+    Soft delete a job by setting status to 'deleted'.
     
     Args:
         db: Database session
-        job_id: UUID of the job to delete
+        job_id: ID of the job to delete
+        user_id: User ID for ownership verification
     
     Returns:
-        True if deleted, False if not found
+        Job ID if deleted successfully, None if not found or access denied
     """
-    logger.info(f"Deleting job {job_id}")
+    from sqlalchemy import text
     
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = db.query(Job).filter(Job.id == job_id).first()
-    # if job:
-    #     db.delete(job)
-    #     db.commit()
-    #     return True
-    # return False
+    logger.info(f"Soft deleting job {job_id} for user {user_id}")
     
-    raise NotImplementedError()
+    sql = text("""
+        UPDATE jobs 
+        SET status = 'deleted'
+        WHERE job_id = :job_id AND user_id = :user_id
+        RETURNING job_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id})
+    deleted_job = result.fetchone()
+    
+    return str(deleted_job[0]) if deleted_job else None
 
 
 def count_by_user_id(db: Session, user_id: str) -> int:
@@ -305,3 +309,133 @@ def count_all(db: Session) -> int:
     # return db.query(Job).count()
     
     raise NotImplementedError()
+
+
+# ========================================
+# Functions for createJob.py (queue job)
+# ========================================
+
+def check_job_exists_for_user(db: Session, job_id: str, user_id: str) -> bool:
+    """
+    Check if a job exists and belongs to the specified user.
+    Used for permission checks before queueing job.
+    
+    Args:
+        db: Database session
+        job_id: Job ID to check
+        user_id: User ID for ownership verification
+    
+    Returns:
+        True if job exists and belongs to user, False otherwise
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Checking if job {job_id} exists for user {user_id}")
+    
+    sql = text("""
+        SELECT EXISTS(SELECT 1 FROM jobs 
+                     WHERE job_id = :jobId AND user_id = :userId)
+    """)
+    
+    result = db.execute(sql, {"jobId": job_id, "userId": user_id}).fetchone()
+    return result[0] if result else False
+
+
+def update_job_to_queued(
+    db: Session, 
+    job_id: str, 
+    file_key: str, 
+    model: str, 
+    level: int
+) -> int:
+    """
+    Update job status to 'queued' and set model, level, queued_at timestamp.
+    
+    Args:
+        db: Database session
+        job_id: Job ID to update
+        file_key: File key for additional validation
+        model: Model name ('amt' or 'picogen')
+        level: Processing level (1-3)
+    
+    Returns:
+        Number of rows affected (0 if job not found or file_key mismatch)
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Updating job {job_id} to queued status with model={model}, level={level}")
+    
+    sql = text("""
+        UPDATE jobs
+        SET status = 'queued', queued_at = NOW(), model = :model, level = :level
+        WHERE job_id = :jobId AND file_key = :fileKey
+    """)
+    
+    result = db.execute(sql, {
+        "jobId": job_id,
+        "fileKey": file_key,
+        "model": model,
+        "level": level
+    })
+    
+    return result.rowcount
+
+
+# ========================================
+# Functions for createSheetMusic.py (download files)
+# ========================================
+
+def get_job_status_for_user(db: Session, job_id: str, user_id: str) -> Optional[str]:
+    """
+    Get job status if job exists and belongs to user.
+    Used for sheet music download endpoints.
+    
+    Args:
+        db: Database session
+        job_id: Job ID
+        user_id: User ID for ownership verification
+    
+    Returns:
+        Job status string, or None if not found/access denied
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Getting job status for job {job_id}, user {user_id}")
+    
+    sql = text("""
+        SELECT status FROM jobs 
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id}).fetchone()
+    return result[0] if result else None
+
+
+def get_job_status_with_audio_metadata(
+    db: Session, 
+    job_id: str, 
+    user_id: str
+) -> Optional[tuple[str, Optional[dict]]]:
+    """
+    Get job status and audio metadata if job exists and belongs to user.
+    Used for audio download endpoint.
+    
+    Args:
+        db: Database session
+        job_id: Job ID
+        user_id: User ID for ownership verification
+    
+    Returns:
+        Tuple of (status, audio_metadata), or None if not found/access denied
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Getting job status and audio metadata for job {job_id}, user {user_id}")
+    
+    sql = text("""
+        SELECT status, audio_metadata FROM jobs 
+        WHERE job_id = :job_id AND user_id = :user_id
+    """)
+    
+    result = db.execute(sql, {"job_id": job_id, "user_id": user_id}).fetchone()
+    return (result[0], result[1]) if result else None
