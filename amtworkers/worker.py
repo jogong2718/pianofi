@@ -313,7 +313,13 @@ def main():
             loop_count += 1
             logging.info(f"Loop iteration {loop_count}")
             try:
-                item = r.brpop("amt_job_queue", timeout=50)
+                if Config.ENVIRONMENT == "development":
+                    item = r.brpop("amt_job_queue_dev", timeout=50)
+                elif Config.ENVIRONMENT == "production":
+                    item = r.brpop("amt_job_queue_prod", timeout=50)
+                else:
+                    logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
+                    continue
                 if item:
                     logging.info(f"Got job: {item}")
                     _, raw = item
