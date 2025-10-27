@@ -292,9 +292,9 @@ def main():
             logging.info(f"Loop iteration {loop_count}")
             try:
                 if Config.ENVIRONMENT == "development":
-                    item = r.brpop("picogen_job_queue_dev", timeout=5)
+                    item = r.brpop("amt_job_queue_dev", timeout=5)
                 elif Config.ENVIRONMENT == "production":
-                    item = r.brpop("picogen_job_queue_prod", timeout=5)
+                    item = r.brpop("amt_job_queue_prod", timeout=5)
                 else:
                     logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
                     continue
@@ -306,9 +306,9 @@ def main():
                     _, raw = item
                     try:
                         if Config.ENVIRONMENT == "development":
-                            r.lpush("picogen_job_queue_dev", raw)
+                            r.lpush("amt_job_queue_dev", raw)
                         elif Config.ENVIRONMENT == "production":
-                            r.lpush("picogen_job_queue_prod", raw)
+                            r.lpush("amt_job_queue_prod", raw)
                         else:
                             logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
                         logging.info("Shutdown requested; requeued job and exiting.")
