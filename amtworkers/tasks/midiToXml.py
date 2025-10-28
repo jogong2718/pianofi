@@ -343,7 +343,8 @@ class MidiToMusicXML:
                 obvious_bass = [n for n in moment['notes'] if n['midi_note'] < 54]
 
                 # Step 2: remaining notes
-                middle_notes = [n for n in moment['notes'] if n not in obvious_treble + obvious_bass]
+                obvious_set = set(id(n) for n in obvious_treble + obvious_bass)
+                middle_notes = [n for n in moment['notes'] if id(n) not in obvious_set]
 
                 # Step 3: compute averages of obvious notes
                 avg_treble = sum(n['midi_note'] for n in obvious_treble) / len(obvious_treble) if obvious_treble else 66
@@ -357,7 +358,7 @@ class MidiToMusicXML:
                     dist_to_treble = abs(n['midi_note'] - avg_treble)
                     dist_to_bass = abs(n['midi_note'] - avg_bass)
                     
-                    if dist_to_treble < dist_to_bass:
+                    if dist_to_treble <= dist_to_bass:
                         treble_notes.append(n)
                     else:
                         bass_notes.append(n)
