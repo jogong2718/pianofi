@@ -339,20 +339,16 @@ class MidiToMusicXML:
                 actual_duration = min(moment['duration'], measure_end - moment_time)
                 
                 # Step 1: split obvious notes
-                obvious_treble = [n for n in moment['notes'] if n['midi_note'] > 66]
-                obvious_bass = [n for n in moment['notes'] if n['midi_note'] < 54]
+                treble_notes = [n for n in moment['notes'] if n['midi_note'] > 66]
+                bass_notes = [n for n in moment['notes'] if n['midi_note'] < 54]
 
                 # Step 2: remaining notes
-                obvious_set = set(id(n) for n in obvious_treble + obvious_bass)
+                obvious_set = set(id(n) for n in treble_notes + bass_notes)
                 middle_notes = [n for n in moment['notes'] if id(n) not in obvious_set]
 
                 # Step 3: compute averages of obvious notes
-                avg_treble = sum(n['midi_note'] for n in obvious_treble) / len(obvious_treble) if obvious_treble else 66
-                avg_bass = sum(n['midi_note'] for n in obvious_bass) / len(obvious_bass) if obvious_bass else 54
-
-                # Step 4: assign middle notes
-                treble_notes = obvious_treble.copy()
-                bass_notes = obvious_bass.copy()
+                avg_treble = sum(n['midi_note'] for n in treble_notes) / len(treble_notes) if treble_notes else 66
+                avg_bass = sum(n['midi_note'] for n in bass_notes) / len(bass_notes) if bass_notes else 54
 
                 for n in middle_notes:
                     dist_to_treble = abs(n['midi_note'] - avg_treble)
