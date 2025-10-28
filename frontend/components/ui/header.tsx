@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Menu, Music } from "lucide-react";
 import {
@@ -16,21 +16,32 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const isMobile = useIsMobile();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleNavigation = (path: string) => {
+    if (pathname === path) return;
     setIsRedirecting(true);
     router.push(path);
-
-    setTimeout(() => {
-      setIsRedirecting(false);
-    }, 10000);
   };
+
+  useEffect(() => {
+   if (isRedirecting) setIsRedirecting(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isRedirecting) return;
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prev || "";
+    };
+  }, [isRedirecting]);
 
   if (isRedirecting) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
         <div className="text-center">
           <Music className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
           <p>Loading...</p>
