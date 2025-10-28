@@ -186,29 +186,29 @@ export default function LandingPage() {
         </section>
 
         {/* Video Demo Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="space-y-4 text-center">
-                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl">
-                  See PianoFi in Action
-                </h2>
-                <p className="max-w-[1000px] text-muted-foreground">
-                  Watch how easily you can transform any song into professional piano sheet music!
-                </p>
-              </div>
-              <div className="w-full max-w-6xl">
-                <video
-                  id="landing-demo-video"
-                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
-                  className="rounded-lg shadow-2xl w-full"
-                  muted
-                  playsInline
-                  controls
-                  style={{ maxHeight: "1000px" }}
-                >
-                  Your browser does not support the video tag.
-                </video>
+        <section className="w-full py-6 md:py-12">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="space-y-4 text-center mb-4">
+              <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl">
+                See It In Action
+              </h2>
+            </div>
+            <div className="relative w-full max-w-[90vw] mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-3xl opacity-30 -m-4"></div>
+              <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]">
+                <div className="aspect-video bg-black/5">
+                  <video
+                    id="landing-demo-video"
+                    src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                    className="w-full h-full object-contain bg-white dark:bg-black"
+                    muted
+                    playsInline
+                    loop
+                    autoPlay
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               </div>
             </div>
           </div>
