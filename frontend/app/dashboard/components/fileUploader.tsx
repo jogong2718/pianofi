@@ -11,9 +11,12 @@ import {
 import { Upload } from "lucide-react";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { useCreateJob } from "@/hooks/useCreateJob";
+import { useProcessYoutubeUrl } from "@/hooks/useProcessYoutubeUrl";
 import { uploadToS3 } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface FileUploaderProps {
   metrics: any;
@@ -31,10 +34,13 @@ const FileUploader: FC<FileUploaderProps> = ({
   user,
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
 
   const { callUploadUrl, loading: loadingUploadUrl } = useUploadUrl();
 
   const { callCreateJob, loading: loadingCreateJob } = useCreateJob();
+
+  const { callProcessYoutubeUrl, loading: loadingYoutube } = useProcessYoutubeUrl();
 
   const [selectedModel, setSelectedModel] = useState<"amt" | "picogen">("amt");
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
@@ -220,6 +226,87 @@ const FileUploader: FC<FileUploaderProps> = ({
     input.click();
   };
 
+  const handleYoutubeSubmit = async () => {
+    console.log("handleYoutubeSubmit called");
+    if (!user) return;
+
+    // Check if PiCoGen is selected
+    if (selectedModel === "picogen") {
+      toast.error(
+        "PiCoGen model is currently unavailable. Please select AMT model."
+      );
+      return;
+    }
+
+    if (metricsLoading) {
+      toast.error("Please wait while we check your subscription limits...");
+      return;
+    }
+
+    if (
+      metrics?.transcriptions_left !== undefined &&
+      metrics.transcriptions_left !== null &&
+      metrics.transcriptions_left <= 0
+    ) {
+      toast.error(
+        "You have reached your monthly transcription limit. Please upgrade your plan."
+      );
+      onUpgradeRequired();
+      return;
+    }
+
+    if (!youtubeUrl.trim()) {
+      toast.error("Please enter a YouTube URL");
+      return;
+    }
+
+    // Validate YouTube URL format
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    if (!youtubeRegex.test(youtubeUrl)) {
+      toast.error("Invalid YouTube URL format");
+      return;
+    }
+
+    if (
+      metrics?.transcriptions_left !== null &&
+      metrics?.transcriptions_left !== undefined &&
+      metrics?.transcriptions_left <= 2
+    ) {
+      toast.warning(
+        `Only ${metrics.transcriptions_left} transcription${
+          metrics.transcriptions_left === 1 ? "" : "s"
+        } left this month.`
+      );
+    }
+
+    try {
+      toast.info("Processing YouTube video...");
+
+      const { jobId, fileKey } = await callProcessYoutubeUrl({
+        youtube_url: youtubeUrl,
+        model: selectedModel,
+        level: selectedLevel,
+      });
+
+      const newTranscription = {
+        id: jobId,
+        filename: "YouTube Video",
+        status: "processing" as const,
+        progress: 0,
+        uploadedAt: new Date().toISOString().split("T")[0],
+        duration: "Processing...",
+        size: "N/A",
+      };
+
+      onFileUploaded(newTranscription);
+      setYoutubeUrl(""); // Clear input
+      toast.success("YouTube video queued for processing!");
+    } catch (err) {
+      console.error("YouTube processing failed:", err);
+      toast.error("Failed to process YouTube URL: " + (err as Error).message);
+    }
+  };
+
   // helper styling builders
   const modelOptionClass = (v: "amt" | "picogen") =>
     `cursor-pointer rounded-md border px-4 py-3 text-sm transition-all flex items-start gap-2 w-full
@@ -240,7 +327,7 @@ const FileUploader: FC<FileUploaderProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Upload Audio File</CardTitle>
+        <CardTitle>Upload Audio or YouTube URL</CardTitle>
         <CardDescription>
           {selectedModel === "picogen" ? (
             <span className="text-orange-600 font-medium">
@@ -426,52 +513,83 @@ const FileUploader: FC<FileUploaderProps> = ({
           </div>
         </div>
 
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            // remove when picogen is available
-            selectedModel === "picogen"
-              ? "border-muted-foreground/25 opacity-50 cursor-not-allowed"
-              : // remove when picogen is available
-              dragActive
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25"
-          }`}
-          onDragEnter={selectedModel !== "picogen" ? handleDrag : undefined}
-          onDragLeave={selectedModel !== "picogen" ? handleDrag : undefined}
-          onDragOver={selectedModel !== "picogen" ? handleDrag : undefined}
-          onDrop={selectedModel !== "picogen" ? handleDrop : undefined}
-          // onDragEnter={handleDrag}
-          // onDragLeave={handleDrag}
-          // onDragOver={handleDrag}
-          // onDrop={handleDrop}
-        >
-          <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
-            Drop your audio file here
-          </h3>
-          <p className="text-muted-foreground mb-4">or click to browse files</p>
-          <Button
-            onClick={() => {
-              // remove when picogen is available
-              if (selectedModel === "picogen") {
-                toast.error(
-                  "PiCoGen model is currently unavailable. Please select AMT model."
-                );
-                return;
-              }
-              // remove when picogen is available
-              handleFileInput();
-            }}
-            // remove when picogen is available
-            disabled={selectedModel === "picogen"}
-            // remove when picogen is available
-          >
-            Choose File
-          </Button>
-          <p className="text-xs text-muted-foreground mt-4">
-            Supports MP3, WAV, FLAC up to 10MB
-          </p>
-        </div>
+        <Tabs defaultValue="file" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="file">Upload File</TabsTrigger>
+            <TabsTrigger value="youtube">YouTube URL</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="file">
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                selectedModel === "picogen"
+                  ? "border-muted-foreground/25 opacity-50 cursor-not-allowed"
+                  : dragActive
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25"
+              }`}
+              onDragEnter={selectedModel !== "picogen" ? handleDrag : undefined}
+              onDragLeave={selectedModel !== "picogen" ? handleDrag : undefined}
+              onDragOver={selectedModel !== "picogen" ? handleDrag : undefined}
+              onDrop={selectedModel !== "picogen" ? handleDrop : undefined}
+            >
+              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                Drop your audio file here
+              </h3>
+              <p className="text-muted-foreground mb-4">or click to browse files</p>
+              <Button
+                onClick={() => {
+                  if (selectedModel === "picogen") {
+                    toast.error(
+                      "PiCoGen model is currently unavailable. Please select AMT model."
+                    );
+                    return;
+                  }
+                  handleFileInput();
+                }}
+                disabled={selectedModel === "picogen"}
+              >
+                Choose File
+              </Button>
+              <p className="text-xs text-muted-foreground mt-4">
+                Supports MP3, WAV, FLAC up to 10MB
+              </p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="youtube">
+            <div className="border-2 border-dashed rounded-lg p-8 text-center">
+              <div className="max-w-md mx-auto">
+                <h3 className="text-lg font-semibold mb-2">
+                  Process YouTube Video
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Enter a YouTube URL to extract and process the audio
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    disabled={selectedModel === "picogen" || loadingYoutube}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleYoutubeSubmit}
+                    disabled={selectedModel === "picogen" || loadingYoutube || !youtubeUrl.trim()}
+                  >
+                    {loadingYoutube ? "Processing..." : "Process"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Supports YouTube and YouTube Music URLs
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
