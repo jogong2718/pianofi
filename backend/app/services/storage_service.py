@@ -188,32 +188,6 @@ def generate_download_url(
         }
 
 
-def delete_file(file_key: str, user_id: UUID, s3_client, file_repository=None) -> bool:
-    """
-    Delete a file from S3.
-    
-    Args:
-        file_key: S3 key of the file to delete
-        user_id: UUID of the requesting user (for authorization)
-        s3_client: Client for S3 operations
-        file_repository: Optional repository for metadata cleanup
-    
-    Returns:
-        True if deleted successfully
-    
-    Raises:
-        UnauthorizedError: User doesn't have access to this file
-    """
-    logger.info(f"Deleting file {file_key} for user {user_id}")
-    
-    # TODO: Implement
-    # 1. Verify ownership
-    # 2. Delete from S3: s3_client.delete_object(bucket, file_key)
-    # 3. Delete metadata if tracked: file_repository.delete_by_key(file_key)
-    
-    raise NotImplementedError()
-
-
 def delete_job_files(job_id: UUID, s3_client, file_repository=None) -> None:
     """
     Delete all files associated with a job.
