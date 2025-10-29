@@ -301,7 +301,7 @@ export default function LandingPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
-                  <div className="w-full h-[550px] rounded-lg overflow-hidden bg-muted">
+                  <div className="w-full h-[320px] md:h-[550px] rounded-lg overflow-hidden bg-muted">
                     <img
                       src="/transcription_example.png"
                       alt="Dashboard preview"
@@ -333,7 +333,7 @@ export default function LandingPage() {
                   </CardHeader>
                   <CardContent>
                     {/* Placeholder for image */}
-                    <div className="w-full h-[120px] rounded-lg overflow-hidden bg-muted">
+                    <div className="w-full h-[70px] md:h-[120px] rounded-lg overflow-hidden bg-muted">
                       <img
                         src="/models.png"
                         alt="model preview"
@@ -353,7 +353,7 @@ export default function LandingPage() {
                   </CardHeader>
                   <CardContent>
                     {/* Placeholder for image */}
-                    <div className="w-full h-[130px] rounded-lg overflow-hidden bg-muted">
+                    <div className="w-full h-[80px] md:h-[130px] rounded-lg overflow-hidden bg-muted">
                       <img
                         src="/upload.png"
                         alt="model preview"
