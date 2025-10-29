@@ -16,53 +16,6 @@ from app.config_loader import Config
 logger = logging.getLogger(__name__)
 
 
-def create_job(
-    user_id: UUID,
-    audio_url: str,
-    options: Optional[Dict[str, Any]],
-    job_repository,
-    user_repository,
-    storage_service,
-    task_queue
-) -> Dict[str, Any]:
-    """
-    Create a new transcription job.
-    
-    Business logic:
-    1. Validate user quota
-    2. Validate audio URL and options
-    3. Create job record in database
-    4. Enqueue background transcription task
-    5. Return job details
-    
-    Args:
-        user_id: UUID of the user creating the job
-        audio_url: S3 URL or presigned URL of the audio file
-        options: Optional job configuration (model, tempo, etc.)
-        job_repository: Repository for job data access
-        user_repository: Repository for user data access
-        storage_service: Service for file storage operations
-        task_queue: Queue for background job processing
-    
-    Returns:
-        Dict containing job details (id, status, created_at, etc.)
-    
-    Raises:
-        QuotaExceeded: User has reached their job limit
-        ValidationError: Invalid audio URL or options
-        StorageError: Audio file not accessible
-    """
-    logger.info(f"Creating job for user {user_id}")
-    
-    # TODO: Implement business logic
-    # 1. Check user quota: job_count = job_repository.count_by_user_id(user_id)
-    # 2. Validate options
-    # 3. Create job: job = job_repository.save(Job(...))
-    # 4. Enqueue: task_queue.enqueue_transcription_job(job.id)
-    # 5. Return job details
-    
-    raise NotImplementedError("Create job logic to be moved from router")
-
 
 def get_user_jobs(
     user_id: str,
@@ -105,34 +58,6 @@ def get_user_jobs(
     logger.info(f"Found {len(jobs_list)} jobs for user {user_id}")
     return jobs_list
 
-
-def get_job_by_id(job_id: UUID, user_id: UUID, job_repository) -> Dict[str, Any]:
-    """
-    Get a specific job by ID with ownership verification.
-    
-    Args:
-        job_id: UUID of the job
-        user_id: UUID of the requesting user (for authorization)
-        job_repository: Repository for job data access
-    
-    Returns:
-        Job details dictionary
-    
-    Raises:
-        NotFoundError: Job not found
-        UnauthorizedError: User doesn't own this job
-    """
-    logger.info(f"Fetching job {job_id} for user {user_id}")
-    
-    # TODO: Implement
-    # job = job_repository.find_by_id(job_id)
-    # if not job:
-    #     raise NotFoundError(f"Job {job_id} not found")
-    # if job.user_id != user_id:
-    #     raise UnauthorizedError("Access denied")
-    # return job.to_dict()
-    
-    raise NotImplementedError()
 
 
 def update_job(
@@ -213,32 +138,6 @@ def delete_job(job_id: str, user_id: str, db) -> Dict[str, Any]:
         "jobId": deleted_job_id
     }
 
-
-def update_job_status(
-    job_id: UUID,
-    status: str,
-    error_message: Optional[str],
-    job_repository
-) -> None:
-    """
-    Update job status (typically called by background workers).
-    
-    Args:
-        job_id: UUID of the job
-        status: New status (processing, completed, failed)
-        error_message: Optional error message if status is failed
-        job_repository: Repository for job data access
-    """
-    logger.info(f"Updating job {job_id} status to {status}")
-    
-    # TODO: Implement
-    # updates = {"status": status}
-    # if error_message:
-    #     updates["error_message"] = error_message
-    # job_repository.update(job_id, updates)
-    # _notify_user_of_status_change(job_id, status)
-    
-    raise NotImplementedError()
 
 
 # ========================================

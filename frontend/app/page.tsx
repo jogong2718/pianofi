@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
@@ -20,17 +20,30 @@ export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const { user, loading } = useAuth();
+
+  // Refs for scroll animations
+  const heroRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLElement>(null);
+  const featuresRef = useRef<HTMLElement>(null);
+  const donationsRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
+
+  // Visibility states
+  const [heroVisible, setHeroVisible] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
+  const [featuresVisible, setFeaturesVisible] = useState(false);
+  const [donationsVisible, setDonationsVisible] = useState(false);
+  const [ctaVisible, setCtaVisible] = useState(false);
 
   useEffect(() => {
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      canonical.setAttribute('href', 'https://www.pianofi.ca/');
+      canonical.setAttribute("href", "https://www.pianofi.ca/");
     }
   }, []);
-  
+
   useEffect(() => {
     if (user && !loading) {
       setIsRedirecting(true);
@@ -74,13 +87,57 @@ export default function LandingPage() {
     input.click();
   };
 
-  const openDemoModal = () => {
-    setShowDemoModal(true);
-  };
+  // Scroll animation observer
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: "0px 0px -100px 0px",
+    };
 
-  const closeDemoModal = () => {
-    setShowDemoModal(false);
-  };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.target === heroRef.current)
+          setHeroVisible(entry.isIntersecting);
+        if (entry.target === videoRef.current)
+          setVideoVisible(entry.isIntersecting);
+        if (entry.target === featuresRef.current)
+          setFeaturesVisible(entry.isIntersecting);
+        if (entry.target === donationsRef.current)
+          setDonationsVisible(entry.isIntersecting);
+        if (entry.target === ctaRef.current)
+          setCtaVisible(entry.isIntersecting);
+      });
+    }, observerOptions);
+
+    const refs = [heroRef, videoRef, featuresRef, donationsRef, ctaRef];
+    refs.forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // IntersectionObserver for video autoplay
+  useEffect(() => {
+    const video = document.getElementById(
+      "landing-demo-video"
+    ) as HTMLVideoElement | null;
+    if (!video) return;
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
   if (isRedirecting) {
     return (
@@ -97,40 +154,16 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      {/* Demo Video Modal */}
-      {showDemoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative bg-white rounded-lg p-4 max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto">
-            <button
-              onClick={closeDemoModal}
-              className="absolute top-2 right-2 p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <div className="mt-8">
-              <h3 className="text-2xl font-bold text-center mb-4 text-black">
-                PianoFi Demo
-              </h3>
-              <video
-                controls
-                autoPlay
-                className="w-full h-auto rounded-lg"
-                style={{ maxHeight: "70vh" }}
-              >
-                <source
-                  src="/pianofi demo_v1 - Made with Clipchamp.mp4"
-                  type="video/mp4"
-                />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </div>
-        </div>
-      )}
-
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center">
+        <section
+          ref={heroRef}
+          className={`w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center transition-all duration-1000 ${
+            heroVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -151,13 +184,6 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button size="lg" onClick={() => handleNavigation("/signup")}>
                     Start Converting Music
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={openDemoModal}
-                  >
-                    Watch Demo
                   </Button>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -210,10 +236,49 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Video Demo Section */}
+        <section
+          ref={videoRef}
+          className={`w-full py-6 md:py-12 transition-all duration-1000 delay-200 ${
+            videoVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="relative w-full max-w-[90vw] mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-3xl opacity-30 -m-4"></div>
+              <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]">
+                <div className="aspect-video bg-black/5">
+                  <video
+                    id="landing-demo-video"
+                    src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                    className="w-full h-full object-contain bg-white dark:bg-black"
+                    muted
+                    playsInline
+                    loop
+                    autoPlay
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32">
+        <section
+          ref={featuresRef}
+          id="features"
+          className={`w-full py-12 md:py-24 lg:py-32 transition-all duration-1000 delay-300 ${
+            featuresVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
           <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
                   How PianoFi Works
@@ -224,55 +289,80 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
-              <Card>
+            <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+              {/* Left Column - Large Card */}
+              <Card className="flex flex-col">
                 <CardHeader>
-                  <Upload className="h-10 w-10 text-primary" />
-                  <CardTitle>1. Upload Audio</CardTitle>
-                  <CardDescription>
-                    Upload any audio file - from pop songs to classical pieces
+                  <CardTitle className="text-2xl">Get Sheet Music</CardTitle>
+                  <CardDescription className="text-base">
+                    Download professional piano sheet music instantly in Midi,
+                    PDF, XML with editable notation and multiple difficulty
+                    levels.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Supports MP3, WAV, FLAC</li>
-                    <li>• Up to 10 minutes per file</li>
-                    <li>• Batch processing available</li>
-                  </ul>
+                <CardContent className="flex-1">
+                  <div className="w-full h-[320px] md:h-[550px] rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src="/transcription_example.png"
+                      alt="Dashboard preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <Zap className="h-10 w-10 text-primary" />
-                  <CardTitle>2. AI Processing</CardTitle>
-                  <CardDescription>
-                    Our advanced models analyze and transcribe your music
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Real-time processing</li>
-                    <li>• 95%+ accuracy rate</li>
-                    <li>• Handles complex harmonies</li>
-                  </ul>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <FileText className="h-10 w-10 text-primary" />
-                  <CardTitle>3. Get Sheet Music</CardTitle>
-                  <CardDescription>
-                    Download professional piano sheet music instantly
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• PDF and MusicXML formats</li>
-                    <li>• Editable notation</li>
-                    <li>• Multiple difficulty levels</li>
-                  </ul>
-                </CardContent>
-              </Card>
+
+              {/* Right Column - Two Stacked Cards */}
+              <div className="flex flex-col gap-6">
+                <Card className="flex-1">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">
+                      State-of-the-art Models for Instant AI Transcriptions
+                    </CardTitle>
+                    <CardDescription className="text-base">
+                      <p>
+                        Choose from multiple transcription models tuned for
+                        different styles and tasks — fast, reliable, and
+                        continually improving.
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                        <li>• Real-time processing</li>
+                        <li>• 95%+ accuracy on common genres</li>
+                        <li>• Handles complex harmonies &amp; polyphony</li>
+                      </ul>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Placeholder for image */}
+                    <div className="w-full h-[70px] md:h-[120px] rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src="/models.png"
+                        alt="model preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="flex-1">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Upload Any Audio</CardTitle>
+                    <CardDescription className="text-base">
+                      Upload any audio file or youtube link - from pop songs to
+                      rap to classical pieces
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Placeholder for image */}
+                    <div className="w-full h-[80px] md:h-[130px] rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src="/upload.png"
+                        alt="model preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </section>
@@ -399,7 +489,14 @@ export default function LandingPage() {
         </section> */}
 
         {/* Donations Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <section
+          ref={donationsRef}
+          className={`w-full py-12 md:py-24 lg:py-32 bg-muted/50 transition-all duration-1000 delay-400 ${
+            donationsVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -433,7 +530,14 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section
+          ref={ctaRef}
+          className={`w-full py-12 md:py-24 lg:py-32 transition-all duration-1000 delay-500 ${
+            ctaVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -448,13 +552,6 @@ export default function LandingPage() {
               <div className="space-x-4">
                 <Button size="lg" onClick={() => handleNavigation("/signup")}>
                   Start Transcribing!
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={openDemoModal}
-                >
-                  Schedule Demo
                 </Button>
               </div>
             </div>

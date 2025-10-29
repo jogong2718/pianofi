@@ -55,27 +55,6 @@ def save(db: Session, job_data: Dict[str, Any]) -> Dict[str, Any]:
     raise Exception("Failed to save job")
 
 
-def find_by_id(db: Session, job_id: UUID) -> Optional[Dict[str, Any]]:
-    """
-    Find a job by its ID.
-    
-    Args:
-        db: Database session
-        job_id: UUID of the job
-    
-    Returns:
-        Dict representing the job, or None if not found
-    """
-    logger.info(f"Finding job {job_id}")
-    
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # job = db.query(Job).filter(Job.id == job_id).first()
-    # return job.to_dict() if job else None
-    
-    raise NotImplementedError()
-
-
 def find_by_user_id(
     db: Session,
     user_id: str,
@@ -270,45 +249,6 @@ def count_by_user_id_since_date(db: Session, user_id: str, start_date) -> int:
     sql = text("SELECT COUNT(*) FROM jobs WHERE user_id = :user_id AND created_at >= :start_date")
     result = db.execute(sql, {"user_id": user_id, "start_date": start_date})
     return result.scalar()
-
-
-def find_by_status(db: Session, status: str, limit: int = 100) -> List[Dict[str, Any]]:
-    """
-    Find jobs by status (useful for background workers).
-    
-    Args:
-        db: Database session
-        status: Job status (pending, processing, completed, failed)
-        limit: Maximum number of jobs to return
-    
-    Returns:
-        List of job dicts
-    """
-    logger.info(f"Finding jobs with status {status}")
-    
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # jobs = db.query(Job).filter(Job.status == status).limit(limit).all()
-    # return [job.to_dict() for job in jobs]
-    
-    raise NotImplementedError()
-
-
-def count_all(db: Session) -> int:
-    """
-    Count all jobs in the system (admin/analytics).
-    
-    Args:
-        db: Database session
-    
-    Returns:
-        Total number of jobs
-    """
-    # TODO: Implement
-    # from backend.app.models.job import Job
-    # return db.query(Job).count()
-    
-    raise NotImplementedError()
 
 
 # ========================================

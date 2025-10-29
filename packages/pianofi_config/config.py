@@ -15,21 +15,7 @@ def get_storage() -> str:
 
 @lru_cache()
 def get_database_url() -> str:
-    """Get database URL from Parameter Store in production, .env in development"""
-    env = get_environment()
-    
-    if env == "development":
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
-        
-        # Use Supabase session pooler URI
-        db_url = os.getenv("DATABASE_URL")
-        if not db_url:
-            raise Exception("DATABASE_URL not found in environment")
-        return db_url
+    """Get database URL from Parameter Store"""
     
     # Production/Staging - use AWS Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -45,18 +31,7 @@ def get_database_url() -> str:
 
 @lru_cache()
 def get_aws_credentials() -> Dict[str, str]:
-    """Get AWS credentials from Parameter Store or environment"""
-    env = get_environment()
-    
-    if env == "development":
-        from dotenv import load_dotenv
-        load_dotenv()
-        return {
-            # "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID", ""),
-            # "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY", ""),
-            "aws_region": os.getenv("AWS_REGION", ""),
-            "s3_bucket": os.getenv("S3_BUCKET", "")
-        }
+    """Get AWS credentials from Parameter Store"""
     
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -65,8 +40,6 @@ def get_aws_credentials() -> Dict[str, str]:
         # Get multiple parameters at once
         response = ssm.get_parameters(
             Names=[
-                # f'/pianofi/{env}/aws/access_key_id',
-                # f'/pianofi/{env}/aws/secret_access_key',
                 f'/pianofi/aws/region',
                 f'/pianofi/s3/bucket'
             ],
@@ -76,8 +49,6 @@ def get_aws_credentials() -> Dict[str, str]:
         params = {param['Name'].split('/')[-1]: param['Value'] for param in response['Parameters']}
         
         return {
-            # "aws_access_key_id": params.get("access_key_id", ""),
-            # "aws_secret_access_key": params.get("secret_access_key", ""),
             "aws_region": params.get("region", ""),
             "s3_bucket": params.get("bucket", "")
         }
@@ -87,15 +58,8 @@ def get_aws_credentials() -> Dict[str, str]:
 @lru_cache()
 def get_cors_origins() -> list:
     """Get CORS allowed origins"""
-    env = get_environment()
     
-    if env == "development":
-        from dotenv import load_dotenv
-        load_dotenv()
-        origins = os.getenv("CORS_ALLOWED_ORIGINS", "https://www.pianofi.ca,https://pianofi.ca")
-        return origins.split(",")
-    
-    # Production - get from Parameter Store
+    # get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
@@ -107,22 +71,9 @@ def get_cors_origins() -> list:
     
 @lru_cache()
 def get_redis_url() -> str:
-    """Get Redis URL from Parameter Store in production, .env in development"""
-    env = get_environment()
+    """Get Redis URL from Parameter Store"""
     
-    if env == "development":
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
-        
-        redis_url = os.getenv("REDIS_URL")
-        if not redis_url:
-            raise Exception("REDIS_URL not found in environment")
-        return redis_url
-    
-    # Production/Staging - use AWS Parameter Store
+    # use AWS Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
     try:
@@ -136,21 +87,7 @@ def get_redis_url() -> str:
     
 @lru_cache()
 def get_supabase_config() -> Dict[str, str]:
-    """Get Supabase configuration from Parameter Store or environment"""
-    env = get_environment()
-    
-    if env == "development":
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
-        
-        return {
-            "url": os.getenv("SUPABASE_URL", ""),
-            "anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
-            "service_role_key": os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-        }
+    """Get Supabase configuration from Parameter Store"""
     
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -178,16 +115,6 @@ def get_supabase_config() -> Dict[str, str]:
 @lru_cache()
 def get_backend_base_url() -> str:
     """Get backend base URL from environment"""
-    env = get_environment()
-    
-    if env == "development":
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
-        
-        return os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
     
     # Production - get from Parameter Store or environment
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -197,25 +124,11 @@ def get_backend_base_url() -> str:
         return response['Parameter']['Value']
     except Exception as e:
         # Fallback to environment variable or default
-        return os.getenv("BACKEND_BASE_URL", "https://api.yourdomain.com")
+        return os.getenv("BACKEND_BASE_URL", "https://api.pianofi.ca")
     
 @lru_cache()
 def get_stripe_keys() -> str:
-    """Get Stripe keys from environment or Parameter Store"""
-    env = get_environment()
-    
-    if env == "development":
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
-        
-        return {
-            "secret_key": os.getenv("STRIPE_SECRET_KEY", ""),
-            "publishable_key": os.getenv("STRIPE_PUBLISHABLE_KEY", ""),
-            "webhook_secret": os.getenv("STRIPE_WEBHOOK_SECRET", "")
-        }
+    """Get Stripe keys from Parameter Store"""
     
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
