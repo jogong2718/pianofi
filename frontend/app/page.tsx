@@ -28,6 +28,7 @@ export default function LandingPage() {
   const videoRef = useRef<HTMLElement>(null);
   const featuresRef = useRef<HTMLElement>(null);
   const donationsRef = useRef<HTMLElement>(null);
+  const schoolsRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
   // Visibility states
@@ -35,7 +36,17 @@ export default function LandingPage() {
   const [videoVisible, setVideoVisible] = useState(false);
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
+  const [schoolsVisible, setSchoolsVisible] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(false);
+
+  const logos = [
+    "ucla.svg",
+    "berklee.svg",
+    "uw.png",
+    "ubc.png",
+    "umich.png",
+    "cmu.jpg",
+  ];
 
   useEffect(() => {
     const canonical = document.querySelector('link[rel="canonical"]');
@@ -104,12 +115,21 @@ export default function LandingPage() {
           setFeaturesVisible(entry.isIntersecting);
         if (entry.target === donationsRef.current)
           setDonationsVisible(entry.isIntersecting);
+        if (entry.target === schoolsRef.current)
+          setSchoolsVisible(entry.isIntersecting);
         if (entry.target === ctaRef.current)
           setCtaVisible(entry.isIntersecting);
       });
     }, observerOptions);
 
-    const refs = [heroRef, videoRef, featuresRef, donationsRef, ctaRef];
+    const refs = [
+      heroRef,
+      videoRef,
+      featuresRef,
+      donationsRef,
+      schoolsRef,
+      ctaRef,
+    ];
     refs.forEach((ref) => {
       if (ref.current) observer.observe(ref.current);
     });
@@ -487,6 +507,63 @@ export default function LandingPage() {
             </div>
           </div>
         </section> */}
+
+        {/* Schools / Partners Section */}
+        <section
+          ref={schoolsRef}
+          className={`w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-background transition-all duration-1000 delay-400 ${
+            schoolsVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center text-center mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold">
+                Musicians on PianoFi come from
+              </h2>
+              <p className="max-w-[800px] text-muted-foreground mt-2">
+                We work with musicians and students from top music schools and
+                universities.
+              </p>
+            </div>
+
+            <style>{`
+              @keyframes scroll {
+                0% {
+                  transform: translateX(0);
+                }
+                100% {
+                  transform: translateX(-50%);
+                }
+              }
+            `}</style>
+            <div className="overflow-hidden mt-6">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "3rem",
+                  alignItems: "center",
+                  animation: "scroll 30s linear infinite",
+                }}
+              >
+                {[...logos, ...logos].map((f, i) => (
+                  <img
+                    key={`${f}-${i}`}
+                    src={`/logos/${f}`}
+                    alt={f.replace(/\..*/, "")}
+                    className="h-14 md:h-20 lg:h-24"
+                    style={{
+                      flexShrink: 0,
+                      width: "auto",
+                      display: "block",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Donations Section */}
         <section
