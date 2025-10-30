@@ -132,6 +132,7 @@ def generate_download_url(
         base = backend_base_url or "http://localhost:8000"
         if file_type == "midi":
             download_url = f"{base}/downloadMidi/{job_id}"
+            logger.info(f"Local MIDI download URL: {download_url}")
             return {
                 "job_id": job_id,
                 "status": "completed",
@@ -139,6 +140,7 @@ def generate_download_url(
             }
         else:  # xml
             download_url = f"{base}/downloadXml/{job_id}"
+            logger.info(f"Local XML download URL: {download_url}")
             return {
                 "job_id": job_id,
                 "status": "completed",
@@ -156,6 +158,7 @@ def generate_download_url(
             s3_key = f"xml/{job_id}.musicxml"
             url_field = "xml_download_url"
         
+        logger.info(f"Checking S3 for file: Bucket={bucket_name}, Key={s3_key}")
         print(bucket_name, s3_key)
         
         try:
@@ -180,6 +183,8 @@ def generate_download_url(
             Params={'Bucket': bucket_name, 'Key': s3_key},
             ExpiresIn=3600  # 1 hour
         )
+
+        logger.info(f"Generated presigned URL for {file_type}: {presigned_url}")
         
         return {
             "job_id": job_id,
