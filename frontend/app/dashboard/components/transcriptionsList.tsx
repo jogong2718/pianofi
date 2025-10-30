@@ -44,7 +44,7 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
   // }
 
   const handleDownload = async (transcription: any, downloadType: string) => {
-    if (!transcription.midi_download_url && !transcription.xml_download_url) {
+    if (!transcription.midi_download_url && !transcription.xml_download_url && !transcription.pdf_download_url) {
       console.error(
         "Download URL not available for transcription:",
         transcription
@@ -60,7 +60,10 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
         the_url = transcription.midi_download_url;
       } else if (downloadType === "xml" && transcription.xml_download_url) {
         the_url = transcription.xml_download_url;
-      } else {
+      } else if (downloadType === "pdf" && transcription.pdf_download_url) {
+        the_url = transcription.pdf_download_url;
+      }
+      else {
         throw new Error("Invalid download type specified");
       }
 
@@ -81,7 +84,12 @@ const TranscriptionsList: FC<TranscriptionsListProps> = ({
         // Create temporary link and trigger download
         const link = document.createElement("a");
         link.href = url;
-        link.download = transcription.filename.replace(/\.[^/.]+$/, ".mid"); // Change extension to .mid
+        const extension = downloadType === "midi" 
+          ? ".mid" 
+          : downloadType === "xml" 
+            ? ".musicxml" 
+            : ".pdf";
+        link.download = transcription.filename.replace(/\.[^/.]+$/, extension);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

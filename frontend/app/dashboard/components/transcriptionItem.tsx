@@ -153,7 +153,7 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                   ? "secondary"
                   : transcription.status === "failed"
                   ? "destructive"
-                  : "outline" // For initialized/queued
+                  : "outline"
               }
             >
               {transcription.status === "completed"
@@ -193,23 +193,27 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+
+              {/* MIDI download */}
               <DropdownMenuItem
                 onClick={() => {
                   if (
-                    !transcription.xml_download_url ||
-                    transcription.xml_download_url === "pending" ||
-                    transcription.xml_download_url === "error" ||
+                    !transcription.midi_download_url ||
+                    transcription.midi_download_url === "pending" ||
+                    transcription.midi_download_url === "error" ||
                     transcription.status === "missing"
                   ) {
-                    toast.error("Midi file not available for download.");
+                    toast.error("MIDI file not available for download.");
                     return;
                   }
                   onDownload(transcription, "midi");
                 }}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Midi
+                MIDI
               </DropdownMenuItem>
+
+              {/* XML download */}
               <DropdownMenuItem
                 onClick={() => {
                   if (
@@ -227,6 +231,26 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 <Download className="h-4 w-4 mr-2" />
                 XML
               </DropdownMenuItem>
+
+              {/* PDF download */}
+              <DropdownMenuItem
+                onClick={() => {
+                  if (
+                    !transcription.pdf_download_url ||
+                    transcription.pdf_download_url === "pending" ||
+                    transcription.pdf_download_url === "error" ||
+                    transcription.status === "missing"
+                  ) {
+                    toast.error("PDF file not available for download.");
+                    return;
+                  }
+                  onDownload(transcription, "pdf");
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                PDF
+              </DropdownMenuItem>
+
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"
