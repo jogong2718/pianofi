@@ -193,6 +193,10 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+
+
+            {/*
+              #Removed the Midi and XML download options from the Transcription page
               <DropdownMenuItem
                 onClick={() => {
                   if (
@@ -227,6 +231,9 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 <Download className="h-4 w-4 mr-2" />
                 XML
               </DropdownMenuItem>
+              */
+            }
+
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"
