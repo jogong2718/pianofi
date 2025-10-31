@@ -2,20 +2,20 @@
 
 PianoFi is an advanced AI-powered music transcription service that turns any audio file into professional piano sheet music. Simply upload your audio, and our cutting-edge AI models will generate accurate piano transcriptions in multiple formats.
 
-Visit us at [pianofi.ca](https://pianofi.ca)
+Visit us at [www.pianofi.ca](https://www.pianofi.ca)
 
 ## 🧏‍♂️ [Check out our full team!](https://github.com/jogong2718/pianofi/wiki/About%E2%80%90Us)
 
 ## 🎹 Features
 
 - **AI-Powered Transcription**: Convert audio files (MP3, WAV, FLAC) to piano sheet music.
-- **Advanced AI Models**: Choose between AMT (faster processing, better musicality) and PiCoGen (higher accuracy, currently in beta).
+- **Advanced AI Models**: Choose between AMT (faster processing, better musicality) and PiCoGen (higher accuracy, currently available to a select few).
 - **Customizable Difficulty**: Generate Easy, Medium, or Hard arrangements to suit your skill level.
 - **Multiple Output Formats**: Download as MusicXML, MIDI, and PDF (coming soon).
 - **Interactive Sheet Music Player**: View and play your transcriptions with synchronized audio playback.
 - **Measure Navigation**: Click on any measure to jump directly to that section in the audio.
 - **User Dashboard**: Track and manage all your transcriptions in one place.
-- **Subscription Plans**: Choose a plan that fits your needs, with secure payments via Stripe.
+- **Subscription Plans**: Choose a plan that fits your needs, with secure payments via Stripe (coming soon for our newest and most accurate models).
 
 ## ⚡ How It Works
 
@@ -35,40 +35,10 @@ PianoFi is built with a modern microservices architecture designed for scalabili
 - **Audio Processing**: FluidSynth, FFmpeg, midi2audio
 - **Infrastructure**: Docker, AWS (ECS, Fargate, EC2, S3), Stripe
 
-## 🚀 Development
+## 🚀 Development and Contributing
 
-### Prerequisites
-
-- Docker and Docker Compose
-- Node.js 18+
-- Python 3.10+
-- AWS CLI configured with SSO
-
-### Local Setup
-
-1.  Clone the repository:
-
-    ```bash
-    git clone https://github.com/jogong2718/pianofi.git
-    cd pianofi
-    ```
-
-2.  Create necessary environment files based on the examples:
-
-    - `frontend/.env.local`
-    - `packages/pianofi_config/.env`
-
-3.  Log in to AWS SSO profile:
-
-    ```bash
-    ./dev-start.sh
-    ```
-
-    This script will also start the development environment using Docker Compose.
-
-4.  The services will be available at:
-    - Frontend: `http://localhost:3000`
-    - Backend API: `http://localhost:8000`
+For any features you may want Pianofi to have, discuss them [here](https://github.com/jogong2718/pianofi/discussions/130)
+For contributing to the project, pick up any issues that are open and in the to-do category. Then look over [Contributing.md](https://github.com/jogong2718/pianofi/blob/main/Contributing.md)
 
 ## 🏗️ Architecture Deep Dive
 
@@ -93,9 +63,9 @@ PianoFi is built with a modern microservices architecture designed for scalabili
 
 ## 🔗 Links
 
-- **Website**: [pianofi.ca](https://pianofi.ca)
+- **Website**: [www.pianofi.ca](https://www.pianofi.ca)
 - **Contact**: [jonathan@pianofi.ca](mailto:jonathan@pianofi.ca) or [bruce@pianofi.ca](mailto:bruce@pianofi.ca)
-- **Support**: Visit [pianofi.ca/contact](https://pianofi.ca/contact)
+- **Support**: Visit [www.pianofi.ca/contact](https://www.pianofi.ca/contact)
 
 ## 📜 License
 
