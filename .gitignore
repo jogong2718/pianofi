@@ -50,3 +50,6 @@ dev-start.sh
 dev-start.bat
 
 dev-start
+
+# Terraform
+terraform/import/
