@@ -9,3 +9,10 @@ resource "aws_ecs_cluster" "main" {
 
     tags = var.tags
 }
+
+# ECS Services
+resource "aws_ecs_service" "main" {
+    for_each = var.services
+
+    name = "pianofi-${var.cluster_name}-${each.key}"
+}
