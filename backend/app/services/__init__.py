@@ -17,6 +17,7 @@ from . import user_service
 from . import webhook_service
 from . import sheet_music_service
 from . import analytics_service
+from . import youtube_service
 
 __all__ = [
     "job_service",
@@ -26,4 +27,5 @@ __all__ = [
     "webhook_service",
     "sheet_music_service",
     "analytics_service",
+    "youtube_service",
 ]
