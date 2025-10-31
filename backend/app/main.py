@@ -12,21 +12,8 @@ load_dotenv()
 
 app = FastAPI()
 
-# mount routers
-# app.include_router(separation.router, prefix="/separate", tags=["separation"])
-# app.include_router(transcription.router, prefix="/transcribe", tags=["transcription"])
-# app.include_router(midi_ops.router, prefix="/midi", tags=["midi"])
-
 origins = Config.CORS_ORIGINS
 
-# if cors_origins:
-#     if isinstance(cors_origins, str):
-#         origins = [o.strip() for o in cors_origins.split(",")]
-#     else:
-#         origins = [o.strip() for o in cors_origins]
-# else:
-#     # Fallback origins for development
-#     origins = ["*"]  # or ["http://localhost:3000", "http://frontend:3000"]
 
 app.add_middleware(
     CORSMiddleware,
