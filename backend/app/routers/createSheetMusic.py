@@ -400,7 +400,7 @@ async def get_midi_endpoint(
     except Exception as e:
         logger.exception(f"Error in get_midi_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
- @router.get("/getPDF/{job_id}")
+@router.get("/getPDF/{job_id}")
 async def get_pdf_endpoint(
     job_id: str,
     db: Session = Depends(get_db),
