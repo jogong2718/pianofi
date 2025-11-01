@@ -283,12 +283,15 @@ async def convert_to_xml_endpoint(
     output_path: str
 ):
     try:
-        result_file = convert_midi_to_xml(midi_file_path, output_path)
+        from app.services import sheet_music_service
+        result_file = sheet_music_service.convert_midi_to_xml(midi_file_path, output_path)
         return {
             "success": True,
             "output_file": result_file,
             "format": "musicxml"
         }
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -304,12 +307,15 @@ async def convert_to_visual_endpoint(
         raise HTTPException(status_code=400, detail="Format must be pdf, png, or svg")
     
     try:
-        result_file = convert_midi_to_visual(midi_file_path, output_path, format, title, composer)
+        from app.services import sheet_music_service
+        result_file = sheet_music_service.convert_midi_to_visual(midi_file_path, output_path, format, title, composer)
         return {
             "success": True,
             "output_file": result_file,
             "format": format.lower()
         }
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -319,11 +325,21 @@ async def get_xml_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Download MusicXML file for a completed transcription job."""
     try:
-        authenticated_user_id = current_user.id
-        xml_content = await get_xml_for_job(job_id, authenticated_user_id, db)
-        
         from fastapi.responses import Response
+        from app.services import sheet_music_service
+        
+        # Call service layer
+        xml_content = sheet_music_service.get_xml_file(
+            job_id=job_id,
+            user_id=current_user.id,
+            db=db,
+            s3_client=s3_client,
+            aws_creds=aws_creds
+        )
+        
+        # Wrap in HTTP response with appropriate headers
         return Response(
             content=xml_content,
             media_type='application/xml',
@@ -332,6 +348,14 @@ async def get_xml_endpoint(
             }
         )
         
+    except PermissionError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception(f"Error in get_xml_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -342,11 +366,21 @@ async def get_midi_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Download MIDI file for a completed transcription job."""
     try:
-        authenticated_user_id = current_user.id
-        midi_content = await get_midi_for_job(job_id, authenticated_user_id, db)
-        
         from fastapi.responses import Response
+        from app.services import sheet_music_service
+        
+        # Call service layer
+        midi_content = sheet_music_service.get_midi_file(
+            job_id=job_id,
+            user_id=current_user.id,
+            db=db,
+            s3_client=s3_client,
+            aws_creds=aws_creds
+        )
+        
+        # Wrap in HTTP response with appropriate headers
         return Response(
             content=midi_content,
             media_type='application/octet-stream',
@@ -354,11 +388,19 @@ async def get_midi_endpoint(
                 'Content-Disposition': f'attachment; filename="{job_id}.mid"'
             }
         )
+        
+    except PermissionError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception(f"Error in get_midi_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/getPDF/{job_id}")
+ @router.get("/getPDF/{job_id}")
 async def get_pdf_endpoint(
     job_id: str,
     db: Session = Depends(get_db),
@@ -386,12 +428,20 @@ async def get_audio_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Download processed audio file for a completed transcription job."""
     try:
-        authenticated_user_id = current_user.id
-        audio_content, audio_metadata = await get_audio_for_job(job_id, authenticated_user_id, db)
-        
         from fastapi.responses import Response
+        from app.services import sheet_music_service
         import json
+        
+        # Call service layer
+        audio_content, audio_metadata = sheet_music_service.get_audio_file(
+            job_id=job_id,
+            user_id=current_user.id,
+            db=db,
+            s3_client=s3_client,
+            aws_creds=aws_creds
+        )
         
         # Return audio with metadata in headers
         headers = {
@@ -405,6 +455,14 @@ async def get_audio_endpoint(
             headers=headers,
         )
         
+    except PermissionError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.exception(f"Error in get_audio_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from app.auth import get_current_user
 from app.schemas.user import User
-from app.config_loader import Config
 from app.schemas.deleteJob import deleteJobResponse
 from app.database import get_db
+from app.services import job_service
 
 router = APIRouter()
 
@@ -17,27 +16,20 @@ def delete_job(
 ):
     """Soft delete a job by setting status to 'deleted'"""
     try:
-        # Update job status to 'deleted'
-        result = db.execute(
-            text("""
-                UPDATE jobs 
-                SET status = 'deleted'
-                WHERE job_id = :job_id AND user_id = :user_id
-                RETURNING job_id
-            """),
-            {"job_id": job_id, "user_id": current_user.id}
+        # Call service layer
+        result = job_service.delete_job(
+            job_id=job_id,
+            user_id=current_user.id,
+            db=db
         )
-        
-        deleted_job = result.fetchone()
-        if not deleted_job:
-            raise HTTPException(status_code=404, detail="Job not found")
         
         db.commit()
-        return deleteJobResponse(
-            message="Job successfully deleted",
-            jobId=str(deleted_job[0])
-        )
         
+        return deleteJobResponse(**result)
+        
+    except PermissionError as e:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error deleting job: {str(e)}")

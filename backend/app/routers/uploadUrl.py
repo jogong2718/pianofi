@@ -1,13 +1,9 @@
 # app/routers/upload.py
 
-import uuid
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
-import boto3
-from botocore.exceptions import ClientError
 from pathlib import Path
-from sqlalchemy import text
 from sqlalchemy.orm import Session
+import boto3
 
 # app/schemas/uploadUrl.py
 from app.config_loader import Config 
@@ -16,6 +12,8 @@ from app.schemas.uploadUrl import CreateUrlPayload
 from app.schemas.user import User
 from app.auth import get_current_user
 from app.database import get_db
+from app.services import storage_service
+from app.repositories import job_repository
 
 router = APIRouter()
 
@@ -35,88 +33,56 @@ if not local:
     )
 
 @router.post("/uploadUrl", response_model=UploadUrlResponse)
-def create_upload_url(payload: CreateUrlPayload, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_upload_url(
+    payload: CreateUrlPayload, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
     """
     Generate a presigned PUT URL for S3, plus a jobId and fileKey.
     The client will PUT its file directly to S3 at this URL.
     """
-    # Validate the upload request parameters
-    validation_error = validate_upload_request(
-        file_name=payload.file_name,
-        file_size=payload.file_size,
-        content_type=payload.content_type
-    )
-    if validation_error:
-        raise HTTPException(status_code=400, detail=validation_error)
-    
     try:
-        job_id = str(uuid.uuid4())
-        file_ext = '.' + payload.file_name.lower().split('.')[-1] if '.' in payload.file_name else '.mp3'
-        file_key = f"mp3/{job_id}{file_ext}"
-        authenticated_user_id = current_user.id
-
-        sql = text("""
-            INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration)
-            VALUES (:job_id, :file_key, 'initialized', :user_id, :file_name, :file_size, :file_duration)
-        """)
-
-        db.execute(sql, {
-            "job_id": job_id, 
-            "file_key": file_key, 
-            "user_id": authenticated_user_id, 
-            "file_name": payload.file_name, 
-            "file_size": payload.file_size, 
-            "file_duration": None
-        })
-        
-        if local:
-            upload_url = str(UPLOAD_DIR / "mp3" / job_id)
-        else:
-            upload_url: str = s3_client.generate_presigned_url(
-                ClientMethod="put_object",
-                Params={
-                    "Bucket": aws_creds["s3_bucket"],
-                    "Key": file_key,
-                    "ContentType": "audio/mpeg"
-                },
-                ExpiresIn=3600,
-                HttpMethod="PUT",
-            )
-
-        db.commit()
-
-        return UploadUrlResponse(
-            uploadUrl=upload_url,
-            jobId=job_id,
-            fileKey=file_key,
+        # 1. Generate upload URL using storage service
+        result = storage_service.generate_upload_url(
+            user_id=current_user.id,
+            filename=payload.file_name,
+            file_size=payload.file_size,
+            content_type=payload.content_type,
+            s3_client=s3_client if not local else None,
+            aws_creds=aws_creds,
+            use_local=local,
+            local_upload_dir=str(UPLOAD_DIR) if local else None
         )
-
-    except ClientError as e:
+        print("IT WORKS")
+        
+        # 2. Create job record in database using repository
+        job_data = {
+            "job_id": result["job_id"],
+            "file_key": result["file_key"],
+            "status": "initialized",
+            "user_id": current_user.id,
+            "file_name": payload.file_name,
+            "file_size": payload.file_size,
+            "file_duration": None
+        }
+        
+        job_repository.save(db, job_data)
+        db.commit()
+        
+        # 3. Return response
+        return UploadUrlResponse(
+            uploadUrl=result["upload_url"],
+            jobId=result["job_id"],
+            fileKey=result["file_key"],
+        )
+    
+    except ValueError as e:
+        # Validation errors from service
         db.rollback()
-        # Some AWS error occurred (invalid credentials, missing bucket, etc.)
-        raise HTTPException(status_code=500, detail=f"Could not generate presigned URL: {e}")
-
+        raise HTTPException(status_code=400, detail=str(e))
+    
     except Exception as e:
+        # Any other errors
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
-def validate_upload_request(file_name: str, file_size: int, content_type: str) -> str | None:
-    """Validate upload parameters before generating pre-signed URL"""
-    
-    # File size validation (10MB limit)
-    MAX_FILE_SIZE = 10 * 1024 * 1024
-    if file_size > MAX_FILE_SIZE:
-        return f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
-    
-    # File extension validation
-    ALLOWED_EXTENSIONS = {'.mp3', '.wav', '.flac'}
-    file_ext = '.' + file_name.lower().split('.')[-1] if '.' in file_name else ''
-    if file_ext not in ALLOWED_EXTENSIONS:
-        return f"Invalid file extension: {file_ext}"
-    
-    # MIME type validation
-    ALLOWED_MIME_TYPES = {'audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-wav', 'audio/x-flac'}
-    if content_type not in ALLOWED_MIME_TYPES:
-        return f"Invalid file type: {content_type}"
-    
-    return None  # Valid

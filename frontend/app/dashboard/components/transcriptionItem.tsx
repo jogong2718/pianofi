@@ -194,7 +194,9 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
 
-              {/* MIDI download */}
+
+            {/*
+              #Removed the Midi and XML download options from the Transcription page
               <DropdownMenuItem
                 onClick={() => {
                   if (

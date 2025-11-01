@@ -18,6 +18,7 @@ from app.schemas.getDownload import getDownloadResponse
 from app.schemas.user import User
 from app.auth import get_current_user
 from app.database import get_db
+from app.services import storage_service
 
 router = APIRouter()
 
@@ -38,53 +39,17 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     This endpoint retrieves the downloadlink of a job based on the provided jobId.
     """
     try:
-        if local:
-            # Use absolute URL with your backend base URL
-            backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
-            download_url = f"{backend_base}/downloadMidi/{job_id}"
-            
-            return getDownloadResponse(
-                job_id=job_id,
-                status="completed",
-                midi_download_url=download_url,
-            )
+        backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
+        result = storage_service.generate_download_url(
+            job_id=job_id,
+            file_type="midi",
+            s3_client=s3_client,
+            aws_creds=aws_creds,
+            use_local=local,
+            backend_base_url=backend_base
+        )
         
-        else:
-            # Production: Generate S3 presigned URL
-            bucket_name = aws_creds["s3_bucket"]
-            s3_key = f"midi/{job_id}.mid"  # This matches the worker pattern
-
-            print(bucket_name, s3_key)
-            
-            try:
-                # Check if file exists in S3
-                s3_client.head_object(Bucket=bucket_name, Key=s3_key)
-            except ClientError as e:
-                if e.response['Error']['Code'] == '404':
-                    logger.error(f"File not found in S3: {s3_key}")
-                    logger.error(f"Bucket: {bucket_name}")
-                    logger.error(f"Error details: {e}")
-                    return getDownloadResponse(
-                        job_id=job_id,
-                        status="missing",
-                        midi_download_url=None,
-                    )
-                else:
-                    raise HTTPException(status_code=500, detail="Error checking S3 file")
-            
-            # Generate presigned URL (valid for 1 hour)
-            presigned_url = s3_client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket_name, 'Key': s3_key},
-                ExpiresIn=3600  # 1 hour
-            )
-            
-            return getDownloadResponse(
-                job_id=job_id,
-                status="completed",
-                midi_download_url=presigned_url,
-            )
-
+        return getDownloadResponse(**result)
 
     except Exception as e:
         import traceback
@@ -99,53 +64,17 @@ def get_user_jobs(job_id: str, db: Session = Depends(get_db)):
     This endpoint retrieves the downloadlink of a job based on the provided jobId.
     """
     try:
-        if local:
-            # Use absolute URL with your backend base URL
-            backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
-            download_url = f"{backend_base}/downloadXml/{job_id}"
-            
-            return getDownloadResponse(
-                job_id=job_id,
-                status="completed",
-                xml_download_url=download_url,
-            )
+        backend_base = Config.BACKEND_BASE_URL or "http://localhost:8000"
+        result = storage_service.generate_download_url(
+            job_id=job_id,
+            file_type="xml",
+            s3_client=s3_client,
+            aws_creds=aws_creds,
+            use_local=local,
+            backend_base_url=backend_base
+        )
         
-        else:
-            # Production: Generate S3 presigned URL
-            bucket_name = aws_creds["s3_bucket"]
-            s3_key = f"xml/{job_id}.musicxml"  # This matches the worker pattern
-
-            print(bucket_name, s3_key)
-            
-            try:
-                # Check if file exists in S3
-                s3_client.head_object(Bucket=bucket_name, Key=s3_key)
-            except ClientError as e:
-                if e.response['Error']['Code'] == '404':
-                    logger.error(f"File not found in S3: {s3_key}")
-                    logger.error(f"Bucket: {bucket_name}")
-                    logger.error(f"Error details: {e}")
-                    return getDownloadResponse(
-                        job_id=job_id,
-                        status="missing",
-                        xml_download_url=None,
-                    )
-                else:
-                    raise HTTPException(status_code=500, detail="Error checking S3 file")
-            
-            # Generate presigned URL (valid for 1 hour)
-            presigned_url = s3_client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket_name, 'Key': s3_key},
-                ExpiresIn=3600  # 1 hour
-            )
-            
-            return getDownloadResponse(
-                job_id=job_id,
-                status="completed",
-                xml_download_url=presigned_url,
-            )
-
+        return getDownloadResponse(**result)
 
     except Exception as e:
         import traceback

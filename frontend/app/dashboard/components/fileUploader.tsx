@@ -149,7 +149,7 @@ const FileUploader: FC<FileUploaderProps> = ({
       const newTranscription = {
         id: newJobId,
         filename: file.name,
-        status: "processing" as const,
+        status: "initialized" as const,
         progress: 0,
         uploadedAt: new Date().toISOString().split("T")[0],
         duration: "Processing...", // Placeholder until we get actual duration
