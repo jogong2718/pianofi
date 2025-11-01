@@ -8,6 +8,7 @@ Serves routers: createCheckoutSession, webhook payment events
 from typing import Dict, Any, Optional
 from uuid import UUID
 import logging
+import stripe
 
 logger = logging.getLogger(__name__)
 
@@ -15,50 +16,68 @@ logger = logging.getLogger(__name__)
 def create_checkout_session(
     user_id: UUID,
     price_id: str,
-    success_url: str,
-    cancel_url: str,
+    success_url: Optional[str],
+    cancel_url: Optional[str],
     metadata: Optional[Dict[str, Any]],
     stripe_client,
     payment_repository,
     user_repository
 ) -> Dict[str, Any]:
-    """
-    Create a Stripe checkout session for a subscription or one-time payment.
-    
-    Business logic:
-    1. Validate price_id and user
-    2. Create or retrieve Stripe customer
-    3. Create checkout session
-    4. Track session in database
-    
-    Args:
-        user_id: UUID of the user
-        price_id: Stripe price ID
-        success_url: URL to redirect on successful payment
-        cancel_url: URL to redirect on cancelled payment
-        metadata: Optional metadata to attach to the session
-        stripe_client: Client for Stripe API operations
-        payment_repository: Repository for payment/subscription data
-        user_repository: Repository for user data
-    
-    Returns:
-        Dict containing:
-            - session_id: Stripe checkout session ID
-            - checkout_url: URL to redirect user to Stripe checkout
-    
-    Raises:
-        ValidationError: Invalid price_id or URLs
-        PaymentError: Stripe API error
-    """
     logger.info(f"Creating checkout session for user {user_id}, price {price_id}")
-    
-    # TODO: Implement
-    # 1. Get or create Stripe customer: customer_id = _get_or_create_customer(user_id, ...)
-    # 2. Create session: session = stripe_client.create_checkout_session(...)
-    # 3. Track in DB: payment_repository.save_checkout_session(session)
-    # 4. Return session details
-    
-    raise NotImplementedError("Checkout session logic to be moved from router")
+
+    if not price_id:
+        raise ValueError("price_id is required")
+
+    # Provide reasonable defaults if caller didn't
+    success_url = success_url or "https://www.pianofi.ca/success?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = cancel_url or "https://www.pianofi.ca/dashboard"
+
+    try:
+        # Get or create Stripe customer id via repository helper
+        customer_id = _get_or_create_customer(user_id, stripe_client, user_repository)
+
+        # Create Stripe checkout session
+        session = stripe_client.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer=customer_id,
+            subscription_data={
+                'metadata': metadata or {'user_id': str(user_id)}
+            },
+            metadata=metadata or {'user_id': str(user_id)}
+        )
+
+        # Persist session record in payment repository if available
+        try:
+            if payment_repository:
+                # adapt to your repository API; example method names
+                payment_repository.save_checkout_session({
+                    "user_id": str(user_id),
+                    "stripe_session_id": session.id,
+                    "price_id": price_id,
+                    "status": getattr(session, "status", "open")
+                })
+        except Exception as e:
+            logger.warning(f"Failed to persist checkout session: {e}")
+
+        checkout_url = getattr(session, "url", None) or session.get("url") if isinstance(session, dict) else None
+        # Some stripe lib versions return session.url, others provide a hosted_checkout_url or require building URL with id.
+        # Return both id and url if available.
+        return {"session_id": session.id, "checkout_url": checkout_url or ""}
+
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        raise RuntimeError(f"Stripe error: {e}")
+    except Exception as e:
+        logger.error(f"Checkout session creation failed: {e}")
+        raise RuntimeError("Failed to create checkout session")
+
 
 
 def handle_payment_success(
