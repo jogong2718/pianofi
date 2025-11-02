@@ -4,6 +4,7 @@ import sys
 import uuid
 import logging
 from pathlib import Path
+import shutil
 
 def convert_musicxml_to_pdf(input_path, output_path=None, remove_tagline=True):
     """
@@ -54,9 +55,9 @@ def convert_musicxml_to_pdf(input_path, output_path=None, remove_tagline=True):
         final_path = Path(output_path) if output_path else (work_dir / "test.pdf")
         if final_path.exists():
             final_path.unlink()
-        pdf_path.rename(final_path)
+        shutil.move(str(pdf_path), str(final_path))
 
-        logging.info(f"✅ Successfully converted {input_path.name} → {final_path.name}")
+        logging.info(f"Successfully converted {input_path.name} to {final_path.name}")
         return str(final_path)
 
     except subprocess.CalledProcessError as e:
@@ -76,7 +77,7 @@ def main():
         result = convert_musicxml_to_pdf(input_file, output_file)
         print(f"PDF created: {result}")
     except Exception as e:
-        print(f"❌ {e}")
+        print(e)
         sys.exit(1)
 
 if __name__ == "__main__":
