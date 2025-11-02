@@ -52,60 +52,53 @@ export function useTranscriptionManager({
     []
   );
 
-  const handleJobCompletion = useCallback(
-    async (jobId: string) => {
-      try {
-        setTranscriptions((prev) => {
-          const existingJob = prev.find((t) => t.id === jobId);
+  const handleJobCompletion = useCallback(async (jobId: string) => {
+    try {
+      setTranscriptions((prev) => {
+        const existingJob = prev.find((t) => t.id === jobId);
 
-          // Skip if already completed
-          if (existingJob?.status === "completed") {
-            return prev;
-          }
-          const updatedTranscriptions = prev.map((t) =>
-            t.id === jobId
-              ? {
-                  ...t,
-                  status: "completed" as const,
-                  progress: 100,
-                }
-              : t
-          );
-
-          const notificationsEnabled =
-            localStorage.getItem("notifications-enabled") === "true";
-          const completedJob = updatedTranscriptions.find(
-            (t) => t.id === jobId
-          );
-          if (notificationsEnabled && completedJob) {
-            NotificationManager.showTranscriptionComplete(
-              completedJob.filename
-            );
-          }
-
-          toast.success("Transcription completed!");
-          return updatedTranscriptions;
-        });
-      } catch (error) {
-        console.error("Failed transcription:  ", error);
-
-        setTranscriptions((prev) =>
-          prev.map((t) =>
-            t.id === jobId
-              ? {
-                  ...t,
-                  status: "failed" as const,
-                  progress: 100,
-                }
-              : t
-          )
+        // Skip if already completed
+        if (existingJob?.status === "completed") {
+          return prev;
+        }
+        const updatedTranscriptions = prev.map((t) =>
+          t.id === jobId
+            ? {
+                ...t,
+                status: "completed" as const,
+                progress: 100,
+              }
+            : t
         );
 
-        toast.error("Failed to complete transcription");
-      }
-    },
-    [transcriptions]
-  );
+        const notificationsEnabled =
+          localStorage.getItem("notifications-enabled") === "true";
+        const completedJob = updatedTranscriptions.find((t) => t.id === jobId);
+        if (notificationsEnabled && completedJob) {
+          NotificationManager.showTranscriptionComplete(completedJob.filename);
+        }
+
+        toast.success("Transcription completed!");
+        return updatedTranscriptions;
+      });
+    } catch (error) {
+      console.error("Failed transcription:  ", error);
+
+      setTranscriptions((prev) =>
+        prev.map((t) =>
+          t.id === jobId
+            ? {
+                ...t,
+                status: "failed" as const,
+                progress: 100,
+              }
+            : t
+        )
+      );
+
+      toast.error("Failed to complete transcription");
+    }
+  }, []);
 
   const updateTranscriptionStatus = useCallback(
     (
