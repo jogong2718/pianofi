@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useMIDI, useSheetMusic } from "@/hooks/useSheetMusic";
+import { useMIDI, useSheetMusic, usePDF } from "@/hooks/useSheetMusic";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,6 +24,7 @@ export default function TranscriptionDetailPage() {
     error: xmlError,
   } = useSheetMusic({ jobId });
   const { midi, loading: midiLoading, error: midiError } = useMIDI({ jobId });
+  const { pdf, loading: pdfLoading, error: pdfError } = usePDF({ jobId });
   const {
     audioRef,
     metadata,
@@ -37,9 +38,7 @@ export default function TranscriptionDetailPage() {
   // Simple wrapper functions
   const handleDownloadMIDI = () => downloadMIDI(midi, jobId);
   const handleDownloadXML = () => downloadXML(xml, jobId);
-  const handleDownloadPDF = () => {
-    toast.info("PDF download coming soon!");
-  };
+  const handleDownloadPDF = () => downloadPDF(pdf, jobId);
 
   // Show toast notifications for non-critical errors
   useEffect(() => {
@@ -60,7 +59,16 @@ export default function TranscriptionDetailPage() {
     }
   }, [audioError]);
 
-  if (xmlLoading || audioLoading) {
+  useEffect(() => {
+    if (pdfError) {
+      toast.error("PDF Download Unavailable", {
+        description: pdfError,
+        duration: 5000,
+      });
+    }
+  }, [pdfError]);
+
+  if (xmlLoading || audioLoading || pdfLoading) {
     return (
       <div className="h-screen flex flex-col bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
         <div className="container mx-auto md:px-4 pt-8 flex flex-col h-full">
@@ -201,11 +209,17 @@ export default function TranscriptionDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadPDF}
-                disabled={downloading !== null}
+                disabled={
+                  !pdf ||
+                  pdfLoading ||
+                  downloading === `transcription-${jobId}.pdf`
+                }
                 className="hover:cursor-pointer"
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Download PDF
+                {downloading === `transcription-${jobId}.pdf`
+                  ? "Downloading..."
+                  : "Download PDF"}
               </Button>
             </div>
 
@@ -243,7 +257,11 @@ export default function TranscriptionDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadPDF}
-                disabled={downloading !== null}
+                disabled={
+                  !pdf ||
+                  pdfLoading ||
+                  downloading === `transcription-${jobId}.pdf`
+                }
                 className="hover:cursor-pointer"
               >
                 <FileText className="h-4 w-4 mr-1" />
@@ -287,7 +305,7 @@ export default function TranscriptionDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadPDF}
-                disabled={downloading !== null}
+                disabled={downloading === `transcription-${jobId}.pdf`}
                 className="hover:cursor-pointer px-2"
                 title="Download PDF"
               >

@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 RUN apt-get update && \
-    apt-get install -y fluidsynth git wget curl ffmpeg libsndfile1 && \
+    apt-get install -y fluidsynth git wget curl ffmpeg libsndfile1 lilypond && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

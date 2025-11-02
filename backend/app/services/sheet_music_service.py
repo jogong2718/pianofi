@@ -190,3 +190,39 @@ def get_audio_file(job_id: str, user_id: str, db, s3_client, aws_creds) -> tuple
         else:
             logger.error(f"S3 download failed: {str(e)}")
             raise RuntimeError(f"S3 download failed: {str(e)}")
+
+def get_pdf_file(job_id: str, user_id: str, db, s3_client, aws_creds) -> bytes:
+    """
+    Download PDF file for a completed job.
+    """
+    
+    from app.repositories import job_repository
+    from botocore.exceptions import ClientError
+    
+    logger.info(f"Getting PDF file for job {job_id}, user {user_id}")
+    
+    # 1. Check job status
+    status = job_repository.get_job_status_for_user(db, job_id, user_id)
+    
+    if not status:
+        raise PermissionError("Job not found or access denied")
+    
+    if status != 'done':
+        raise ValueError(f"Job not completed. Current status: {status}")
+    
+    # 2. Download from S3
+    s3_key = f"pdf/{job_id}.pdf"
+    
+    try:
+        response = s3_client.get_object(
+            Bucket=aws_creds["s3_bucket"],
+            Key=s3_key
+        )
+        return response['Body'].read()
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            logger.error(f"PDF file not found in S3: {s3_key}")
+            raise FileNotFoundError("PDF file not found in S3")
+        else:
+            logger.error(f"S3 download failed: {str(e)}")
+            raise RuntimeError(f"S3 download failed: {str(e)}")
