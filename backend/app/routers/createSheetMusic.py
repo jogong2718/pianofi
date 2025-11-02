@@ -55,48 +55,6 @@ if not local:
 
 # Helper functions moved to sheet_music_service.py
 
-@router.post("/convertToXml")
-async def convert_to_xml_endpoint(
-    midi_file_path: str,
-    output_path: str
-):
-    try:
-        from app.services import sheet_music_service
-        result_file = sheet_music_service.convert_midi_to_xml(midi_file_path, output_path)
-        return {
-            "success": True,
-            "output_file": result_file,
-            "format": "musicxml"
-        }
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/convertToVisual")
-async def convert_to_visual_endpoint(
-    midi_file_path: str,
-    output_path: str,
-    format: str,
-    title: str = None,
-    composer: str = None
-):
-    if format.lower() not in ["pdf", "png", "svg"]:
-        raise HTTPException(status_code=400, detail="Format must be pdf, png, or svg")
-    
-    try:
-        from app.services import sheet_music_service
-        result_file = sheet_music_service.convert_midi_to_visual(midi_file_path, output_path, format, title, composer)
-        return {
-            "success": True,
-            "output_file": result_file,
-            "format": format.lower()
-        }
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.get("/getXML/{job_id}")
 async def get_xml_endpoint(
     job_id: str,
