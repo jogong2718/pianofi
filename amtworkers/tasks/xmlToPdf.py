@@ -24,7 +24,7 @@ def convert_musicxml_to_pdf(input_path, output_path=None, remove_tagline=True):
     try:
         # Ensure required tools exist
         for cmd in ["musicxml2ly", "lilypond"]:
-            if subprocess.call(["which", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
+            if shutil.which(cmd) is None:
                 raise FileNotFoundError(f"Required tool '{cmd}' not found in PATH.")
         
         input_path = Path(input_path)
@@ -67,7 +67,7 @@ def convert_musicxml_to_pdf(input_path, output_path=None, remove_tagline=True):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python xmlToPdf.py <input_musicxml> [output_pdf]")
+        logging.info("Usage: python xmlToPdf.py <input_musicxml> [output_pdf]")
         sys.exit(1)
 
     input_file = sys.argv[1]
@@ -75,9 +75,9 @@ def main():
 
     try:
         result = convert_musicxml_to_pdf(input_file, output_file)
-        print(f"PDF created: {result}")
+        logging.info(f"PDF created: {result}")
     except Exception as e:
-        print(e)
+        logging.error(e)
         sys.exit(1)
 
 if __name__ == "__main__":

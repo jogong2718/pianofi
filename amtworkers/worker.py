@@ -258,7 +258,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
                 WHERE job_id=:jobId
             """)
             db.execute(update_sql, {
-                "midi_key": midi_key,"xml_key": xml_key,"pdf_key": pdf_key,"jobId": job_id,
+                "midi_key": midi_key, "xml_key": xml_key, "pdf_key": pdf_key, "jobId": job_id,
             })
             db.commit()
         logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}, PDF: {pdf_key}")
