@@ -181,3 +181,44 @@ async def get_audio_endpoint(
     except Exception as e:
         logger.exception(f"Error in get_audio_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/getPDF/{job_id}")
+async def get_pdf_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Download PDF file for a completed transcription job."""
+    try:
+        from fastapi.responses import Response
+        from app.services import sheet_music_service
+        
+        # Call service layer
+        pdf_content = sheet_music_service.get_pdf_file(
+            job_id=job_id,
+            user_id=current_user.id,
+            db=db,
+            s3_client=s3_client,
+            aws_creds=aws_creds
+        )
+        
+        # Wrap in HTTP response with appropriate headers
+        return Response(
+            content=pdf_content,
+            media_type='application/pdf',
+            headers={
+                'Content-Disposition': f'attachment; filename="{job_id}.pdf"'
+            }
+        )
+        
+    except PermissionError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.exception(f"Error in get_pdf_endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
