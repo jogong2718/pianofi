@@ -115,8 +115,8 @@ function DashboardContent() {
               metricsLoading={metricsLoading}
               onUpgradeRequired={() => setShowUpgradeModal(true)}
               onFileUploaded={(newTranscription) => {
-                addTranscription(newTranscription);
                 setActiveTab("transcriptions");
+                addTranscription(newTranscription);
               }}
               user={user}
             />
