@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Download, MoreHorizontal, Trash2, Eye, Edit2, Check, X } from "lucide-react";
+import { MoreHorizontal, Trash2, Eye, Edit2, Check, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,21 +30,19 @@ import { toast } from "sonner";
 
 interface TranscriptionItemProps {
   transcription: any;
-  onDownload: (transcription: any, downloadType: string) => void;
   onClick: (transcription: any) => void;
   updateTranscriptionFilename: (jobId: string, newFilename: string) => void;
 }
 
 const TranscriptionItem: FC<TranscriptionItemProps> = ({
   transcription,
-  onDownload,
   onClick,
   updateTranscriptionFilename,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(transcription.filename || "");
-  
+
   const { deleteJob, loading: deleteLoading } = useDeleteJob();
   const { updateJob, loading: updateLoading } = useUpdateJob();
 
@@ -69,11 +67,10 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
         job_id: transcription.id,
         file_name: editedName.trim(),
       });
-      
+
       // Instantly update UI
       updateTranscriptionFilename(transcription.id, editedName.trim());
       setIsEditing(false);
-      
     } catch (error) {
       // Reset input on error
       setEditedName(transcription.filename || "");
@@ -192,48 +189,6 @@ const TranscriptionItem: FC<TranscriptionItemProps> = ({
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-
-
-            {/*
-              #Removed the Midi and XML download options from the Transcription page
-              <DropdownMenuItem
-                onClick={() => {
-                  if (
-                    !transcription.xml_download_url ||
-                    transcription.xml_download_url === "pending" ||
-                    transcription.xml_download_url === "error" ||
-                    transcription.status === "missing"
-                  ) {
-                    toast.error("Midi file not available for download.");
-                    return;
-                  }
-                  onDownload(transcription, "midi");
-                }}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Midi
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (
-                    !transcription.xml_download_url ||
-                    transcription.xml_download_url === "pending" ||
-                    transcription.xml_download_url === "error" ||
-                    transcription.status === "missing"
-                  ) {
-                    toast.error("MusicXML file not available for download.");
-                    return;
-                  }
-                  onDownload(transcription, "xml");
-                }}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                XML
-              </DropdownMenuItem>
-              */
-            }
-
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"

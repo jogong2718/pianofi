@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/AuthContext"; // Add this import
 
 import { useTranscriptionManager } from "@/hooks/useTranscriptionManager";
-import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useGetUserJobs } from "@/hooks/useGetUserJobs";
 import { useDashboardMetrics } from "@/hooks/useGetDashboardMetrics";
 
@@ -28,19 +27,15 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState("upload");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const { getDownloadUrl } = useDownloadUrl();
   const { getUserJobs } = useGetUserJobs();
   const { metrics, loading: metricsLoading } = useDashboardMetrics();
 
   const {
     transcriptions,
-    handleJobCompletion,
-    updateTranscriptionStatus,
     addTranscription,
     initialLoading,
     updateTranscriptionFilename,
   } = useTranscriptionManager({
-    getDownloadUrl,
     getUserJobs,
     user,
     supabase,
@@ -120,8 +115,8 @@ function DashboardContent() {
               metricsLoading={metricsLoading}
               onUpgradeRequired={() => setShowUpgradeModal(true)}
               onFileUploaded={(newTranscription) => {
-                addTranscription(newTranscription);
                 setActiveTab("transcriptions");
+                addTranscription(newTranscription);
               }}
               user={user}
             />

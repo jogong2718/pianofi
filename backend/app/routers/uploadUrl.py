@@ -54,7 +54,6 @@ def create_upload_url(
             use_local=local,
             local_upload_dir=str(UPLOAD_DIR) if local else None
         )
-        print("IT WORKS")
         
         # 2. Create job record in database using repository
         job_data = {
