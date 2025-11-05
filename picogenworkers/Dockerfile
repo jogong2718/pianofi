@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 USER root
 RUN apt-get update && \
-    apt-get install -y curl && \
+    apt-get install -y curl lilypond && \
     curl -L -o FluidR3_GM.sf3 "https://github.com/musescore/MuseScore/raw/master/share/sound/FluidR3Mono_GM.sf3" && \
     chown picogen2:picogen2 FluidR3_GM.sf3 && \
     apt-get clean && \

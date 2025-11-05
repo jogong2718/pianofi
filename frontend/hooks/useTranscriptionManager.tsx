@@ -21,22 +21,15 @@ interface Transcription {
   uploadedAt: string;
   duration: string;
   size: string;
-  midi_download_url?: string;
-  xml_download_url?: string;
 }
 
 interface UseTranscriptionManagerProps {
-  getDownloadUrl: (
-    jobId: string,
-    downloadType: string
-  ) => Promise<{ midi_download_url?: string; xml_download_url?: string }>;
   getUserJobs?: () => Promise<any[]>;
   user?: any;
   supabase?: any; // Optional, if you need to use supabase directly
 }
 
 export function useTranscriptionManager({
-  getDownloadUrl,
   getUserJobs,
   user,
   supabase,
@@ -50,88 +43,62 @@ export function useTranscriptionManager({
     setTranscriptions((prev) => prev.filter((t) => t.id !== jobId));
   }, []);
 
-  const updateTranscriptionFilename = useCallback((jobId: string, newFilename: string) => {
-    setTranscriptions((prev) => 
-      prev.map((t) => 
-        t.id === jobId 
-          ? { ...t, filename: newFilename }
-          : t
-      )
-    );
-  }, []);
+  const updateTranscriptionFilename = useCallback(
+    (jobId: string, newFilename: string) => {
+      setTranscriptions((prev) =>
+        prev.map((t) => (t.id === jobId ? { ...t, filename: newFilename } : t))
+      );
+    },
+    []
+  );
 
-  const handleJobCompletion = useCallback(
-    async (jobId: string, resultKey: string) => {
-      let shouldSkip = false;
+  const handleJobCompletion = useCallback(async (jobId: string) => {
+    try {
+      setTranscriptions((prev) => {
+        const existingJob = prev.find((t) => t.id === jobId);
 
-      const existingJob = transcriptions.find((t) => t.id === jobId);
-      if (
-        existingJob?.midi_download_url === "error" ||
-        existingJob?.xml_download_url === "error"
-      ) {
-        console.log(`Skipping repeated download URL attempt for job ${jobId}`);
-        shouldSkip = true;
-        return;
-      }
-
-      if (shouldSkip) return;
-
-      try {
-        // Get download URL from backend
-        const { midi_download_url } = await getDownloadUrl(jobId, "midi");
-        const { xml_download_url } = await getDownloadUrl(jobId, "xml");
-
-        // Update transcription with download URL
-        setTranscriptions((prev) => {
-          const updatedTranscriptions = prev.map((t) =>
-            t.id === jobId
-              ? {
-                  ...t,
-                  status: "completed" as const,
-                  progress: 100,
-                  midi_download_url: midi_download_url,
-                  xml_download_url: xml_download_url,
-                }
-              : t
-          );
-
-          const notificationsEnabled =
-            localStorage.getItem("notifications-enabled") === "true";
-          const completedJob = updatedTranscriptions.find(
-            (t) => t.id === jobId
-          );
-          if (notificationsEnabled && completedJob) {
-            NotificationManager.showTranscriptionComplete(
-              completedJob.filename
-            );
-          }
-
-          return updatedTranscriptions;
-        });
-
-        toast.success("Transcription completed!");
-      } catch (error) {
-        console.error("Failed to get download URL:", error);
-
-        setTranscriptions((prev) =>
-          prev.map((t) =>
-            t.id === jobId
-              ? {
-                  ...t,
-                  status: "completed" as const,
-                  progress: 100,
-                  xml_download_url: "error", // Mark as error
-                  midi_download_url: "error", // Mark as error
-                }
-              : t
-          )
+        // Skip if already completed
+        if (existingJob?.status === "completed") {
+          return prev;
+        }
+        const updatedTranscriptions = prev.map((t) =>
+          t.id === jobId
+            ? {
+                ...t,
+                status: "completed" as const,
+                progress: 100,
+              }
+            : t
         );
 
-        toast.error("Failed to complete transcription");
-      }
-    },
-    [getDownloadUrl, transcriptions]
-  );
+        const notificationsEnabled =
+          localStorage.getItem("notifications-enabled") === "true";
+        const completedJob = updatedTranscriptions.find((t) => t.id === jobId);
+        if (notificationsEnabled && completedJob) {
+          NotificationManager.showTranscriptionComplete(completedJob.filename);
+        }
+
+        toast.success("Transcription completed!");
+        return updatedTranscriptions;
+      });
+    } catch (error) {
+      console.error("Failed transcription:  ", error);
+
+      setTranscriptions((prev) =>
+        prev.map((t) =>
+          t.id === jobId
+            ? {
+                ...t,
+                status: "failed" as const,
+                progress: 100,
+              }
+            : t
+        )
+      );
+
+      toast.error("Failed to complete transcription");
+    }
+  }, []);
 
   const updateTranscriptionStatus = useCallback(
     (
@@ -211,18 +178,9 @@ export function useTranscriptionManager({
           size: job.file_size
             ? `${(job.file_size / (1024 * 1024)).toFixed(2)} MB`
             : "N/A",
-          midi_download_url:
-            job.status === "done" && job.midi_download_url
-              ? job.midi_download_url
-              : "pending",
-          xml_download_url:
-            job.status === "done" && job.xml_download_url
-              ? job.xml_download_url
-              : "pending",
         }));
 
         setTranscriptions(transcriptionsList);
-
       } catch (error) {
         console.error("Failed to load existing transcriptions:", error);
         toast.error("Failed to load your transcriptions");
@@ -238,17 +196,19 @@ export function useTranscriptionManager({
   useEffect(() => {
     if (!user || !supabase) return;
 
-    const deviceId = localStorage.getItem("deviceId") || (() => {
-      const id = Math.random().toString(36).substr(2, 9);
-      localStorage.setItem("deviceId", id);
-      return id;
-    })();
+    const deviceId =
+      localStorage.getItem("deviceId") ||
+      (() => {
+        const id = Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("deviceId", id);
+        return id;
+      })();
 
     const uniqueChannelName = `job-changes-${user.id}-${deviceId}`;
-    
+
     // Remove any existing channel with this name first
     const existingChannels = supabase.getChannels();
-    existingChannels.forEach(ch => {
+    existingChannels.forEach((ch) => {
       if (ch.topic === uniqueChannelName) {
         supabase.removeChannel(ch);
       }
@@ -257,8 +217,8 @@ export function useTranscriptionManager({
     const channel = supabase
       .channel(uniqueChannelName, {
         config: {
-          presence: { key: deviceId }
-        }
+          presence: { key: deviceId },
+        },
       })
       .on(
         "postgres_changes",
@@ -283,7 +243,7 @@ export function useTranscriptionManager({
             }
 
             if (jobData.status === "done") {
-              await handleJobCompletion(jobData.job_id, jobData.result_key);
+              await handleJobCompletion(jobData.job_id);
             } else {
               updateTranscriptionStatus(
                 jobData.job_id,
