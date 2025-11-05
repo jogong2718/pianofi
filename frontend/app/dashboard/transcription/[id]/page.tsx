@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import ViewSheetMusic from "@/components/ViewSheetMusic";
 import { useAudio } from "@/hooks/useAudio";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDownload } from "@/hooks/useDownload";
 
 export default function TranscriptionDetailPage() {
@@ -31,6 +31,16 @@ export default function TranscriptionDetailPage() {
     loading: audioLoading,
     error: audioError,
   } = useAudio({ jobId });
+
+  // detect mobile viewport (simple width-based check)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setIsMobile(typeof window !== "undefined" && window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Use the download hook
   const { downloadMIDI, downloadXML, downloadPDF, downloading } = useDownload();
@@ -150,14 +160,14 @@ export default function TranscriptionDetailPage() {
     <div className="h-screen flex flex-col bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background">
       <div className="container mx-auto md:px-4 pt-8 flex flex-col h-full">
         {/* Header - Responsive */}
-        <div className="flex items-center justify-between mb-6 flex-shrink-0 gap-4">
+        <div className="px-4 md:px-0 flex items-center justify-between mb-6 flex-shrink-0 gap-4">
           {/* Left side - Back button + Title */}
           <div className="flex items-center space-x-4 min-w-0 flex-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => router.push("/dashboard")}
-              className="hover:cursor-pointer flex-shrink-0"
+              className="hover:cursor-pointer flex-shrink-0 px-3"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Back to Dashboard</span>
@@ -306,7 +316,7 @@ export default function TranscriptionDetailPage() {
                 size="sm"
                 onClick={handleDownloadPDF}
                 disabled={downloading === `transcription-${jobId}.pdf`}
-                className="hover:cursor-pointer px-2"
+                className="hover:cursor-pointer px-3"
                 title="Download PDF"
               >
                 <FileText className="h-4 w-4 mr-1" />
@@ -320,13 +330,36 @@ export default function TranscriptionDetailPage() {
         <Card className="flex-1 min-h-0">
           <CardContent className="p-0 h-full flex flex-col">
             <div className="h-full flex-1 w-full mx-auto bg-gray-50 dark:bg-gray-900 overflow-x-hidden overflow-y-auto min-h-0">
-              {xml && (
-                <ViewSheetMusic
-                  jobId={jobId}
-                  musicXmlString={xml}
-                  audioRef={audioRef}
-                  metadata={metadata}
-                />
+              {isMobile ? (
+                <div className="max-w-2xl mx-auto p-6 text-center">
+                  <h2 className="text-lg font-semibold mb-2">
+                    Sheet music only renders on desktop
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You can still download the PDF to view the sheet music on
+                    mobile.
+                  </p>
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleDownloadPDF}
+                      disabled={downloading === `transcription-${jobId}.pdf`}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      {downloading === `transcription-${jobId}.pdf`
+                        ? "Downloading..."
+                        : "Download PDF"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                xml && (
+                  <ViewSheetMusic
+                    jobId={jobId}
+                    musicXmlString={xml}
+                    audioRef={audioRef}
+                    metadata={metadata}
+                  />
+                )
               )}
             </div>
           </CardContent>

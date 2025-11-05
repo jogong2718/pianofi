@@ -13,7 +13,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Upload, FileText, Zap, Users, Star, X } from "lucide-react";
+import {
+  Music,
+  Upload,
+  FileText,
+  Zap,
+  Users,
+  Star,
+  X,
+  Github,
+} from "lucide-react";
 import { Header } from "@/components/ui/header";
 
 export default function LandingPage() {
@@ -28,6 +37,7 @@ export default function LandingPage() {
   const videoRef = useRef<HTMLElement>(null);
   const featuresRef = useRef<HTMLElement>(null);
   const donationsRef = useRef<HTMLElement>(null);
+  const pricingRef = useRef<HTMLElement>(null);
   const schoolsRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
@@ -36,6 +46,7 @@ export default function LandingPage() {
   const [videoVisible, setVideoVisible] = useState(false);
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
+  const [pricingVisible, setPricingVisible] = useState(false);
   const [schoolsVisible, setSchoolsVisible] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(false);
 
@@ -115,6 +126,8 @@ export default function LandingPage() {
           setFeaturesVisible(entry.isIntersecting);
         if (entry.target === donationsRef.current)
           setDonationsVisible(entry.isIntersecting);
+        if (entry.target === pricingRef.current)
+          setPricingVisible(entry.isIntersecting);
         if (entry.target === schoolsRef.current)
           setSchoolsVisible(entry.isIntersecting);
         if (entry.target === ctaRef.current)
@@ -127,6 +140,7 @@ export default function LandingPage() {
       videoRef,
       featuresRef,
       donationsRef,
+      pricingRef,
       schoolsRef,
       ctaRef,
     ];
@@ -188,7 +202,10 @@ export default function LandingPage() {
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <Badge variant="secondary" className="w-fit">
+                  <Badge
+                    variant="secondary"
+                    className="w-fit hidden sm:inline-flex"
+                  >
                     🎹 AI-Powered Music Transcription
                   </Badge>
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
@@ -387,127 +404,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Section
-        <section
-          id="pricing"
-          className="w-full py-12 md:py-24 lg:py-32 bg-muted/50"
-        >
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  Simple Pricing
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Choose the plan that works for you
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-4 lg:gap-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Free Trial</CardTitle>
-                  <CardDescription>
-                    Get started with a free transcription
-                  </CardDescription>
-                  <div className="text-3xl font-bold">
-                    $0<span className="text-sm font-normal">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li>• Basic model (still better than our competitors)</li>
-                    <li>• 1 transcription per account</li>
-                    <li>• Up to 1 minutes per file</li>
-                  </ul>
-                  <Button
-                    onClick={() => handleNavigation("/signup")}
-                    className="w-full mt-6"
-                  >
-                    Get Started
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Starter</CardTitle>
-                  <CardDescription>
-                    Perfect for trying out PianoFi
-                  </CardDescription>
-                  <div className="text-3xl font-bold">
-                    $9<span className="text-sm font-normal">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li>
-                      • Access to the most advanced SOTA transcription models
-                    </li>
-                    <li>• 10 transcriptions per month</li>
-                    <li>• Up to 5 minutes per file</li>
-                    <li>• PDF + MusicXML downloads</li>
-                    <li>• Email support</li>
-                  </ul>
-                  <Button
-                    onClick={() => handleNavigation("/signup")}
-                    className="w-full mt-6"
-                  >
-                    Get Started
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card className="border-primary">
-                <CardHeader>
-                  <Badge className="w-fit">Most Popular</Badge>
-                  <CardTitle>Pro</CardTitle>
-                  <CardDescription>
-                    For serious musicians and teachers
-                  </CardDescription>
-                  <div className="text-3xl font-bold">
-                    $29<span className="text-sm font-normal">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li>• 100 transcriptions per month</li>
-                    <li>• Up to 10 minutes per file</li>
-                    <li>• PDF + MusicXML downloads</li>
-                    <li>• Priority support</li>
-                    <li>• Batch processing</li>
-                  </ul>
-                  <Button
-                    onClick={() => handleNavigation("/signup")}
-                    className="w-full mt-6"
-                  >
-                    Get Started
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Enterprise</CardTitle>
-                  <CardDescription>
-                    For music schools and studios
-                  </CardDescription>
-                  <div className="text-3xl font-bold">
-                    $99<span className="text-sm font-normal">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li>• Unlimited transcriptions</li>
-                    <li>• No file length limits</li>
-                    <li>• All formats included</li>
-                    <li>• Dedicated support</li>
-                    <li>• API access</li>
-                  </ul>
-                  <Button className="w-full mt-6">Contact Sales</Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section> */}
-
         {/* Schools / Partners Section */}
         <section
           ref={schoolsRef}
@@ -565,7 +461,132 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Donations Section */}
+        {/* Pricing Section */}
+        <section
+          id="pricing"
+          ref={pricingRef}
+          className={`w-full py-12 md:py-24 lg:py-32 bg-muted/50 transition-all duration-1000 delay-400 ${
+            pricingVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-10"
+          }`}
+        >
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Simple Pricing
+                </h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Choose the plan that works for you
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-4 lg:gap-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Free Trial</CardTitle>
+                  <CardDescription>
+                    Get started with a free transcription
+                  </CardDescription>
+                  <div className="text-3xl font-bold">
+                    $0<span className="text-sm font-normal">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>• Basic model (still better than our competitors)</li>
+                    <li>• 3 transcriptions per account</li>
+                    <li>• Up to 10 minutes per file</li>
+                    <li>• PDF + MusicXML downloads</li>
+                    <li>• Email support</li>
+                  </ul>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Starter</CardTitle>
+                  <CardDescription>
+                    Perfect for trying out PianoFi
+                  </CardDescription>
+                  <div className="text-3xl font-bold">
+                    $9<span className="text-sm font-normal">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>
+                      • Access to the most advanced SOTA transcription models as
+                      soon as they come out!
+                    </li>
+                    <li>• 10 transcriptions per month</li>
+                    <li>• Up to 5 minutes per file</li>
+                  </ul>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card className="border-primary">
+                <CardHeader>
+                  <Badge className="w-fit">Most Popular</Badge>
+                  <CardTitle>Pro</CardTitle>
+                  <CardDescription>
+                    For serious musicians and teachers
+                  </CardDescription>
+                  <div className="text-3xl font-bold">
+                    $29<span className="text-sm font-normal">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>• 100 transcriptions per month</li>
+                    <li>• Priority support</li>
+                    <li>• Batch processing</li>
+                  </ul>
+                  <Button
+                    onClick={() => handleNavigation("/signup")}
+                    className="w-full mt-6"
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Enterprise</CardTitle>
+                  <CardDescription>
+                    For music schools and studios
+                  </CardDescription>
+                  {/* <div className="text-3xl font-bold">
+                    $99<span className="text-sm font-normal">/month</span>
+                  </div> */}
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li>• Unlimited transcriptions</li>
+                    <li>• No file length limits</li>
+                    <li>• All formats included</li>
+                    <li>• Dedicated support</li>
+                    <li>• API access</li>
+                  </ul>
+                  <Button className="w-full mt-6">Contact Sales</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Donations Section
         <section
           ref={donationsRef}
           className={`w-full py-12 md:py-24 lg:py-32 bg-muted/50 transition-all duration-1000 delay-400 ${
@@ -604,7 +625,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* CTA Section */}
         <section
@@ -643,6 +664,26 @@ export default function LandingPage() {
             © {new Date().getFullYear()} PianoFi. All rights reserved.
           </p>
           <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+            <a
+              href="https://github.com/jogong2718/pianofi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs flex items-center gap-2"
+              aria-label="PianoFi on GitHub"
+            >
+              <svg
+                role="img"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 relative -top-0.5 align-middle"
+                aria-hidden="false"
+                focusable="false"
+              >
+                <title>GitHub</title>
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+              </svg>
+              <span className="sr-only">GitHub</span>
+            </a>
             <Link
               href="/terms"
               className="text-xs hover:underline underline-offset-4"
