@@ -513,7 +513,7 @@ export default function LandingPage() {
                       $29
                     </div>
                     <Badge variant="secondary" className="text-sm">
-                      Save $20
+                      Save $24.01!
                     </Badge>
                   </div>
                 </CardHeader>

@@ -95,7 +95,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
                   $29
                 </div>
                 <Badge variant="secondary" className="text-sm">
-                  Save $20
+                  Save $24.01!
                 </Badge>
               </div>
             </CardHeader>
