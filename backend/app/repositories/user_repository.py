@@ -79,4 +79,3 @@ def update(db: Session, user_id: str, updates: Dict[str, Any]) -> int:
     
     logger.info(f"Update/Insert affected {result.rowcount} rows")
     return result.rowcount
-

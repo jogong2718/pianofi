@@ -105,10 +105,10 @@ function SuccessContent() {
               <p>
                 Need help? Contact us at{" "}
                 <a
-                  href="mailto:support@pianofi.com"
+                  href="mailto:jonathan@pianofi.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@pianofi.com
+                  jonathan@pianofi.com
                 </a>
               </p>
             </div>

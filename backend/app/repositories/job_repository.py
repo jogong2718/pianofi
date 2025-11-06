@@ -379,3 +379,44 @@ def get_job_status_with_audio_metadata(
     
     result = db.execute(sql, {"job_id": job_id, "user_id": user_id}).fetchone()
     return (result[0], result[1]) if result else None
+
+# ========================================
+# Functions for getDashboardMetrics.py
+# ========================================
+
+def count_model_usage_since_date(
+    db: Session,
+    user_id: str,
+    model: str,
+    start_date
+) -> int:
+    """
+    Count how many times a specific model was used by a user since a given date.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user (string)
+        model: Model name to filter by (e.g., 'picogen')
+        start_date: Start date for the count
+    
+    Returns:
+        Number of times the model was used since start_date
+    """
+    from sqlalchemy import text
+    
+    logger.info(f"Counting usage of model {model} for user {user_id} since {start_date}")
+    
+    sql = text("""
+        SELECT COUNT(*) FROM jobs 
+        WHERE user_id = :user_id 
+        AND model = :model 
+        AND created_at >= :start_date
+    """)
+    
+    result = db.execute(sql, {
+        "user_id": user_id,
+        "model": model,
+        "start_date": start_date
+    })
+    
+    return result.scalar()

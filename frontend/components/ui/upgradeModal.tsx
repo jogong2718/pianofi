@@ -36,6 +36,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
       if (!session?.access_token) {
         throw new Error("No authentication token found");
       }
+
       // Call your backend to create Stripe session
       const response = await fetch(`${backendUrl}/createCheckoutSession`, {
         method: "POST",
@@ -43,13 +44,20 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId: priceId }),
       });
 
-      const { sessionId } = await response.json();
+      const { sessionId, checkoutUrl } = await response.json();
 
       // Redirect to Stripe
       const stripe = await getStripe();
+
+      console.log(
+        "Redirecting to checkout with session ID:",
+        sessionId,
+        "URL:",
+        checkoutUrl
+      );
       await stripe?.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error("Checkout error:", error);
@@ -60,11 +68,6 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onOpenChange(false);
     }
-  };
-
-  const handleNavigation = (url: string) => {
-    onOpenChange(false);
-    router.push(url);
   };
 
   return (
@@ -78,31 +81,41 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold mb-4 text-center">Choose Your Plan</h2>
-        <div className="mx-auto grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+        <div className="mx-auto grid grid-cols-1 gap-4 sm:grid-cols-1 mb-6">
           <Card className="flex flex-col h-full">
             <CardHeader>
               <CardTitle>Starter</CardTitle>
               <CardDescription>Perfect for trying out PianoFi</CardDescription>
-              <div className="text-3xl font-bold">
-                $9<span className="text-sm font-normal">/month</span>
+              <div className="flex items-baseline gap-3">
+                <div className="text-3xl font-bold text-primary">
+                  $4.99
+                  <span className="text-sm font-normal ml-1">/month</span>
+                </div>
+                <div className="text-sm text-muted-foreground line-through opacity-80">
+                  $29
+                </div>
+                <Badge variant="secondary" className="text-sm">
+                  Save $20
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
               <ul className="space-y-2 text-sm flex-1">
-                <li>• Access to the most advanced SOTA transcription models</li>
-                <li>• 10 transcriptions per month</li>
-                <li>• Up to 5 minutes per file</li>
-                <li>• PDF + MusicXML downloads</li>
-                <li>• Email support</li>
+                <li>
+                  • Access to the most advanced SOTA transcription models and
+                  access to our newest and best models when available!
+                </li>
+                <li>• 100 transcriptions per month</li>
               </ul>
               <Button
-                onClick={() => handleCheckout("price_1Rgbv3BHhIoAIsYdP9R8hMpa")}
+                onClick={() => handleCheckout("price_1SQY6fBORHHlKrvYfRPevIWq")}
                 className="w-full mt-6"
               >
                 Get Started
               </Button>
             </CardContent>
           </Card>
+          {/* 
           <Card className="border-primary flex flex-col h-full">
             <CardHeader>
               <Badge className="w-fit">Most Popular</Badge>
@@ -152,8 +165,8 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
               >
                 Contact Sales
               </Button>
-            </CardContent>
-          </Card>
+            </CardContent> */}
+          {/* </Card> */}
         </div>
         <div className="flex justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>

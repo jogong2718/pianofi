@@ -5,3 +5,4 @@ class CreateCheckoutSessionRequest(BaseModel):
 
 class CreateCheckoutSessionResponse(BaseModel):
     sessionId: str
+    checkoutUrl: str
