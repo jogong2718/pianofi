@@ -80,7 +80,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleOAuthSignup = async (provider: "google") => {
+  const handleOAuthSignup = async (provider: "google" | "github") => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -128,6 +128,14 @@ export default function SignupPage() {
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Google
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleOAuthSignup("github")}
+                  className="w-full"
+                >
+                  <Github className="mr-2 h-4 w-4" />
+                  GitHub
                 </Button>
               </div>
 

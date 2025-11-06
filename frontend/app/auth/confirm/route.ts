@@ -18,6 +18,25 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = await createClient()
 
+    // Handle password recovery separately
+    if (type === 'recovery') {
+      const { error } = await supabase.auth.verifyOtp({
+        type,
+        token_hash,
+      })
+      if (!error) {
+        console.log('✅ Password reset token verified, redirecting to reset password page')
+        // After verification, user has a session, so we can redirect to reset-password
+        // The reset-password page will check for session if token_hash is not in URL
+        const nextUrl = searchParams.get('next') || '/reset-password'
+        redirect(nextUrl)
+      } else {
+        console.error('❌ Error verifying recovery token:', error)
+        redirect(`/error?message=${encodeURIComponent('Failed to verify reset token: ' + error.message)}`)
+      }
+      return
+    }
+
     const { error } = await supabase.auth.verifyOtp({
       type,
       token_hash,

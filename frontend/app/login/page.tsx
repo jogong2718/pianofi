@@ -77,7 +77,7 @@ function LoginContent() {
     );
   }
 
-  const handleOAuthLogin = async (provider: "google") => {
+  const handleOAuthLogin = async (provider: "google" | "github") => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -125,6 +125,14 @@ function LoginContent() {
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Google
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleOAuthLogin("github")}
+                  className="w-full"
+                >
+                  <Github className="mr-2 h-4 w-4" />
+                  GitHub
                 </Button>
               </div>
 
