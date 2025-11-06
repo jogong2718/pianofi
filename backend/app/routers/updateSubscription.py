@@ -41,11 +41,7 @@ async def cancel_subscription_endpoint(
             f"subscription_id={result['subscription_id']}, "
             f"at_period_end={payload.cancelAtPeriodEnd}"
         )
-    # success: bool
-    # message: str
-    # subscriptionId: str
-    # canceledAt: Optional[str] = None
-    # cancelAtPeriodEnd: bool
+
         return cancelSubscriptionResponse(
             success=result["success"],
             message=result["message"],

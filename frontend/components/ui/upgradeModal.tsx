@@ -109,7 +109,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
                 <li>• 100 transcriptions per month</li>
               </ul>
               <Button
-                onClick={() => handleCheckout("price_1SQKe8BHhIoAIsYdD1lEjav1")}
+                onClick={() => handleCheckout("price_1SQY6fBORHHlKrvYfRPevIWq")}
                 className="w-full mt-6"
               >
                 Get Started
