@@ -13,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getStripe } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { metadata } from "@/app/layout";
 
 interface UpgradeModalProps {
   open: boolean;

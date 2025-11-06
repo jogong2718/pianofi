@@ -10,6 +10,7 @@ from uuid import UUID
 from datetime import datetime
 import logging
 import stripe
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -179,8 +180,9 @@ def _get_or_create_customer(
     
     Args:
         user_id: UUID of the user
+        user_email: Email of the user
         stripe_client: Client for Stripe operations
-        payment_repository: Repository for payment data
+        db: Database session
     
     Returns:
         Stripe customer ID
@@ -189,7 +191,7 @@ def _get_or_create_customer(
     from app.repositories import payment_repository
 
     try:
-        user = payment_repository.find_user_stripe_customer_id(db=db, user_id= user_id)
+        user = payment_repository.find_user_stripe_customer_id(db=db, user_id=user_id)
 
         if user:
             logging.info(f"Found existing Stripe customer ID for user {user_id}")
@@ -309,7 +311,7 @@ def get_subscription(
         price = items[0].get("price") or {}
 
         cpe = items[0].get("current_period_end")  # int seconds or None
-        next_billing = datetime.fromtimestamp(cpe).isoformat() if cpe else None
+        next_billing = datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat() if cpe else None
 
         logging.info(f"Subscription details - Plan: {price.get('nickname')}, Price: {price.get('unit_amount')}, Status: {subscription.get('status')}, Next Billing: {next_billing}")
         

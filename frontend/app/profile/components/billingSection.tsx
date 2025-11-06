@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { CreditCard, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { sub } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
 
 export function BillingSection() {

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from app.schemas.updateSubscription import cancelSubscriptionRequest, cancelSubscriptionResponse, getSubscriptionResponse, getSubscriptionRequest
+from app.schemas.updateSubscription import cancelSubscriptionRequest, cancelSubscriptionResponse, getSubscriptionResponse
 from app.schemas.user import User
 from app.auth import get_current_user
 from app.config_loader import Config

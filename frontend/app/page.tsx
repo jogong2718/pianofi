@@ -13,16 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Music,
-  Upload,
-  FileText,
-  Zap,
-  Users,
-  Star,
-  X,
-  Github,
-} from "lucide-react";
+import { Music, Upload, Star } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
 export default function LandingPage() {

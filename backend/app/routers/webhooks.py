@@ -1,4 +1,4 @@
-# app/routes/stripe_webhook.py
+# backend/app/routers/webhooks.py
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.database import get_db
 from sqlalchemy.orm import Session

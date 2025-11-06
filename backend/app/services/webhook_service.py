@@ -75,7 +75,7 @@ def handle_stripe_webhook(payload: bytes, sig: str, db: Session) -> Dict[str, An
                     try:
                         canceled = stripe.Subscription.delete(other_id)
                         # stripe returns canceled_at as epoch seconds (or None)
-                        canceled_at_ts = canceled.get("canceled_at") or canceled.get("canceled_at")
+                        canceled_at_ts = canceled.get("canceled_at")
                         canceled_at = datetime.fromtimestamp(canceled_at_ts, tz=timezone.utc) if canceled_at_ts else None
                         mark_subscription_canceled(db, other_id, canceled_at)
                     except Exception:
@@ -107,7 +107,7 @@ def handle_stripe_webhook(payload: bytes, sig: str, db: Session) -> Dict[str, An
                 for other_id in other_subs:
                     try:
                         canceled = stripe.Subscription.delete(other_id)
-                        canceled_at_ts = canceled.get("canceled_at") or canceled.get("canceled_at")
+                        canceled_at_ts = canceled.get("canceled_at")
                         canceled_at = datetime.fromtimestamp(canceled_at_ts, tz=timezone.utc) if canceled_at_ts else None
                         mark_subscription_canceled(db, other_id, canceled_at)
                     except Exception:
