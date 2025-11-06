@@ -186,11 +186,10 @@ const FileUploader: FC<FileUploaderProps> = ({
           toast.error("Failed to enqueue job: " + (err as Error).message);
         });
       console.log("Job enqueued successfully");
-
     } catch (err) {
       console.error("Upload/Enqueue failed:", err);
       toast.error("Upload failed: " + (err as Error).message);
-        setIsUploading(false);
+      setIsUploading(false);
     }
   };
 

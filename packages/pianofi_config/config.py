@@ -17,6 +17,10 @@ def get_storage() -> str:
 def get_database_url() -> str:
     """Get database URL from Parameter Store"""
     
+    environment = get_environment()
+    if environment == "staging":
+        return os.getenv("DATABASE_URL")
+
     # Production/Staging - use AWS Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
@@ -32,6 +36,12 @@ def get_database_url() -> str:
 @lru_cache()
 def get_aws_credentials() -> Dict[str, str]:
     """Get AWS credentials from Parameter Store"""
+
+    if get_environment() == "staging":
+        return {
+            "aws_region": os.getenv("AWS_REGION", "us-east-1"),
+            "s3_bucket": os.getenv("S3_BUCKET", "")
+        }
     
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -58,6 +68,9 @@ def get_aws_credentials() -> Dict[str, str]:
 @lru_cache()
 def get_cors_origins() -> list:
     """Get CORS allowed origins"""
+
+    if get_environment() == "staging":
+        return os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     
     # get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -72,6 +85,9 @@ def get_cors_origins() -> list:
 @lru_cache()
 def get_redis_url() -> str:
     """Get Redis URL from Parameter Store"""
+
+    if get_environment() == "staging":
+        return os.getenv("REDIS_URL", "")
     
     # use AWS Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -88,6 +104,13 @@ def get_redis_url() -> str:
 @lru_cache()
 def get_supabase_config() -> Dict[str, str]:
     """Get Supabase configuration from Parameter Store"""
+
+    if get_environment() == "staging":
+        return {
+            "url": os.getenv("SUPABASE_URL", ""),
+            "anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
+            "service_role_key": os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+        }
     
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -115,6 +138,9 @@ def get_supabase_config() -> Dict[str, str]:
 @lru_cache()
 def get_backend_base_url() -> str:
     """Get backend base URL from environment"""
+
+    if get_environment() == "staging":
+        return os.getenv("BACKEND_BASE_URL", "https://staging-api.pianofi.ca")
     
     # Production - get from Parameter Store or environment
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
@@ -130,6 +156,12 @@ def get_backend_base_url() -> str:
 def get_stripe_keys() -> str:
     """Get Stripe keys from Parameter Store"""
     
+    if get_environment() == "staging":
+        return {
+            "secret_key": os.getenv("STRIPE_SECRET_KEY", ""),
+            "publishable_key": os.getenv("STRIPE_PUBLISHABLE_KEY", ""),
+            "webhook_secret": os.getenv("STRIPE_WEBHOOK_SECRET", "")
+        }
     # Production - get from Parameter Store
     ssm = boto3.client('ssm', region_name=os.getenv("AWS_REGION", "us-east-1"))
     
