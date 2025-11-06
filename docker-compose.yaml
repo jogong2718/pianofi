@@ -47,58 +47,57 @@ services:
           path: ./frontend/Dockerfile.dev
     depends_on:
       - backend
-  
-  # picogenworker:
-  #   build:
-  #     context: .
-  #     dockerfile: picogenworkers/Dockerfile
-  #   image: pianofi-picogen-worker:dev
-  #   env_file:
-  #     - packages/pianofi_config/.env
-  #   volumes:
-  #     - ./uploads:/app/uploads     # host:container
-  #     # - ./workers:/app/workers
-  #     - ./project-aws:/home/picogen2/.aws
-  #   develop:
-  #     watch:
-  #       - path: ./picogenworkers
-  #         target: /app/picogenworkers
-  #         action: sync
-  #   # entrypoint: ""
-  #   # command: tail -f /dev/null
-  #   restart: unless-stopped
-  #   # needs gpu
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
-  # amtworker:
-  #   build:
-  #     context: .
-  #     dockerfile: amtworkers/Dockerfile
-  #   image: pianofi-amt-worker:dev
-  #   env_file:
-  #     - packages/pianofi_config/.env
-  #   volumes:
-    #   - ./uploads:/app/uploads     # host:container
-    #   # - ./workers:/app/workers
-    #   - ./project-aws:/root/.aws
-    # develop:
-    #   watch:
-    #     - path: ./amtworkers
-    #       target: /app/amtworkers
-    #       action: sync
-    # # entrypoint: ""
-    # # command: tail -f /dev/null
-    # restart: unless-stopped
-    # # needs gpu
-    # # deploy:
-    # #   resources:
-    # #     reservations:
-    # #       devices:
-    # #         - driver: nvidia
-    # #           count: 1
-    # #           capabilities: [gpu]
+  picogenworker:
+    build:
+      context: .
+      dockerfile: picogenworkers/Dockerfile
+    image: pianofi-picogen-worker:dev
+    env_file:
+      - packages/pianofi_config/.env
+    volumes:
+      - ./uploads:/app/uploads     # host:container
+      # - ./workers:/app/workers
+      - ./project-aws:/home/picogen2/.aws
+    develop:
+      watch:
+        - path: ./picogenworkers
+          target: /app/picogenworkers
+          action: sync
+    # entrypoint: ""
+    # command: tail -f /dev/null
+    restart: unless-stopped
+    # needs gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  amtworker:
+    build:
+      context: .
+      dockerfile: amtworkers/Dockerfile
+    image: pianofi-amt-worker:dev
+    env_file:
+      - packages/pianofi_config/.env
+    volumes:
+      - ./uploads:/app/uploads     # host:container
+      # - ./workers:/app/workers
+      - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - path: ./amtworkers
+          target: /app/amtworkers
+          action: sync
+    # entrypoint: ""
+    # command: tail -f /dev/null
+    restart: unless-stopped
+    # needs gpu
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
