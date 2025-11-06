@@ -75,6 +75,6 @@ def get_dashboard_metrics(
         "total_transcriptions": total_transcriptions,
         "processing_count": processing_count,
         "this_month_count": this_month_count,
-        "transcriptions_left": transcriptions_left,  # None means unlimited
-        "picogen_usage_count": picogen_usage_count
+        "transcriptions_left": transcriptions_left  # None means unlimited
+        # "picogen_usage_count": picogen_usage_count
     }
