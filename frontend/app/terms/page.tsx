@@ -173,11 +173,37 @@ export default function TermsOfServicePage() {
                       to valid DMCA takedown notices.
                     </p>
                   </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Content Retraction</h3>
+                    <p className="text-muted-foreground">
+                      PianoFi does not host audio or video content of any kind.
+                      Audio files uploaded by a user are owned by that user, and
+                      are presented only to that user. All transcriptions
+                      displayed by PianoFi are created automatically by the
+                      PianoFi transcription algorithm and may be corrected by
+                      users or professional music transcribers. No third party
+                      transcriptions are displayed or used in any other way by
+                      PianoFi. Each transcription is specifically created for
+                      the respective user. Copyright owners who do not want the
+                      transcriptions of their works to be displayed by PianoFi
+                      can request the retraction of individual songs or
+                      composers from the PianoFi website by emailing{" "}
+                      <a
+                        href="mailto:jonathan@pianofi.ca"
+                        className="text-primary hover:underline"
+                      >
+                        jonathan@pianofi.ca
+                      </a>
+                      . However, any songs removed from the website are at
+                      PianoFi's discretion and should not be considered an
+                      admission of liability on PianoFi's part.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Payment Terms */}
-              {/* <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>Payment and Subscription Terms</CardTitle>
                 </CardHeader>
@@ -205,7 +231,7 @@ export default function TermsOfServicePage() {
                     </p>
                   </div>
                 </CardContent>
-              </Card> */}
+              </Card>
 
               {/* Service Availability */}
               <Card>
