@@ -48,6 +48,7 @@ def create_checkout_session(
             success_url=success_url,
             cancel_url=cancel_url,
             customer=customer_id,
+            allow_promotion_codes=True,
             subscription_data={
                 'metadata': {'user_id': str(user_id)}
             },
