@@ -40,10 +40,7 @@ const FileUploader: FC<FileUploaderProps> = ({
 
   const [selectedModel, setSelectedModel] = useState<"amt" | "picogen">("amt");
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
-  // PiCoGen does not support difficulty selection
   const levelsDisabled = selectedModel === "picogen";
-  const picogenUsageCount = metrics?.picogen_usage_count || 1;
-  const picogenDisabled = picogenUsageCount >= 1;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -94,12 +91,14 @@ const FileUploader: FC<FileUploaderProps> = ({
   const handleFiles = async (files: FileList) => {
     if (!user) return;
 
-    if (selectedModel === "picogen" && picogenDisabled) {
-      toast.error("PiCoGen is allowed only once per month.");
+    // Check if PiCoGen is selected and show error
+    if (selectedModel === "picogen") {
+      toast.error(
+        "PiCoGen model is currently unavailable. Please select AMT model."
+      );
       return;
     }
-
-    // PiCoGen is now available - allow selection to continue
+    // remove when picogen is available
 
     if (metricsLoading) {
       toast.error("Please wait while we check your subscription limits...");
@@ -187,11 +186,10 @@ const FileUploader: FC<FileUploaderProps> = ({
           toast.error("Failed to enqueue job: " + (err as Error).message);
         });
       console.log("Job enqueued successfully");
-
     } catch (err) {
       console.error("Upload/Enqueue failed:", err);
       toast.error("Upload failed: " + (err as Error).message);
-        setIsUploading(false);
+      setIsUploading(false);
     }
   };
 
@@ -241,8 +239,6 @@ const FileUploader: FC<FileUploaderProps> = ({
          : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
      }`;
 
-  const disabledSuffix = "opacity-50 pointer-events-none";
-
   const levelOptionClass = (v: 1 | 2 | 3) =>
     `cursor-pointer rounded-md border px-4 py-4 text-xs sm:text-sm font-medium transition-all flex items-center gap-2
      ${
@@ -279,6 +275,27 @@ const FileUploader: FC<FileUploaderProps> = ({
       <CardHeader>
         <CardTitle>Upload Audio File</CardTitle>
         <CardDescription>
+          {selectedModel === "picogen" ? (
+            <span className="text-orange-600 font-medium">
+              PiCoGen model is currently unavailable. Please select AMT to
+              continue.
+            </span>
+          ) : metrics?.transcriptions_left !== undefined &&
+            metrics.transcriptions_left !== null &&
+            metrics.transcriptions_left <= 2 ? (
+            <span className="text-yellow-600 font-medium">
+              You have only {metrics.transcriptions_left} transcription
+              {metrics.transcriptions_left === 1 ? "" : "s"} left this month.
+            </span>
+          ) : metrics?.transcriptions_left === 0 ? (
+            <span className="text-red-600 font-medium">
+              You have reached your monthly limit. Please upgrade to continue.
+            </span>
+          ) : (
+            "Upload your audio file to convert it to piano sheet music"
+          )}
+        </CardDescription>
+        {/* <CardDescription>
           {metrics?.transcriptions_left !== undefined &&
           metrics.transcriptions_left !== null &&
           metrics.transcriptions_left <= 2 ? (
@@ -293,7 +310,7 @@ const FileUploader: FC<FileUploaderProps> = ({
           ) : (
             "Upload your audio file to convert it to piano sheet music"
           )}
-        </CardDescription>
+        </CardDescription> */}
       </CardHeader>
       <CardContent>
         {/* Reworked selection layout */}
@@ -305,11 +322,7 @@ const FileUploader: FC<FileUploaderProps> = ({
               </h4>
               <RadioGroup
                 value={selectedModel}
-                onValueChange={(v) => {
-                  // block switching to picogen client-side if it's already used
-                  if (v === "picogen" && picogenDisabled) return;
-                  setSelectedModel(v as any);
-                }}
+                onValueChange={(v) => setSelectedModel(v as any)}
                 className="space-y-3"
               >
                 <Label
@@ -332,8 +345,13 @@ const FileUploader: FC<FileUploaderProps> = ({
 
                 <Label
                   htmlFor="model-picogen"
-                  className={modelOptionClass("picogen")}
-                  onClick={() => setSelectedModel("picogen")}
+                  className={`${modelOptionClass(
+                    "picogen"
+                  )} opacity-60 cursor-not-allowed`}
+                  onClick={() => {
+                    setSelectedModel("picogen");
+                    toast.warning("PiCoGen model is currently unavailable");
+                  }}
                 >
                   <RadioGroupItem
                     value="picogen"
@@ -341,7 +359,12 @@ const FileUploader: FC<FileUploaderProps> = ({
                     className="mt-0.5"
                   />
                   <div>
-                    <div className="font-medium">PiCoGen</div>
+                    <div className="font-medium flex items-center gap-2">
+                      PiCoGen
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                        Unavailable
+                      </span>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       Higher timing precision & note accuracy
                     </p>
@@ -438,21 +461,46 @@ const FileUploader: FC<FileUploaderProps> = ({
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive
+            // remove when picogen is available
+            selectedModel === "picogen"
+              ? "border-muted-foreground/25 opacity-50 cursor-not-allowed"
+              : // remove when picogen is available
+              dragActive
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25"
           }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
+          onDragEnter={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDragLeave={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDragOver={selectedModel !== "picogen" ? handleDrag : undefined}
+          onDrop={selectedModel !== "picogen" ? handleDrop : undefined}
+          // onDragEnter={handleDrag}
+          // onDragLeave={handleDrag}
+          // onDragOver={handleDrag}
+          // onDrop={handleDrop}
         >
           <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">
             Drop your audio file here
           </h3>
           <p className="text-muted-foreground mb-4">or click to browse files</p>
-          <Button onClick={handleFileInput}>Choose File</Button>
+          <Button
+            onClick={() => {
+              // remove when picogen is available
+              if (selectedModel === "picogen") {
+                toast.error(
+                  "PiCoGen model is currently unavailable. Please select AMT model."
+                );
+                return;
+              }
+              // remove when picogen is available
+              handleFileInput();
+            }}
+            // remove when picogen is available
+            disabled={selectedModel === "picogen"}
+            // remove when picogen is available
+          >
+            Choose File
+          </Button>
           <p className="text-xs text-muted-foreground mt-4">
             Supports MP3, WAV, FLAC up to 10MB
           </p>
