@@ -60,7 +60,7 @@ def get_dashboard_metrics(
     )
     
     # Number of transcriptions left this month
-    subscription = payment_repository.get_active_subscription(db, user_id)
+    subscription = payment_repository.get_active_subscription_limit(db, user_id)
     monthly_limit = subscription["monthly_transcription_limit"] if subscription else 3  # Default to 3 for free users
     
     # Calculate transcriptions left this month

@@ -3,7 +3,8 @@ from app.schemas.createCheckoutSession import CreateCheckoutSessionRequest, Crea
 from app.schemas.user import User
 from app.auth import get_current_user
 from app.config_loader import Config
-from app.services.payment_service import create_stripe_checkout_session
+from app.services.payment_service import create_checkout_session
+from app.database import get_db
 import stripe
 import logging
 
@@ -13,24 +14,37 @@ router = APIRouter()
 stripe.api_key = Config.STRIPE_KEYS['secret_key']
 
 @router.post("/createCheckoutSession", response_model=CreateCheckoutSessionResponse)
-async def create_checkout_session(
+async def create_checkout_session_endpoint(
     request: Request,
     payload: CreateCheckoutSessionRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db)
 ):
     """
     Create a Stripe checkout session for subscription payment
     """
+
+    origin = request.headers.get("origin")
+    allowed = Config.CORS_ORIGINS
+    if origin and allowed:
+        # only allow known origins
+        origin = origin if origin in allowed else "https://www.pianofi.ca"
+    elif not origin:
+        origin = "https://www.pianofi.ca"
+
+    success_url = f"{origin}/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin}/dashboard"
+
     try:
-        session_data = create_stripe_checkout_session(
+
+        session_data = create_checkout_session(
             user_id=current_user.id,
+            user_email=current_user.email,
             price_id=payload.priceId,
-            success_url=payload.successUrl,
-            cancel_url=payload.cancelUrl,
-            metadata=payload.metadata,
             stripe_client=stripe,
-            payment_repository=request.app.state.payment_repository,
-            user_repository=request.app.state.user_repository
+            success_url=success_url,
+            cancel_url=cancel_url,
+            db=db
         )
         
         logging.info(

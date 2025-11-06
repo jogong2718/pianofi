@@ -512,11 +512,18 @@ export default function LandingPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Starter</CardTitle>
-                  <CardDescription>
-                    Perfect for trying out PianoFi
-                  </CardDescription>
-                  <div className="text-3xl font-bold">
-                    $9<span className="text-sm font-normal">/month</span>
+                  <CardDescription>The best offer you'll find!</CardDescription>
+                  <div className="flex items-baseline gap-3">
+                    <div className="text-3xl font-bold text-primary">
+                      $4.99
+                      <span className="text-sm font-normal ml-1">/month</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground line-through opacity-80">
+                      $29
+                    </div>
+                    <Badge variant="secondary" className="text-sm">
+                      Save $20
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -525,8 +532,7 @@ export default function LandingPage() {
                       • Access to the most advanced SOTA transcription models as
                       soon as they come out!
                     </li>
-                    <li>• 10 transcriptions per month</li>
-                    <li>• Up to 5 minutes per file</li>
+                    <li>• 100 transcriptions per month</li>
                   </ul>
                   <Button
                     onClick={() => handleNavigation("/signup")}
@@ -536,7 +542,7 @@ export default function LandingPage() {
                   </Button>
                 </CardContent>
               </Card>
-              <Card className="border-primary">
+              {/* <Card className="border-primary">
                 <CardHeader>
                   <Badge className="w-fit">Most Popular</Badge>
                   <CardTitle>Pro</CardTitle>
@@ -569,7 +575,7 @@ export default function LandingPage() {
                   </CardDescription>
                   {/* <div className="text-3xl font-bold">
                     $99<span className="text-sm font-normal">/month</span>
-                  </div> */}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
@@ -581,7 +587,7 @@ export default function LandingPage() {
                   </ul>
                   <Button className="w-full mt-6">Contact Sales</Button>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </section>

@@ -20,12 +20,12 @@ export function ProfileSidebar({
       icon: User,
       description: "Personal information and account details",
     },
-    // {
-    //   id: "billing" as SidebarSection,
-    //   label: "Billing",
-    //   icon: CreditCard,
-    //   description: "Subscription and payment management",
-    // },
+    {
+      id: "billing" as SidebarSection,
+      label: "Billing",
+      icon: CreditCard,
+      description: "Subscription and payment management",
+    },
     {
       id: "settings" as SidebarSection,
       label: "Settings",
