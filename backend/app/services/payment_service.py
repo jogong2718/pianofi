@@ -189,6 +189,7 @@ def _get_or_create_customer(
     """
 
     from app.repositories import payment_repository
+    from app.repositories import webhook_event_repository
 
     try:
         user = payment_repository.find_user_stripe_customer_id(db=db, user_id=user_id)
@@ -198,8 +199,11 @@ def _get_or_create_customer(
             return user["stripe_customer_id"]
         else:
             logging.info(f"Creating new Stripe customer for user {user_id}")
-            customer = stripe_client.create_customer(email=user_email, metadata={"user_id": str(user_id)})
-            payment_repository.update_user_stripe_customer_id(user_id, customer.id)
+            customer = stripe_client.Customer.create(email=user_email, metadata={"user_id": str(user_id)})
+            webhook_event_repository.upsert_customer(db, user_id=str(user_id), stripe_customer_id=customer.id)
+            db.commit()
+
+            logger.info(f"Created Stripe customer {customer.id} for user {user_id}")
             return customer.id
     except Exception as e:
         logger.error(f"Failed to get or create Stripe customer for user {user_id}: {e}")
