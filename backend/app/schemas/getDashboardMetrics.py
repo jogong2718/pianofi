@@ -8,3 +8,4 @@ class DashboardMetrics(BaseModel):
     processing_count: int
     this_month_count: int
     transcriptions_left: Optional[int]
+    picogen_usage_count: int

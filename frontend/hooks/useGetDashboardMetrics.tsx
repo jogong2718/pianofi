@@ -6,6 +6,7 @@ interface DashboardMetrics {
   processing_count: number;
   this_month_count: number;
   transcriptions_left: number | null;
+  picogen_usage_count: number;
 }
 
 export function useDashboardMetrics() {
