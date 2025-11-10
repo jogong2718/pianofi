@@ -277,10 +277,10 @@ export default function LandingPage() {
             <div className="relative w-full max-w-[90vw] mx-auto">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-3xl opacity-30 -m-4"></div>
               <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]">
-                <div className="aspect-video bg-black/5">
+                <div id="video-container" className="bg-black/5">
                   <video
                     id="landing-demo-video"
-                    src="/pianofi demo_v1 - Made with Clipchamp.mp4"
+                    src="/pianofi_demo_v2.mp4"
                     className="w-full h-full object-contain bg-white dark:bg-black"
                     muted
                     playsInline
