@@ -338,9 +338,83 @@ class MidiToMusicXML:
                 # Calculate actual duration (clip to measure boundary)
                 actual_duration = min(moment['duration'], measure_end - moment_time)
                 
-                # Split notes between treble and bass
-                treble_notes = [note for note in moment['notes'] if note['midi_note'] >= 60]  # Middle C and above
-                bass_notes = [note for note in moment['notes'] if note['midi_note'] < 60]  # Below middle C
+                # Step 1: split obvious notes
+                treble_notes = [n for n in moment['notes'] if n['midi_note'] > 66]
+                bass_notes = [n for n in moment['notes'] if n['midi_note'] < 54]
+
+                # Step 2: remaining notes
+                obvious_set = set(id(n) for n in treble_notes + bass_notes)
+                middle_notes = [n for n in moment['notes'] if id(n) not in obvious_set]
+
+                # Step 3: compute averages of obvious notes
+                avg_treble = sum(n['midi_note'] for n in treble_notes) / len(treble_notes) if treble_notes else 66
+                avg_bass = sum(n['midi_note'] for n in bass_notes) / len(bass_notes) if bass_notes else 54
+
+                # Step 4: assign middle notes based on proximity
+                for n in middle_notes:
+                    dist_to_treble = abs(n['midi_note'] - avg_treble)
+                    dist_to_bass = abs(n['midi_note'] - avg_bass)
+                    
+                    if dist_to_treble <= dist_to_bass:
+                        treble_notes.append(n)
+                    else:
+                        bass_notes.append(n)
+                
+                # Step 5: enforce 9-note (=14 semitone) range per hand
+                MAX_RANGE = 14
+                MAX_ITER = 20  # prevent infinite loops
+
+                def get_range(notes):
+                    if not notes:
+                        return 0
+                    notes_sorted = sorted(notes, key=lambda n: n['midi_note'])
+                    return notes_sorted[-1]['midi_note'] - notes_sorted[0]['midi_note']
+
+                def average_pitch(notes, default):
+                    return sum(n['midi_note'] for n in notes) / len(notes) if notes else default
+
+                def enforce_range(treble_notes, bass_notes):
+                    iteration = 0
+
+                    while iteration < MAX_ITER:
+                        iteration += 1
+                        changed = False
+
+                        avg_treble = average_pitch(treble_notes, 66)
+                        avg_bass = average_pitch(bass_notes, 54)
+
+                        # Treble too wide?
+                        if get_range(treble_notes) > MAX_RANGE:
+                            center = avg_treble
+                            farthest = max(treble_notes, key=lambda n: abs(n['midi_note'] - center))
+                            # Move only if it makes bass more balanced
+                            if abs(farthest['midi_note'] - avg_bass) < abs(farthest['midi_note'] - avg_treble):
+                                treble_notes.remove(farthest)
+                                bass_notes.append(farthest)
+                                changed = True
+                            else:
+                                # Otherwise, just drop it or break to avoid looping
+                                treble_notes.remove(farthest)
+                                break
+
+                        # Bass too wide?
+                        if get_range(bass_notes) > MAX_RANGE:
+                            center = avg_bass
+                            farthest = max(bass_notes, key=lambda n: abs(n['midi_note'] - center))
+                            if abs(farthest['midi_note'] - avg_treble) < abs(farthest['midi_note'] - avg_bass):
+                                bass_notes.remove(farthest)
+                                treble_notes.append(farthest)
+                                changed = True
+                            else:
+                                bass_notes.remove(farthest)
+                                break
+
+                        if not changed:
+                            break
+
+                    return treble_notes, bass_notes
+
+                treble_notes, bass_notes = enforce_range(treble_notes, bass_notes)
                 
                 # Handle treble part
                 if treble_notes:

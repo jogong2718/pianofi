@@ -43,8 +43,8 @@ export default function ProfilePage() {
     switch (activeSection) {
       case "profile":
         return <ProfileSection user={user} />;
-      // case "billing":
-      //   return <BillingSection />;
+      case "billing":
+        return <BillingSection />;
       case "settings":
         return <SettingsSection />;
       default:

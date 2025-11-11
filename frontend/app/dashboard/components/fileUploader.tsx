@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Music } from "lucide-react";
 
 interface FileUploaderProps {
   metrics: any;
@@ -35,6 +36,7 @@ const FileUploader: FC<FileUploaderProps> = ({
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const { callUploadUrl, loading: loadingUploadUrl } = useUploadUrl();
 
@@ -140,6 +142,8 @@ const FileUploader: FC<FileUploaderProps> = ({
       return;
     }
 
+    setIsUploading(true);
+
     try {
       // 1) Get pre-signed upload URL + jobId + fileKey from backend
       const {
@@ -173,19 +177,25 @@ const FileUploader: FC<FileUploaderProps> = ({
         console.log("S3 file upload successful");
       }
 
+      onFileUploaded(newTranscription);
+
       // 3) Tell backend "file is in S3; enqueue job"
-      await callCreateJob({
+      callCreateJob({
         jobId: newJobId,
         fileKey: fileKey,
         model: selectedModel,
         level: selectedLevel,
-      });
+      })
+        .then(() => console.log("Job enqueued successfully"))
+        .catch((err) => {
+          console.error("Enqueue failed:", err);
+          toast.error("Failed to enqueue job: " + (err as Error).message);
+        });
       console.log("Job enqueued successfully");
-
-      onFileUploaded(newTranscription);
     } catch (err) {
       console.error("Upload/Enqueue failed:", err);
       toast.error("Upload failed: " + (err as Error).message);
+      setIsUploading(false);
     }
   };
 
@@ -323,6 +333,29 @@ const FileUploader: FC<FileUploaderProps> = ({
          ? "bg-primary/10 border-primary ring-2 ring-primary/40"
          : "border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/5"
      } ${levelsDisabled ? "opacity-50" : ""}`;
+
+  if (isUploading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Uploading File</CardTitle>
+          <CardDescription>
+            Please wait while your file is being uploaded...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="relative">
+              <Music className="h-16 w-16 text-primary animate-spin" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Uploading your audio file...
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

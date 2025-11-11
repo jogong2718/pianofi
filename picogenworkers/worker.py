@@ -6,6 +6,7 @@ from packages.pianofi_config.config import Config
 from picogenworkers.tasks.picogen import run_picogen
 from picogenworkers.tasks.midiToXml import convert_midi_to_xml
 from picogenworkers.tasks.midiToAudio import convert_midi_to_audio
+from picogenworkers.tasks.xmlToPdf import convert_musicxml_to_pdf
 
 from picogenworkers.utils.task_protection import enable_task_protection, disable_task_protection
 
@@ -168,7 +169,32 @@ def process_job(job, engine, s3_client, aws_creds, local):
         mark_job_as_error(engine, job_id, f"XML conversion error: {e}")
         return
     
-    # 6) Convert MIDI to audio
+    # 6) Convert XML → PDF
+    pdf_path = f"/tmp/{job_id}.pdf"
+    pdf_key = f"pdf/{job_id}.pdf"
+
+    try:
+        logging.info(f"Generating PDF for job {job_id} from {xml_path}")
+        convert_musicxml_to_pdf(xml_path, pdf_path)
+
+        if local:
+            pdf_final = UPLOAD_DIR / pdf_key
+            pdf_final.parent.mkdir(parents=True, exist_ok=True)
+            with open(pdf_final, "wb") as f:
+                with open(pdf_path, "rb") as pdf_file:
+                    f.write(pdf_file.read())
+            logging.info(f"Saved PDF locally at {pdf_final}")
+        else:
+            logging.info(f"Uploading PDF to s3://{bucket}/{pdf_key}")
+            s3_client.upload_file(pdf_path, bucket, pdf_key)
+            logging.info(f"Uploaded PDF for job {job_id} to S3 at {pdf_key}")
+
+    except Exception as e:
+        logging.error(f"Error generating or uploading PDF for job {job_id}: {e}")
+        mark_job_as_error(engine, job_id, f"PDF conversion error: {e}")
+        return
+    
+    # 7) Convert MIDI to audio
     audio_path = f"/tmp/{job_id}.mp3"
     audio_key = f"processed_audio/{job_id}.mp3"
     try:
@@ -210,24 +236,25 @@ def process_job(job, engine, s3_client, aws_creds, local):
         mark_job_as_error(engine, job_id, f"MIDI to audio conversion error: {e}")
         return
 
-    # 7) DB → status=done, file_key=midi_key, xml_key=xml_key
+    # 8) DB → status=done, file_key=midi_key, xml_key=xml_key
     with engine.connect() as db:
         update_sql = text("""
             UPDATE jobs
-            SET status='done', finished_at=NOW(), result_key=:midi_key, xml_key=:xml_key
+            SET status='done', finished_at=NOW(), result_key=:midi_key, xml_key=:xml_key, pdf_key=:pdf_key
             WHERE job_id=:jobId
         """)
         db.execute(update_sql, {
             "midi_key": midi_key,
             "xml_key": xml_key,
+            "pdf_key": pdf_key,
             "jobId": job_id,
         })
         db.commit()
-    logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}")
+    logging.info(f"Job {job_id} completed successfully. MIDI: {midi_key}, XML: {xml_key}, PDF: {pdf_key}")
 
-    # 8) Cleanup temporary files
+    # 9) Cleanup temporary files
     try:
-        for path in [Path(local_raw), Path(audio_path), Path(midi_path), Path(xml_path)]:
+        for path in [Path(local_raw), Path(audio_path), Path(midi_path), Path(xml_path), Path(pdf_path)]:
             if path.exists():
                 path.unlink()
                 logging.info(f"Deleted temporary file: {path}")
