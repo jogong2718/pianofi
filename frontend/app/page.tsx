@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Playfair_Display } from "next/font/google";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Music, Upload, Star } from "lucide-react";
 import { Header } from "@/components/ui/header";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+});
 
 export default function LandingPage() {
   const router = useRouter();
@@ -183,81 +190,49 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className={`w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center transition-all duration-1000 ${
+          className={`relative w-full min-h-screen flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 ${
             heroVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
           }`}
         >
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <Badge
-                    variant="secondary"
-                    className="w-fit hidden sm:inline-flex"
+          {/* Image covering entire screen with equal padding */}
+          <div 
+            className="absolute inset-2 md:inset-3 lg:inset-4 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/hero-bg.png)',
+            }}
+          />
+          
+          {/* Content */}
+          <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32">
+            <div className="max-w-3xl">
+              <div className="space-y-6">
+                <h1
+                  className={`${playfair.className} text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
+                >
+                  Turn Any Song Into{" "}
+                  <span className="italic font-semibold">Piano Sheet Music</span>
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
+                  {"\u00a0"}
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-4">
+                  <Button 
+                    size="lg" 
+                    onClick={() => handleNavigation("/signup")}
+                    className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                   >
-                    🎹 AI-Powered Music Transcription
-                  </Badge>
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Turn Any Song Into
-                    <span className="text-primary"> Piano Sheet Music</span>
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Upload any audio file - pop songs, instrumentals, classical
-                    pieces - and get professional piano sheet music in minutes.
-                    Powered by advanced AI models.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" onClick={() => handleNavigation("/signup")}>
                     Start Converting Music
                   </Button>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>4.9/5 rating</span>
-                  </div>
-                  {/* <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>10,000+ musicians</span>
-                  </div> */}
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
-                  <Card className="relative w-full max-w-md">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Upload className="h-5 w-5" />
-                        Upload Your Music
-                      </CardTitle>
-                      <CardDescription>
-                        Drag and drop any audio file to get started
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                          dragActive
-                            ? "border-primary bg-primary/5"
-                            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={handleFileInput}
-                      >
-                        <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">
-                          MP3, WAV, FLAC supported
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    onClick={() => handleNavigation("/signup")}
+                    className="bg-white text-black border-black hover:bg-gray-50 dark:bg-transparent dark:text-white dark:border-white dark:hover:bg-white/10"
+                  >
+                    Watch Demo
+                  </Button>
                 </div>
               </div>
             </div>
