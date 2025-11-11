@@ -9,7 +9,6 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import logging
 import time
-import json
 import uuid
 import tempfile
 from fastapi import HTTPException
@@ -250,47 +249,41 @@ def process_youtube_url(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # 5. Create job in database
-    from sqlalchemy import text
+    # 5. Create job in database with status 'initialized'
+    from app.repositories import job_repository
 
-    sql = text("""
-        INSERT INTO jobs (job_id, file_key, status, user_id, file_name, file_size, file_duration, model, level, queued_at)
-        VALUES (:job_id, :file_key, 'queued', :user_id, :file_name, :file_size, :file_duration, :model, :level, NOW())
-    """)
-
-    db.execute(sql, {
+    job_data = {
         "job_id": job_id,
         "file_key": download_result["file_key"],
+        "status": "initialized",
         "user_id": user_id,
         "file_name": f"{download_result['video_title']}.mp3",
         "file_size": download_result["file_size"],
-        "file_duration": download_result["duration"],
-        "model": model,
-        "level": level
-    })
-
-    db.commit()
-
-    # 6. Queue the job in Redis
-    job_data = {
-        "jobId": job_id,
-        "fileKey": download_result["file_key"],
-        "userId": user_id,
-        "createdAt": time.time(),
-        "model": model,
-        "level": level
+        "file_duration": download_result["duration"]
     }
 
-    # Determine queue based on model and environment
-    from app.services.job_service import get_queue_name
-    from app.config_loader import Config
+    job_repository.save(db, job_data)
+    db.commit()
+
+    # 6. Queue the job (updates status to 'queued' and adds to Redis)
+    from app.services.job_service import queue_job
 
     try:
-        queue_name = get_queue_name(model, Config.ENVIRONMENT)
+        queue_job(
+            job_id=job_id,
+            file_key=download_result["file_key"],
+            user_id=user_id,
+            model=model,
+            level=level,
+            db=db,
+            redis_client=redis_client
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-    redis_client.lpush(queue_name, json.dumps(job_data))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     # 7. Add to rate limiting sorted set
     redis_client.zadd("youtube_downloads", {job_id: time.time()})
