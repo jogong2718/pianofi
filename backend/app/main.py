@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import time
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, Form
-from app.routers import uploadUrl, createJob, getUserJobs, createSheetMusic, createCheckoutSession, webhooks, getDashboardMetrics, updateProfile, deleteJob, updateJob, updateSubscription  # , transcription, midi_ops
+from app.routers import uploadUrl, createJob, getUserJobs, createSheetMusic, createCheckoutSession, webhooks, getDashboardMetrics, updateProfile, deleteJob, updateJob, processYoutubeUrl, updateSubscription  # , transcription, midi_ops
 from fastapi.middleware.cors import CORSMiddleware
 from app.config_loader import Config
 
@@ -47,4 +47,26 @@ app.include_router(getDashboardMetrics.router, prefix="", tags=["getDashboardMet
 app.include_router(updateProfile.router, prefix="", tags=["updateProfile"])
 app.include_router(deleteJob.router, prefix="", tags=["deleteJob"])
 app.include_router(updateJob.router, prefix="", tags=["updateJob"])
+app.include_router(processYoutubeUrl.router, prefix="", tags=["processYoutubeUrl"])
 app.include_router(updateSubscription.router, prefix="", tags=["updateSubscription"])
+
+@app.post("/uploadLocal")
+async def create_upload_file(
+    file: UploadFile,
+    fileKey: str = Form(...),
+    uploadUrl: str = Form(...)
+):
+    """
+    Endpoint to upload a file.
+    This is just a placeholder to demonstrate file upload handling.
+    """
+    content = await file.read()
+
+    UPLOAD_DIR = Path(uploadUrl)
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    file_path = UPLOAD_DIR / fileKey
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    return {"filename": file.filename, "content_type": file.content_type}

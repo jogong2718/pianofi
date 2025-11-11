@@ -15,11 +15,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Music, Upload, Star } from "lucide-react";
 import { Header } from "@/components/ui/header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
 
   const { user, loading } = useAuth();
 
@@ -235,27 +239,66 @@ export default function LandingPage() {
                         Upload Your Music
                       </CardTitle>
                       <CardDescription>
-                        Drag and drop any audio file to get started
+                        Drag and drop an audio file or paste a YouTube URL
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                          dragActive
-                            ? "border-primary bg-primary/5"
-                            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={handleFileInput}
-                      >
-                        <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">
-                          MP3, WAV, FLAC supported
-                        </p>
-                      </div>
+                      <Tabs defaultValue="file" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 mb-4">
+                          <TabsTrigger value="file">Upload File</TabsTrigger>
+                          <TabsTrigger value="youtube">YouTube URL</TabsTrigger>
+                        </TabsList>
+
+                        <div style={{ height: '12rem' }}>
+                          <TabsContent value="file" className="m-0 h-full">
+                            <div
+                              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors flex flex-col justify-center w-full h-full ${
+                                dragActive
+                                  ? "border-primary bg-primary/5"
+                                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
+                              }`}
+                              onDragEnter={handleDrag}
+                              onDragLeave={handleDrag}
+                              onDragOver={handleDrag}
+                              onDrop={handleDrop}
+                              onClick={handleFileInput}
+                            >
+                              <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                              <p className="text-sm text-muted-foreground">
+                                MP3, WAV, FLAC supported
+                              </p>
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="youtube" className="m-0 h-full">
+                            <div
+                              className="border-2 border-dashed rounded-lg p-8 text-center flex flex-col justify-center w-full h-full"
+                            >
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Enter a YouTube URL to extract and transcribe
+                              </p>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="url"
+                                  placeholder="https://www.youtube.com/watch?v=..."
+                                  value={youtubeUrl}
+                                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                                  className="flex-1"
+                                />
+                                <Button
+                                  onClick={() => handleNavigation("/signup")} // navigate to signup page when user clicks start
+                                  disabled={!youtubeUrl.trim()}
+                                >
+                                  Start
+                                </Button>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-4">
+                                Sign up to process YouTube videos
+                              </p>
+                            </div>
+                          </TabsContent>
+                        </div>
+                      </Tabs>
                     </CardContent>
                   </Card>
                 </div>
