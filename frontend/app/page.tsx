@@ -54,7 +54,7 @@ export default function LandingPage() {
     "uw.png",
     "ubc.png",
     "umich.png",
-    "cmu.jpg",
+    "cmu.png",
   ];
 
   useEffect(() => {
@@ -190,15 +190,11 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className={`relative w-full min-h-screen flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 ${
-            heroVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
+          className="relative w-full min-h-screen flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
-          {/* Image covering entire screen with equal padding */}
+          {/* Image covering entire screen with padding (extra top padding for header) */}
           <div 
-            className="absolute inset-2 md:inset-3 lg:inset-4 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="absolute top-20 left-4 right-4 bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:top-28 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: 'url(/hero-bg.png)',
             }}
@@ -209,13 +205,12 @@ export default function LandingPage() {
             <div className="max-w-3xl">
               <div className="space-y-6">
                 <h1
-                  className={`${playfair.className} text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
+                  className={`${playfair.className} text-4xl font-light tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
                 >
-                  Turn Any Song Into{" "}
-                  <span className="italic font-semibold">Piano Sheet Music</span>
+                  Turn <span className="italic font-light">Any</span> Song Into Piano Sheet Music
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
-                  {"\u00a0"}
+                  {"\u00a0"} // !!!
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-4">
                   <Button 
@@ -242,7 +237,7 @@ export default function LandingPage() {
         {/* Video Demo Section */}
         <section
           ref={videoRef}
-          className={`w-full py-6 md:py-12 transition-all duration-1000 delay-200 ${
+          className={`w-full py-6 md:py-12 bg-[#f5f0e2] transition-all duration-1000 delay-200 ${
             videoVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -414,7 +409,7 @@ export default function LandingPage() {
                     key={`${f}-${i}`}
                     src={`/logos/${f}`}
                     alt={f.replace(/\..*/, "")}
-                    className="h-14 md:h-20 lg:h-24"
+                    className="h-14 md:h-20 lg:h-24 "
                     style={{
                       flexShrink: 0,
                       width: "auto",
