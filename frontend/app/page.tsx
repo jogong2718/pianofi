@@ -190,11 +190,11 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className="relative w-full min-h-screen flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
+          className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
           {/* Image covering entire screen with padding (extra top padding for header) */}
           <div 
-            className="absolute top-20 left-4 right-4 bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:top-28 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="absolute top-8 left-4 right-4 bottom-4 md:top-12 md:left-6 md:right-6 md:bottom-6 lg:top-16 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: 'url(/hero-bg.png)',
             }}
