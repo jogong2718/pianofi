@@ -36,7 +36,6 @@ export default function LandingPage() {
   const featuresRef = useRef<HTMLElement>(null);
   const donationsRef = useRef<HTMLElement>(null);
   const pricingRef = useRef<HTMLElement>(null);
-  const schoolsRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
   // Visibility states
@@ -45,7 +44,6 @@ export default function LandingPage() {
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
   const [pricingVisible, setPricingVisible] = useState(false);
-  const [schoolsVisible, setSchoolsVisible] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(false);
 
   const logos = [
@@ -126,8 +124,6 @@ export default function LandingPage() {
           setDonationsVisible(entry.isIntersecting);
         if (entry.target === pricingRef.current)
           setPricingVisible(entry.isIntersecting);
-        if (entry.target === schoolsRef.current)
-          setSchoolsVisible(entry.isIntersecting);
         if (entry.target === ctaRef.current)
           setCtaVisible(entry.isIntersecting);
       });
@@ -139,7 +135,6 @@ export default function LandingPage() {
       featuresRef,
       donationsRef,
       pricingRef,
-      schoolsRef,
       ctaRef,
     ];
     refs.forEach((ref) => {
@@ -194,15 +189,15 @@ export default function LandingPage() {
         >
           {/* Image covering entire screen with padding (extra top padding for header) */}
           <div 
-            className="absolute top-8 left-4 right-4 bottom-4 md:top-12 md:left-6 md:right-6 md:bottom-6 lg:top-16 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="absolute top-4 left-4 right-4 bottom-4 md:top-6 md:left-6 md:right-6 md:bottom-6 lg:top-8 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: 'url(/hero-bg.png)',
             }}
           />
           
           {/* Content */}
-          <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32">
-            <div className="max-w-3xl">
+          <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32 flex flex-col h-full">
+            <div className="max-w-3xl flex-1 flex flex-col justify-center">
               <div className="space-y-6">
                 <h1
                   className={`${playfair.className} text-4xl font-light tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
@@ -228,6 +223,46 @@ export default function LandingPage() {
                   >
                     Watch Demo
                   </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Logos Animation at Bottom */}
+            <div className="relative z-10 w-full mt-auto pb-8">
+              <style>{`
+                @keyframes scroll {
+                  0% {
+                    transform: translateX(0);
+                  }
+                  100% {
+                    transform: translateX(-50%);
+                  }
+                }
+              `}</style>
+              <div className="overflow-hidden">
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "3rem",
+                    alignItems: "center",
+                    animation: "scroll 30s linear infinite",
+                  }}
+                >
+                  {[...logos, ...logos].map((f, i) => (
+                    <img
+                      key={`${f}-${i}`}
+                      src={`/logos/${f}`}
+                      alt={f.replace(/\..*/, "")}
+                      className="h-14 md:h-20 lg:h-24"
+                      style={{
+                        flexShrink: 0,
+                        width: "auto",
+                        display: "block",
+                        filter: "brightness(0) invert(1)",
+                        opacity: 0.9,
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -360,63 +395,6 @@ export default function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Schools / Partners Section */}
-        <section
-          ref={schoolsRef}
-          className={`w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-background transition-all duration-1000 delay-400 ${
-            schoolsVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
-        >
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center text-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                Musicians on PianoFi come from
-              </h2>
-              <p className="max-w-[800px] text-muted-foreground mt-2">
-                We work with musicians and students from top music schools and
-                universities.
-              </p>
-            </div>
-
-            <style>{`
-              @keyframes scroll {
-                0% {
-                  transform: translateX(0);
-                }
-                100% {
-                  transform: translateX(-50%);
-                }
-              }
-            `}</style>
-            <div className="overflow-hidden mt-6">
-              <div
-                style={{
-                  display: "flex",
-                  gap: "3rem",
-                  alignItems: "center",
-                  animation: "scroll 30s linear infinite",
-                }}
-              >
-                {[...logos, ...logos].map((f, i) => (
-                  <img
-                    key={`${f}-${i}`}
-                    src={`/logos/${f}`}
-                    alt={f.replace(/\..*/, "")}
-                    className="h-14 md:h-20 lg:h-24 "
-                    style={{
-                      flexShrink: 0,
-                      width: "auto",
-                      display: "block",
-                    }}
-                  />
-                ))}
               </div>
             </div>
           </div>
