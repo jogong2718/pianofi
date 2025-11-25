@@ -295,7 +295,7 @@ def update_job_to_queued(
         db: Database session
         job_id: Job ID to update
         file_key: File key for additional validation
-        model: Model name ('amt' or 'picogen')
+        model: Model name ('amt' or 'picogen' or 'basicpitch')
         level: Processing level (1-3)
     
     Returns:

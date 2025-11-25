@@ -7,6 +7,6 @@ def mark_job_as_error(engine, job_id, error_message):
             UPDATE jobs
             SET status='error', finished_at=NOW(), error_msg=:errorMessage
         WHERE job_id=:jobId
-    """)
-    db.execute(update_sql, {"jobId": job_id, "errorMessage": error_message})
-    db.commit()
+        """)
+        db.execute(update_sql, {"jobId": job_id, "errorMessage": error_message})
+        db.commit()

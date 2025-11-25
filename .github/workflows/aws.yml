@@ -70,6 +70,14 @@ jobs:
             ecs_cluster: pianofi-cluster
             task_definition: .aws/picogenworkers-task-definition.json
             container_name: picogenworkers
+          - service: basicpitchworkers
+            dockerfile: basicpitchworkers/Dockerfile
+            context: .
+            ecr_repository: pianofi/basicpitchworkers
+            ecs_service: pianofi-basicpitchworkers-service
+            ecs_cluster: pianofi-cluster
+            task_definition: .aws/basicpitchworkers-task-definition.json
+            container_name: basicpitchworkers
 
     steps:
       - name: Checkout

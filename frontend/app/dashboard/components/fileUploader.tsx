@@ -8,13 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Upload } from "lucide-react";
+import { Upload, Music, Piano, Guitar, ArrowRight } from "lucide-react";
 import { useUploadUrl } from "@/hooks/useUploadUrl";
 import { useCreateJob } from "@/hooks/useCreateJob";
 import { uploadToS3 } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Music } from "lucide-react";
 
 interface FileUploaderProps {
   metrics: any;
@@ -38,9 +37,12 @@ const FileUploader: FC<FileUploaderProps> = ({
 
   const { callCreateJob, loading: loadingCreateJob } = useCreateJob();
 
-  const [selectedModel, setSelectedModel] = useState<"amt" | "picogen">("amt");
+  const [selectedModel, setSelectedModel] = useState<
+    "amt" | "picogen" | "basicpitch"
+  >("amt");
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
-  const levelsDisabled = selectedModel === "picogen";
+  const levelsDisabled =
+    selectedModel === "picogen" || selectedModel === "basicpitch";
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -231,10 +233,13 @@ const FileUploader: FC<FileUploaderProps> = ({
   };
 
   // helper styling builders
-  const modelOptionClass = (v: "amt" | "picogen") =>
+  const modelOptionClass = (
+    v: "amt" | "picogen" | "basicpitch",
+    isSelected: boolean
+  ) =>
     `cursor-pointer rounded-md border px-4 py-3 text-sm transition-all flex items-start gap-2 w-full
      ${
-       selectedModel === v
+       isSelected
          ? "bg-primary/10 border-primary ring-2 ring-primary/40"
          : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
      }`;
@@ -315,79 +320,110 @@ const FileUploader: FC<FileUploaderProps> = ({
       <CardContent>
         {/* Reworked selection layout */}
         <div className="mb-10 flex flex-col md:flex-row justify-center items-start gap-8">
+          {/* Model Selection - Two Sections */}
           <div className="flex-1 max-w-md mx-auto md:mx-0">
             <div className="rounded-xl border border-border/60 bg-muted/10 backdrop-blur-sm p-4 md:p-5 h-full">
               <h4 className="text-sm font-semibold mb-3 tracking-wide uppercase text-muted-foreground">
-                Model
+                Model Type
               </h4>
-              <RadioGroup
-                value={selectedModel}
-                onValueChange={(v) => setSelectedModel(v as any)}
-                className="space-y-3"
-              >
-                <Label
-                  htmlFor="model-amt"
-                  className={modelOptionClass("amt")}
-                  onClick={() => setSelectedModel("amt")}
-                >
-                  <RadioGroupItem
-                    value="amt"
-                    id="model-amt"
-                    className="mt-0.5"
-                  />
-                  <div>
-                    <div className="font-medium">AMT</div>
-                    <p className="text-xs text-muted-foreground">
-                      Better musicality & faster turnaround
-                    </p>
-                  </div>
-                </Label>
 
-                <Label
-                  htmlFor="model-picogen"
-                  className={`${modelOptionClass(
-                    "picogen"
-                  )} opacity-60 cursor-not-allowed`}
-                  onClick={() => {
-                    setSelectedModel("picogen");
-                    toast.warning("PiCoGen model is currently unavailable");
-                  }}
+              {/* Section 1: Any Song/Audio to Piano Sheet Music */}
+              <div className="mb-4">
+                <h5 className="text-xs font-medium mb-2 text-muted-foreground border-b border-border/40 pb-1 flex items-center gap-1.5">
+                  <Piano className="w-3.5 h-3.5" />
+                  <span>Any Song/Audio</span>
+                  <ArrowRight className="w-3 h-3 opacity-50" />
+                  <span>Sheet Music</span>
+                </h5>
+                <RadioGroup
+                  value={selectedModel}
+                  onValueChange={(v) => setSelectedModel(v as any)}
+                  className="space-y-2"
                 >
-                  <RadioGroupItem
-                    value="picogen"
-                    id="model-picogen"
-                    className="mt-0.5"
-                  />
-                  <div>
-                    <div className="font-medium flex items-center gap-2">
-                      PiCoGen
-                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
-                        Unavailable
-                      </span>
+                  <Label
+                    htmlFor="model-amt"
+                    className={modelOptionClass("amt", selectedModel === "amt")}
+                    onClick={() => setSelectedModel("amt")}
+                  >
+                    <RadioGroupItem
+                      value="amt"
+                      id="model-amt"
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <div className="font-medium">AMT</div>
+                      <p className="text-xs text-muted-foreground">
+                        Better musicality & faster turnaround
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Higher timing precision & note accuracy
-                    </p>
-                  </div>
-                </Label>
-                {/* <Label
-                  htmlFor="model-picogen"
-                  className={modelOptionClass("picogen")}
-                  onClick={() => setSelectedModel("picogen")}
+                  </Label>
+
+                  <Label
+                    htmlFor="model-picogen"
+                    className={`${modelOptionClass(
+                      "picogen",
+                      selectedModel === "picogen"
+                    )} opacity-60 cursor-not-allowed`}
+                    onClick={() => {
+                      setSelectedModel("picogen");
+                      toast.warning("PiCoGen model is currently unavailable");
+                    }}
+                  >
+                    <RadioGroupItem
+                      value="picogen"
+                      id="model-picogen"
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <div className="font-medium flex items-center gap-2">
+                        PiCoGen
+                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                          Unavailable
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Higher timing precision & note accuracy
+                      </p>
+                    </div>
+                  </Label>
+                </RadioGroup>
+              </div>
+
+              {/* Section 2: Any Instrument Audio to Sheet Music */}
+              <div>
+                <h5 className="text-xs font-medium mb-2 text-muted-foreground border-b border-border/40 pb-1 flex items-center gap-1.5">
+                  <Guitar className="w-3.5 h-3.5" />
+                  <span>Any Multi-Instrument Audio</span>
+                  <ArrowRight className="w-3 h-3 opacity-50" />
+                  <span>Sheet Music</span>
+                </h5>
+                <RadioGroup
+                  value={selectedModel}
+                  onValueChange={(v) => setSelectedModel(v as any)}
+                  className="space-y-2"
                 >
-                  <RadioGroupItem
-                    value="picogen"
-                    id="model-picogen"
-                    className="mt-0.5"
-                  />
-                  <div>
-                    <div className="font-medium">PiCoGen</div>
-                    <p className="text-xs text-muted-foreground">
-                      Higher timing precision & note accuracy
-                    </p>
-                  </div>
-                </Label> */}
-              </RadioGroup>
+                  <Label
+                    htmlFor="model-basicpitch"
+                    className={modelOptionClass(
+                      "basicpitch",
+                      selectedModel === "basicpitch"
+                    )}
+                    onClick={() => setSelectedModel("basicpitch")}
+                  >
+                    <RadioGroupItem
+                      value="basicpitch"
+                      id="model-basicpitch"
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <div className="font-medium">Basic Pitch</div>
+                      <p className="text-xs text-muted-foreground">
+                        Only instrument audio with extremely high accuracy
+                      </p>
+                    </div>
+                  </Label>
+                </RadioGroup>
+              </div>
             </div>
           </div>
 
