@@ -37,12 +37,11 @@ const FileUploader: FC<FileUploaderProps> = ({
 
   const { callCreateJob, loading: loadingCreateJob } = useCreateJob();
 
-  const [selectedModel, setSelectedModel] = useState<
-    "amt" | "picogen" | "basicpitch"
-  >("amt");
+  const [selectedModel, setSelectedModel] = useState<"amt" | "picogen" | "pti">(
+    "amt"
+  );
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3>(2);
-  const levelsDisabled =
-    selectedModel === "picogen" || selectedModel === "basicpitch";
+  const levelsDisabled = selectedModel === "picogen" || selectedModel === "pti";
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -234,7 +233,7 @@ const FileUploader: FC<FileUploaderProps> = ({
 
   // helper styling builders
   const modelOptionClass = (
-    v: "amt" | "picogen" | "basicpitch",
+    v: "amt" | "picogen" | "pti",
     isSelected: boolean
   ) =>
     `cursor-pointer rounded-md border px-4 py-3 text-sm transition-all flex items-start gap-2 w-full
@@ -330,7 +329,6 @@ const FileUploader: FC<FileUploaderProps> = ({
               {/* Section 1: Any Song/Audio to Piano Sheet Music */}
               <div className="mb-4">
                 <h5 className="text-xs font-medium mb-2 text-muted-foreground border-b border-border/40 pb-1 flex items-center gap-1.5">
-                  <Piano className="w-3.5 h-3.5" />
                   <span>Any Song/Audio</span>
                   <ArrowRight className="w-3 h-3 opacity-50" />
                   <span>Sheet Music</span>
@@ -392,8 +390,7 @@ const FileUploader: FC<FileUploaderProps> = ({
               {/* Section 2: Any Instrument Audio to Sheet Music */}
               <div>
                 <h5 className="text-xs font-medium mb-2 text-muted-foreground border-b border-border/40 pb-1 flex items-center gap-1.5">
-                  <Guitar className="w-3.5 h-3.5" />
-                  <span>Any Multi-Instrument Audio</span>
+                  <span>Any Piano Audio</span>
                   <ArrowRight className="w-3 h-3 opacity-50" />
                   <span>Sheet Music</span>
                 </h5>
@@ -403,20 +400,17 @@ const FileUploader: FC<FileUploaderProps> = ({
                   className="space-y-2"
                 >
                   <Label
-                    htmlFor="model-basicpitch"
-                    className={modelOptionClass(
-                      "basicpitch",
-                      selectedModel === "basicpitch"
-                    )}
-                    onClick={() => setSelectedModel("basicpitch")}
+                    htmlFor="model-pti"
+                    className={modelOptionClass("pti", selectedModel === "pti")}
+                    onClick={() => setSelectedModel("pti")}
                   >
                     <RadioGroupItem
-                      value="basicpitch"
-                      id="model-basicpitch"
+                      value="pti"
+                      id="model-pti"
                       className="mt-0.5"
                     />
                     <div>
-                      <div className="font-medium">Basic Pitch</div>
+                      <div className="font-medium">PTI</div>
                       <p className="text-xs text-muted-foreground">
                         Only instrument audio with extremely high accuracy
                       </p>

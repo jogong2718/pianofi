@@ -101,11 +101,11 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
-  basicpitchworker:
+  ptiworker:
     build:
       context: .
-      dockerfile: basicpitchworkers/Dockerfile
-    image: pianofi-basicpitch-worker:dev
+      dockerfile: ptiworkers/Dockerfile
+    image: pianofi-pti-worker:dev
     env_file:
       - packages/pianofi_config/.env
     volumes:
@@ -114,8 +114,8 @@ services:
       - ./project-aws:/root/.aws
     develop:
       watch:
-        - path: ./basicpitchworkers
-          target: /app/basicpitchworkers
+        - path: ./ptiworkers
+          target: /app/ptiworkers
           action: sync
     # entrypoint: ""
     # command: tail -f /dev/null

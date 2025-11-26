@@ -263,6 +263,8 @@ class MidiToAudio:
         
         # Try to find a soundfont
         soundfont_paths = [
+            "/app/FluidR3_GM.sf3",
+            "/app/FluidR3Mono_GM.sf3",
             "./FluidR3_GM.sf2",
             "./FluidR3_GM.sf3", 
             "./Piano.sf2",
@@ -297,7 +299,7 @@ class MidiToAudio:
                 str(mp3_file)
             ], check=True, capture_output=True)
             
-            wav_file.unlink()
+            # wav_file.unlink()
             
             file_size = mp3_file.stat().st_size
             logging.info(f"MP3 conversion complete: {mp3_file} ({file_size / (1024*1024):.1f} MB)")
@@ -317,7 +319,7 @@ def convert_midi_to_audio(midi_file, output_file, job_id):
     return audio_path, metadata
 
 if __name__ == "__main__":
-    job_id = "ROSÉ & Bruno Mars - APT"
+    job_id = "f9505682-7620-42f6-89b4-04638651805b"
     midi_file = Path(f"uploads/{job_id}.mid")
     output_file = Path(f"uploads/{job_id}.mp3")
     

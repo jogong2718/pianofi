@@ -1,14 +1,15 @@
-print("starting worker...")
-
 import json, time, logging, redis, boto3
+
+logging.basicConfig(level=logging.INFO)
+
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from packages.pianofi_config.config import Config 
 
-from basicpitchworkers.tasks.basicpitch import run_basicpitch
-from basicpitchworkers.tasks.midiToXml import convert_midi_to_xml
-from basicpitchworkers.tasks.midiToAudio import convert_midi_to_audio
-from basicpitchworkers.tasks.xmlToPdf import convert_musicxml_to_pdf
+from ptiworkers.tasks.pti import run_pti
+from ptiworkers.tasks.midiToXml import convert_midi_to_xml
+from ptiworkers.tasks.midiToAudio import convert_midi_to_audio
+from ptiworkers.tasks.xmlToPdf import convert_musicxml_to_pdf
 from utils.task_protection import enable_task_protection, disable_task_protection
 from utils.error import mark_job_as_error
 from mutagen import File
@@ -22,14 +23,13 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 
-print("starting worker...")
+logging.info("Starting PTI worker...")
 
 def process_job(job, engine, s3_client, aws_creds, local):
     job_id   = job["jobId"]
     file_key = job["fileKey"]
     user_id  = job["userId"]
     bucket   = aws_creds["s3_bucket"]
-    level    = job.get("level", 1)  # Default to level 1 if not provided
     # db       = next(get_db())
 
     # 1) DB → status=processing
@@ -92,15 +92,15 @@ def process_job(job, engine, s3_client, aws_creds, local):
         logging.warning(f"Could not extract duration for {job_id}: {e}")
         mark_job_as_error(engine, job_id, f"Duration extraction error: {e}")
 
-    # 3) basicpitch processing
+    # 3) pti processing
     try:
-        logging.info(f"Running BasicPitch for job {job_id} on {local_raw}")
-        midi_path = run_basicpitch(str(local_raw), f"/tmp/{job_id}.midi")  
+        logging.info(f"Running PTI for job {job_id} on {local_raw}")
+        midi_path = run_pti(str(local_raw), f"/tmp/{job_id}.midi")  
         final_mid = midi_path
-        logging.info(f"BasicPitch generated MIDI file: {final_mid}")
+        logging.info(f"PTI generated MIDI file: {final_mid}")
     except Exception as e:
-        logging.error(f"Error running BasicPitch for job {job_id}: {e}")
-        mark_job_as_error(engine, job_id, f"BasicPitch error: {e}")
+        logging.error(f"Error running PTI for job {job_id}: {e}")
+        mark_job_as_error(engine, job_id, f"PTI error: {e}")
         return
     # 4) Upload result
     midi_key = f"midi/{job_id}.mid"
@@ -280,7 +280,7 @@ def process_job(job, engine, s3_client, aws_creds, local):
 
 def main():
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    # logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     logging.info("Worker starting up...")
 
     aws_creds = Config.AWS_CREDENTIALS
@@ -325,9 +325,9 @@ def main():
             logging.info(f"Loop iteration {loop_count}")
             try:
                 if Config.ENVIRONMENT == "development":
-                    item = r.brpop("basicpitch_job_queue_dev", timeout=5)
+                    item = r.brpop("pti_job_queue_dev", timeout=5)
                 elif Config.ENVIRONMENT == "production":
-                    item = r.brpop("basicpitch_job_queue_prod", timeout=5)
+                    item = r.brpop("pti_job_queue_prod", timeout=5)
                 else:
                     logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
                     continue
@@ -339,9 +339,9 @@ def main():
                     _, raw = item
                     try:
                         if Config.ENVIRONMENT == "development":
-                            r.lpush("basicpitch_job_queue_dev", raw)
+                            r.lpush("pti_job_queue_dev", raw)
                         elif Config.ENVIRONMENT == "production":
-                            r.lpush("basicpitch_job_queue_prod", raw)
+                            r.lpush("pti_job_queue_prod", raw)
                         else:
                             logging.error(f"Unknown environment: {Config.ENVIRONMENT}")
                         logging.info("Shutdown requested; requeued job and exiting.")

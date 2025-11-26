@@ -7,7 +7,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY basicpitchworkers/requirements.txt /app/requirements.txt
+COPY ptiworkers/requirements.txt /app/requirements.txt
 
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
@@ -17,7 +17,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY basicpitchworkers/ ./basicpitchworkers
+COPY ptiworkers/ ./ptiworkers
 COPY packages/ ./packages
 
 ENV PYTHONUNBUFFERED=1 \
@@ -25,4 +25,4 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 ENTRYPOINT []
-CMD ["python", "-u", "basicpitchworkers/worker.py"]
+CMD ["python", "-u", "ptiworkers/worker.py"]
