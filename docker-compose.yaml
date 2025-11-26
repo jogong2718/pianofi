@@ -101,3 +101,30 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
+  ptiworker:
+    build:
+      context: .
+      dockerfile: ptiworkers/Dockerfile
+    image: pianofi-pti-worker:dev
+    env_file:
+      - packages/pianofi_config/.env
+    volumes:
+      - ./uploads:/app/uploads     # host:container
+      # - ./workers:/app/workers
+      - ./project-aws:/root/.aws
+    develop:
+      watch:
+        - path: ./ptiworkers
+          target: /app/ptiworkers
+          action: sync
+    # entrypoint: ""
+    # command: tail -f /dev/null
+    restart: unless-stopped
+    # needs gpu
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
