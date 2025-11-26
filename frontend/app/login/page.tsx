@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Music, Mail } from "lucide-react";
+import { Music, Mail, Github } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -77,7 +77,7 @@ function LoginContent() {
     );
   }
 
-  const handleOAuthLogin = async (provider: "google") => {
+  const handleOAuthLogin = async (provider: "google" | "github") => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -125,6 +125,14 @@ function LoginContent() {
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Google
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleOAuthLogin("github")}
+                  className="w-full"
+                >
+                  <Github className="mr-2 h-4 w-4" />
+                  GitHub
                 </Button>
               </div>
 
