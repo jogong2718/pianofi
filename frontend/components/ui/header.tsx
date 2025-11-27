@@ -27,7 +27,7 @@ export function Header() {
   };
 
   useEffect(() => {
-   if (isRedirecting) setIsRedirecting(false);
+    if (isRedirecting) setIsRedirecting(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-50 px-4 lg:px-6 h-20 flex items-center bg-[#f5f0e2] dark:bg-[#1a1815]">
+    <header className="sticky top-0 left-0 right-0 z-50 px-4 lg:px-6 h-20 flex items-center bg-white/40 dark:bg-black/40 backdrop-blur-md">
       <Link className="flex items-center justify-center space-x-4" href="/">
         <Music className="h-12 w-12 text-primary" />
         <span className="font-bold text-3xl">PianoFi</span>

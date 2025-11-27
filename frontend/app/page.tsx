@@ -178,7 +178,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#f5f0e2] dark:bg-[#1a1815]">
       <Header />
 
       <main className="flex-1">
@@ -188,13 +188,13 @@ export default function LandingPage() {
           className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
           {/* Image covering entire screen with padding (extra top padding for header) */}
-          <div 
+          <div
             className="absolute top-4 left-4 right-4 bottom-4 md:top-6 md:left-6 md:right-6 md:bottom-6 lg:top-8 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url(/hero-bg.png)',
+              backgroundImage: "url(/hero-bg.png)",
             }}
           />
-          
+
           {/* Content */}
           <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32 flex flex-col h-full">
             <div className="max-w-3xl flex-1 flex flex-col justify-center">
@@ -202,31 +202,32 @@ export default function LandingPage() {
                 <h1
                   className={`${playfair.className} text-4xl font-light tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
                 >
-                  Turn <span className="italic font-light">Any</span> Song Into Piano Sheet Music
+                  Turn <span className="italic font-light">Any</span> Song Into
+                  Piano Sheet Music
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
+                {/* <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
                   {"\u00a0"} // !!!
-                </p>
+                </p> */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-4">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     onClick={() => handleNavigation("/signup")}
                     className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                   >
                     Start Converting Music
                   </Button>
-                  <Button 
+                  {/* <Button 
                     size="lg" 
                     variant="outline"
                     onClick={() => handleNavigation("/signup")}
                     className="bg-white text-black border-black hover:bg-gray-50 dark:bg-transparent dark:text-white dark:border-white dark:hover:bg-white/10"
                   >
                     Watch Demo
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>
-            
+
             {/* Logos Animation at Bottom */}
             <div className="relative z-10 w-full mt-auto pb-8">
               <style>{`
@@ -243,25 +244,36 @@ export default function LandingPage() {
                 <div
                   style={{
                     display: "flex",
-                    gap: "3rem",
-                    alignItems: "center",
+                    width: "max-content",
                     animation: "scroll 30s linear infinite",
                   }}
                 >
-                  {[...logos, ...logos].map((f, i) => (
-                    <img
-                      key={`${f}-${i}`}
-                      src={`/logos/${f}`}
-                      alt={f.replace(/\..*/, "")}
-                      className="h-14 md:h-20 lg:h-24"
+                  {[0, 1].map((index) => (
+                    <div
+                      key={index}
                       style={{
-                        flexShrink: 0,
-                        width: "auto",
-                        display: "block",
-                        filter: "brightness(0) invert(1)",
-                        opacity: 0.9,
+                        display: "flex",
+                        gap: "3rem",
+                        alignItems: "center",
+                        paddingRight: "3rem",
                       }}
-                    />
+                    >
+                      {logos.map((f, i) => (
+                        <img
+                          key={`${f}-${i}`}
+                          src={`/logos/${f}`}
+                          alt={f.replace(/\..*/, "")}
+                          className="h-14 md:h-20 lg:h-24"
+                          style={{
+                            flexShrink: 0,
+                            width: "auto",
+                            display: "block",
+                            filter: "brightness(0) invert(1)",
+                            opacity: 0.9,
+                          }}
+                        />
+                      ))}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -272,7 +284,7 @@ export default function LandingPage() {
         {/* Video Demo Section */}
         <section
           ref={videoRef}
-          className={`w-full py-6 md:py-12 bg-[#f5f0e2] transition-all duration-1000 delay-200 ${
+          className={`w-full py-6 md:py-12 bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 delay-200 relative z-10 ${
             videoVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -280,7 +292,7 @@ export default function LandingPage() {
         >
           <div className="container px-4 md:px-6 mx-auto">
             <div className="relative w-full max-w-[90vw] mx-auto">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-3xl opacity-30 -m-4"></div>
+              {/* <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-3xl opacity-30 -m-4"></div> */}
               <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]">
                 <div id="video-container" className="bg-black/5">
                   <video
@@ -304,7 +316,7 @@ export default function LandingPage() {
         <section
           ref={featuresRef}
           id="features"
-          className={`w-full py-12 md:py-24 lg:py-32 transition-all duration-1000 delay-300 ${
+          className={`w-full py-12 md:py-24 lg:py-32 bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 delay-300 ${
             featuresVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -404,7 +416,7 @@ export default function LandingPage() {
         <section
           id="pricing"
           ref={pricingRef}
-          className={`w-full py-12 md:py-24 lg:py-32 bg-muted/50 transition-all duration-1000 delay-400 ${
+          className={`w-full py-12 md:py-24 lg:py-32 bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 delay-400 ${
             pricingVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -575,7 +587,7 @@ export default function LandingPage() {
         {/* CTA Section */}
         <section
           ref={ctaRef}
-          className={`w-full py-12 md:py-24 lg:py-32 transition-all duration-1000 delay-500 ${
+          className={`w-full py-12 md:py-24 lg:py-32 bg-[#f5f0e2] dark:bg-[#1a1815] transition-all duration-1000 delay-500 ${
             ctaVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -603,7 +615,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full shrink-0 border-t">
+      <footer className="w-full shrink-0 bg-[#f5f0e2] dark:bg-[#1a1815]">
         <div className="container mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row items-center gap-2">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} PianoFi. All rights reserved.
@@ -623,11 +635,33 @@ export default function LandingPage() {
                 className="h-5 w-5 relative -top-0.5 align-middle"
                 aria-hidden="false"
                 focusable="false"
+                fill="currentColor"
               >
                 <title>GitHub</title>
                 <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
               </svg>
               <span className="sr-only">GitHub</span>
+            </a>
+            <a
+              href="https://www.linkedin.com/company/pianofica"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs flex items-center gap-2"
+              aria-label="PianoFi on LinkedIn"
+            >
+              <svg
+                role="img"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 relative -top-0.5 align-middle"
+                aria-hidden="false"
+                focusable="false"
+                fill="currentColor"
+              >
+                <title>LinkedIn</title>
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+              <span className="sr-only">LinkedIn</span>
             </a>
             <Link
               href="/terms"
