@@ -196,7 +196,7 @@ export default function LandingPage() {
           />
 
           {/* Content */}
-          <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32 flex flex-col h-full">
+          <div className="relative z-10 container mx-auto px-8 md:px-12 lg:px-16 py-12 md:py-24 lg:py-32 flex flex-col h-full">
             <div className="max-w-3xl flex-1 flex flex-col justify-center">
               <div className="space-y-6">
                 <h1
