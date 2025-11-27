@@ -49,9 +49,10 @@ export default function LandingPage() {
   const logos = [
     "ucla.svg",
     "berklee.svg",
+    "northwesternmusic.png",
     "uw.png",
-    "ubc.png",
-    "umich.png",
+    "ubcmusic.png",
+    "umichmusic.png",
     "cmu.png",
   ];
 
@@ -230,6 +231,11 @@ export default function LandingPage() {
 
             {/* Logos Animation at Bottom */}
             <div className="relative z-10 w-full mt-auto pb-8">
+              <p
+                className={`${playfair.className} text-lg md:text-xl italic mb-6 text-white/90 tracking-wide`}
+              >
+                Trusted by musicians from
+              </p>
               <style>{`
                 @keyframes scroll {
                   0% {
@@ -245,7 +251,7 @@ export default function LandingPage() {
                   style={{
                     display: "flex",
                     width: "max-content",
-                    animation: "scroll 30s linear infinite",
+                    animation: "scroll 60s linear infinite",
                   }}
                 >
                   {[0, 1].map((index) => (
