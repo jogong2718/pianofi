@@ -57,10 +57,10 @@ export function Header() {
   ];
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 px-4 lg:px-6 h-14 flex items-center">
+    <header className="sticky top-0 left-0 right-0 z-50 px-4 lg:px-6 h-20 flex items-center bg-[#f5f0e2] dark:bg-[#1a1815]">
       <Link className="flex items-center justify-center space-x-4" href="/">
-        <Music className="h-8 w-8 text-primary" />
-        <span className="font-bold text-xl">PianoFi</span>
+        <Music className="h-12 w-12 text-primary" />
+        <span className="font-bold text-3xl">PianoFi</span>
       </Link>
 
       {isMobile ? (
@@ -68,15 +68,16 @@ export function Header() {
           <ThemeToggle />
           <Button
             variant="ghost"
-            size="sm"
+            size="lg"
+            className="border border-black text-black hover:bg-black/10 hover:text-black dark:border-white dark:text-white dark:hover:bg-white/10"
             onClick={() => handleNavigation("/login")}
           >
             Login
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Menu className="h-4 w-4" />
+              <Button variant="ghost" size="lg">
+                <Menu className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -93,27 +94,28 @@ export function Header() {
         </div>
       ) : (
         <>
-          <nav className="ml-auto flex gap-4 sm:gap-6">
+          <nav className="ml-auto flex items-center gap-4 sm:gap-6">
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
-                className="text-sm font-medium hover:underline underline-offset-4"
+                className="text-lg font-medium leading-none hover:underline underline-offset-4"
                 href={item.href}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-3 ml-4">
             <ThemeToggle />
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
+              className="border border-black text-black hover:bg-black/10 hover:text-black dark:border-white dark:text-white dark:hover:bg-white/10"
               onClick={() => handleNavigation("/login")}
             >
               Login
             </Button>
-            <Button size="sm" onClick={() => handleNavigation("/signup")}>
+            <Button size="lg" onClick={() => handleNavigation("/signup")}>
               Sign Up
             </Button>
           </div>

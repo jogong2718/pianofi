@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Playfair_Display } from "next/font/google";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Music, Upload, Star } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+});
+
 export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -29,7 +36,6 @@ export default function LandingPage() {
   const featuresRef = useRef<HTMLElement>(null);
   const donationsRef = useRef<HTMLElement>(null);
   const pricingRef = useRef<HTMLElement>(null);
-  const schoolsRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
   // Visibility states
@@ -38,7 +44,6 @@ export default function LandingPage() {
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [donationsVisible, setDonationsVisible] = useState(false);
   const [pricingVisible, setPricingVisible] = useState(false);
-  const [schoolsVisible, setSchoolsVisible] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(false);
 
   const logos = [
@@ -47,7 +52,7 @@ export default function LandingPage() {
     "uw.png",
     "ubc.png",
     "umich.png",
-    "cmu.jpg",
+    "cmu.png",
   ];
 
   useEffect(() => {
@@ -119,8 +124,6 @@ export default function LandingPage() {
           setDonationsVisible(entry.isIntersecting);
         if (entry.target === pricingRef.current)
           setPricingVisible(entry.isIntersecting);
-        if (entry.target === schoolsRef.current)
-          setSchoolsVisible(entry.isIntersecting);
         if (entry.target === ctaRef.current)
           setCtaVisible(entry.isIntersecting);
       });
@@ -132,7 +135,6 @@ export default function LandingPage() {
       featuresRef,
       donationsRef,
       pricingRef,
-      schoolsRef,
       ctaRef,
     ];
     refs.forEach((ref) => {
@@ -183,81 +185,84 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className={`w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-purple-50 to-blue-50 dark:bg-none dark:from-transparent dark:to-transparent dark:bg-background flex items-center justify-center transition-all duration-1000 ${
-            heroVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
+          className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <Badge
-                    variant="secondary"
-                    className="w-fit hidden sm:inline-flex"
+          {/* Image covering entire screen with padding (extra top padding for header) */}
+          <div 
+            className="absolute top-4 left-4 right-4 bottom-4 md:top-6 md:left-6 md:right-6 md:bottom-6 lg:top-8 lg:left-8 lg:right-8 lg:bottom-8 rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/hero-bg.png)',
+            }}
+          />
+          
+          {/* Content */}
+          <div className="relative z-10 container mx-auto px-4 md:px-6 py-12 md:py-24 lg:py-32 flex flex-col h-full">
+            <div className="max-w-3xl flex-1 flex flex-col justify-center">
+              <div className="space-y-6">
+                <h1
+                  className={`${playfair.className} text-4xl font-light tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
+                >
+                  Turn <span className="italic font-light">Any</span> Song Into Piano Sheet Music
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
+                  {"\u00a0"} // !!!
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-4">
+                  <Button 
+                    size="lg" 
+                    onClick={() => handleNavigation("/signup")}
+                    className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                   >
-                    🎹 AI-Powered Music Transcription
-                  </Badge>
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Turn Any Song Into
-                    <span className="text-primary"> Piano Sheet Music</span>
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Upload any audio file - pop songs, instrumentals, classical
-                    pieces - and get professional piano sheet music in minutes.
-                    Powered by advanced AI models.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" onClick={() => handleNavigation("/signup")}>
                     Start Converting Music
                   </Button>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>4.9/5 rating</span>
-                  </div>
-                  {/* <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>10,000+ musicians</span>
-                  </div> */}
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    onClick={() => handleNavigation("/signup")}
+                    className="bg-white text-black border-black hover:bg-gray-50 dark:bg-transparent dark:text-white dark:border-white dark:hover:bg-white/10"
+                  >
+                    Watch Demo
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg blur-3xl opacity-30"></div>
-                  <Card className="relative w-full max-w-md">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Upload className="h-5 w-5" />
-                        Upload Your Music
-                      </CardTitle>
-                      <CardDescription>
-                        Drag and drop any audio file to get started
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                          dragActive
-                            ? "border-primary bg-primary/5"
-                            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5"
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={handleFileInput}
-                      >
-                        <Music className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">
-                          MP3, WAV, FLAC supported
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+            </div>
+            
+            {/* Logos Animation at Bottom */}
+            <div className="relative z-10 w-full mt-auto pb-8">
+              <style>{`
+                @keyframes scroll {
+                  0% {
+                    transform: translateX(0);
+                  }
+                  100% {
+                    transform: translateX(-50%);
+                  }
+                }
+              `}</style>
+              <div className="overflow-hidden">
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "3rem",
+                    alignItems: "center",
+                    animation: "scroll 30s linear infinite",
+                  }}
+                >
+                  {[...logos, ...logos].map((f, i) => (
+                    <img
+                      key={`${f}-${i}`}
+                      src={`/logos/${f}`}
+                      alt={f.replace(/\..*/, "")}
+                      className="h-14 md:h-20 lg:h-24"
+                      style={{
+                        flexShrink: 0,
+                        width: "auto",
+                        display: "block",
+                        filter: "brightness(0) invert(1)",
+                        opacity: 0.9,
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -267,7 +272,7 @@ export default function LandingPage() {
         {/* Video Demo Section */}
         <section
           ref={videoRef}
-          className={`w-full py-6 md:py-12 transition-all duration-1000 delay-200 ${
+          className={`w-full py-6 md:py-12 bg-[#f5f0e2] transition-all duration-1000 delay-200 ${
             videoVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-10"
@@ -390,63 +395,6 @@ export default function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Schools / Partners Section */}
-        <section
-          ref={schoolsRef}
-          className={`w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-background transition-all duration-1000 delay-400 ${
-            schoolsVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
-        >
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-col items-center text-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                Musicians on PianoFi come from
-              </h2>
-              <p className="max-w-[800px] text-muted-foreground mt-2">
-                We work with musicians and students from top music schools and
-                universities.
-              </p>
-            </div>
-
-            <style>{`
-              @keyframes scroll {
-                0% {
-                  transform: translateX(0);
-                }
-                100% {
-                  transform: translateX(-50%);
-                }
-              }
-            `}</style>
-            <div className="overflow-hidden mt-6">
-              <div
-                style={{
-                  display: "flex",
-                  gap: "3rem",
-                  alignItems: "center",
-                  animation: "scroll 30s linear infinite",
-                }}
-              >
-                {[...logos, ...logos].map((f, i) => (
-                  <img
-                    key={`${f}-${i}`}
-                    src={`/logos/${f}`}
-                    alt={f.replace(/\..*/, "")}
-                    className="h-14 md:h-20 lg:h-24"
-                    style={{
-                      flexShrink: 0,
-                      width: "auto",
-                      display: "block",
-                    }}
-                  />
-                ))}
               </div>
             </div>
           </div>
