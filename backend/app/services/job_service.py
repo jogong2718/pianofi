@@ -151,6 +151,8 @@ def get_queue_name(model: str, environment: str) -> str:
         ("picogen", "development"): "picogen_job_queue_dev",
         ("amt", "production"): "amt_job_queue_prod",
         ("amt", "development"): "amt_job_queue_dev",
+        ("pti", "production"): "pti_job_queue_prod",
+        ("pti", "development"): "pti_job_queue_dev",
     }
     queue_name = queue_map.get((model, environment))
     if not queue_name:
@@ -173,13 +175,13 @@ def queue_job(
     1. Validate job_id and file_key are provided
     2. Check job exists and belongs to user (permission check)
     3. Update job status to 'queued' in database
-    4. Push job to appropriate Redis queue (amt or picogen)
+    4. Push job to appropriate Redis queue (amt or picogen or pti)
     
     Args:
         job_id: ID of the job to queue
         file_key: File key for validation
         user_id: ID of the user (for permission check)
-        model: Model to use ('amt' or 'picogen')
+        model: Model to use ('amt' or 'picogen' or 'pti')
         level: Processing level (1-3)
         db: Database session
         redis_client: Redis client for queue operations

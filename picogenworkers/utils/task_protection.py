@@ -19,7 +19,7 @@ def get_task_metadata():
     # {
     #   "Cluster": "arn:aws:ecs:us-east-1:960370336558:cluster/pianofi-cluster",
     #   "TaskARN": "arn:aws:ecs:us-east-1:960370336558:task/pianofi-cluster/abc123...",
-    #   "Family": "pianofi-amtworkers",
+    #   "Family": "pianofi-picogenworkers",
     #   ...
     # }
 

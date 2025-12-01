@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Music, Mail } from "lucide-react";
+import { Music, Mail, Github } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
