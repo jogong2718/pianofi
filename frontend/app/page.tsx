@@ -330,11 +330,11 @@ export default function LandingPage() {
 
         {/* Mobile Scroll Hint */}
         <div className="md:hidden w-full py-8 flex flex-col items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815] space-y-2">
-          <div className="relative h-8 w-full flex items-center justify-center">
+          <div className="relative h-8 w-full">
             <p
               className={`${
                 playfair.className
-              } text-xl italic text-muted-foreground/90 absolute transition-opacity duration-500 ${
+              } text-xl italic text-muted-foreground/90 absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
                 isScrolled ? "opacity-0" : "opacity-100"
               }`}
             >
@@ -343,7 +343,7 @@ export default function LandingPage() {
             <p
               className={`${
                 playfair.className
-              } text-xl italic text-muted-foreground/90 absolute transition-opacity duration-500 ${
+              } text-xl italic text-muted-foreground/90 absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
                 isScrolled && isPhraseVisible ? "opacity-100" : "opacity-0"
               }`}
             >
@@ -675,7 +675,7 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                   Ready to Transform Your Music?
                 </h2>
-                <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text;base/relaxed xl:text-xl/relaxed">
                   Join thousands of musicians who trust PianoFi for accurate
                   music transcription
                 </p>
