@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Upload, Star } from "lucide-react";
+import { Music, Upload, Star, ChevronDown } from "lucide-react";
 import { Header } from "@/components/ui/header";
 
 const playfair = Playfair_Display({
@@ -27,6 +27,18 @@ export default function LandingPage() {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isPhraseVisible, setIsPhraseVisible] = useState(true);
+
+  const funnyPhrases = [
+    "You've been practicing right?",
+    "You haven't? Go practice!",
+    "Your cousin already at Carnegie hall",
+    "and is a doctor lah!",
+    "But they don't have PianoFi...",
+    "You got this!",
+  ];
 
   const { user, loading } = useAuth();
 
@@ -62,6 +74,35 @@ export default function LandingPage() {
       canonical.setAttribute("href", "https://www.pianofi.ca/");
     }
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout;
+
+    if (isScrolled) {
+      interval = setInterval(() => {
+        setIsPhraseVisible(false);
+        timeout = setTimeout(() => {
+          setPhraseIndex((prev) => (prev + 1) % funnyPhrases.length);
+          setIsPhraseVisible(true);
+        }, 500);
+      }, 3000);
+    }
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+      setIsPhraseVisible(true);
+    };
+  }, [isScrolled]);
 
   useEffect(() => {
     if (user && !loading) {
@@ -186,7 +227,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className="relative w-full h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
+          className="relative w-full h-[calc(70vh-5rem)] md:h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
           {/* Image covering entire screen with padding (extra top padding for header) */}
           <div
@@ -286,6 +327,35 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Mobile Scroll Hint */}
+        <div className="md:hidden w-full py-8 flex flex-col items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815] space-y-2">
+          <div className="relative h-8 w-full">
+            <p
+              className={`${
+                playfair.className
+              } text-xl italic text-muted-foreground/90 absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
+                isScrolled ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              Scroll down to see how it works
+            </p>
+            <p
+              className={`${
+                playfair.className
+              } text-xl italic text-muted-foreground/90 absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${
+                isScrolled && isPhraseVisible ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {funnyPhrases[phraseIndex]}
+            </p>
+          </div>
+          <ChevronDown
+            className={`h-6 w-6 text-muted-foreground/70 animate-bounce transition-opacity duration-500 ${
+              isScrolled ? "opacity-0" : "opacity-100"
+            }`}
+          />
+        </div>
 
         {/* Video Demo Section */}
         <section
@@ -605,7 +675,7 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                   Ready to Transform Your Music?
                 </h2>
-                <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text;base/relaxed xl:text-xl/relaxed">
                   Join thousands of musicians who trust PianoFi for accurate
                   music transcription
                 </p>
