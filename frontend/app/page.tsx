@@ -227,7 +227,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className="relative w-full h-[calc(70vh-5rem)] md:h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
+          className="relative w-full min-h-[550px] h-[calc(70vh-5rem)] md:h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f5f0e2] dark:bg-[#1a1815]"
         >
           {/* Image covering entire screen with padding (extra top padding for header) */}
           <div
