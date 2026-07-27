@@ -77,6 +77,12 @@ export default function ContactPage() {
                       >
                         bruce@pianofi.ca
                       </a>
+                      <a
+                        href="mailto:sam@pianofi.ca"
+                        className="text-primary hover:underline font-medium text-lg block"
+                      >
+                        sam@pianofi.ca
+                      </a>
                     </div>
                   </CardContent>
                 </Card>
