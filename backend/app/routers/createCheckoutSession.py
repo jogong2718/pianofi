@@ -34,6 +34,7 @@ async def create_checkout_session_endpoint(
 
     success_url = f"{origin}/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/dashboard"
+    return_url = f"{origin}/success?session_id={{CHECKOUT_SESSION_ID}}"
 
     try:
 
@@ -44,17 +45,20 @@ async def create_checkout_session_endpoint(
             stripe_client=stripe,
             success_url=success_url,
             cancel_url=cancel_url,
+            return_url=return_url,
+            ui_mode=payload.uiMode,
             db=db
         )
         
         logging.info(
             f"Checkout session created for user {current_user.id}, "
-            f"price {payload.priceId}"
+            f"price {payload.priceId}, ui_mode {payload.uiMode}"
         )
         
         return CreateCheckoutSessionResponse(
             sessionId=session_data["session_id"],
-            checkoutUrl=session_data["checkout_url"]
+            checkoutUrl=session_data["checkout_url"],
+            clientSecret=session_data.get("client_secret") or None
         )
     
     except ValueError as e:

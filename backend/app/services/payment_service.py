@@ -22,42 +22,65 @@ def create_checkout_session(
     stripe_client,
     success_url: Optional[str] = None,
     cancel_url: Optional[str] = None,
+    return_url: Optional[str] = None,
+    ui_mode: str = "hosted",
     db=None
 ) -> Dict[str, Any]:
-    logger.info(f"Creating checkout session for user {user_id}, price {price_id}")
+    logger.info(
+        f"Creating checkout session for user {user_id}, price {price_id}, ui_mode={ui_mode}"
+    )
 
     if not price_id:
         raise ValueError("price_id is required")
 
-    # Provide reasonable defaults if caller didn't
-    success_url = success_url or "https://www.pianofi.ca/success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = cancel_url or "https://www.pianofi.ca/dashboard"
+    if ui_mode not in ("hosted", "custom"):
+        raise ValueError("ui_mode must be 'hosted' or 'custom'")
 
     try:
         # Get or create Stripe customer id via repository helper
         customer_id = _get_or_create_customer(user_id, user_email, stripe_client, db)
 
-        # Create Stripe checkout session
-        session = stripe_client.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            mode='subscription',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            customer=customer_id,
-            allow_promotion_codes=True,
-            subscription_data={
-                'metadata': {'user_id': str(user_id)}
-            },
-            metadata={'user_id': str(user_id)}
-        )
+        # Common params shared by both hosted and custom modes
+        session_params: Dict[str, Any] = {
+            "payment_method_types": ["card"],
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "mode": "subscription",
+            "customer": customer_id,
+            "allow_promotion_codes": True,
+            "subscription_data": {"metadata": {"user_id": str(user_id)}},
+            "metadata": {"user_id": str(user_id)},
+        }
 
-        checkout_url = getattr(session, "url", None) or session.get("url") if isinstance(session, dict) else None
+        if ui_mode == "custom":
+            # Custom Checkout (Elements + Checkout Sessions API). Renders inside
+            # our own themed page via CheckoutProvider + PaymentElement, and
+            # supports a client-side Appearance API (dynamic dark/light mode).
+            # It uses a single return_url instead of success/cancel URLs.
+            session_params["ui_mode"] = "custom"
+            session_params["return_url"] = (
+                return_url
+                or "https://www.pianofi.ca/success?session_id={CHECKOUT_SESSION_ID}"
+            )
+        else:
+            # Hosted Checkout (Stripe-hosted redirect page) - existing behaviour
+            session_params["success_url"] = (
+                success_url
+                or "https://www.pianofi.ca/success?session_id={CHECKOUT_SESSION_ID}"
+            )
+            session_params["cancel_url"] = (
+                cancel_url or "https://www.pianofi.ca/dashboard"
+            )
 
-        return {"session_id": session.id, "checkout_url": checkout_url or ""}
+        session = stripe_client.checkout.Session.create(**session_params)
+
+        checkout_url = getattr(session, "url", None)
+        client_secret = getattr(session, "client_secret", None)
+
+        return {
+            "session_id": session.id,
+            "checkout_url": checkout_url or "",
+            "client_secret": client_secret or "",
+        }
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe error: {e}")
@@ -192,20 +215,47 @@ def _get_or_create_customer(
     from app.repositories import payment_repository
     from app.repositories import webhook_event_repository
 
+    def _create_and_store_customer() -> str:
+        logging.info(f"Creating new Stripe customer for user {user_id}")
+        customer = stripe_client.Customer.create(
+            email=user_email, metadata={"user_id": str(user_id)}
+        )
+        webhook_event_repository.upsert_customer(
+            db, user_id=str(user_id), stripe_customer_id=customer.id
+        )
+        db.commit()
+        logger.info(f"Created Stripe customer {customer.id} for user {user_id}")
+        return customer.id
+
     try:
         user = payment_repository.find_user_stripe_customer_id(db=db, user_id=user_id)
 
-        if user:
-            logging.info(f"Found existing Stripe customer ID for user {user_id}")
-            return user["stripe_customer_id"]
+        if user and user.get("stripe_customer_id"):
+            existing_id = user["stripe_customer_id"]
+            # Verify the stored customer actually exists in the CURRENT Stripe
+            # mode/account. A stored id can become stale, e.g. when switching
+            # between live and test keys, which would otherwise cause a
+            # "No such customer" error at checkout.
+            try:
+                fetched = stripe_client.Customer.retrieve(existing_id)
+                if getattr(fetched, "deleted", False):
+                    logging.warning(
+                        f"Stored Stripe customer {existing_id} is deleted; recreating"
+                    )
+                    return _create_and_store_customer()
+                logging.info(f"Found valid Stripe customer ID for user {user_id}")
+                return existing_id
+            except stripe.error.InvalidRequestError:
+                logging.warning(
+                    f"Stored Stripe customer {existing_id} not found in current "
+                    f"mode; creating a new one for user {user_id}"
+                )
+                return _create_and_store_customer()
         else:
-            logging.info(f"Creating new Stripe customer for user {user_id}")
-            customer = stripe_client.Customer.create(email=user_email, metadata={"user_id": str(user_id)})
-            webhook_event_repository.upsert_customer(db, user_id=str(user_id), stripe_customer_id=customer.id)
-            db.commit()
-
-            logger.info(f"Created Stripe customer {customer.id} for user {user_id}")
-            return customer.id
+            return _create_and_store_customer()
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error getting/creating customer for user {user_id}: {e}")
+        raise RuntimeError("Failed to get or create Stripe customer")
     except Exception as e:
         logger.error(f"Failed to get or create Stripe customer for user {user_id}: {e}")
         raise RuntimeError("Failed to get or create Stripe customer")

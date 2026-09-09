@@ -11,14 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CheckCircle, Music, ArrowRight } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     const session_id = searchParams.get("session_id");
@@ -30,7 +28,7 @@ function SuccessContent() {
       return;
     }
     setLoading(false);
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleGoToDashboard = () => {
     router.push("/dashboard");
@@ -45,37 +43,37 @@ function SuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="text-center shadow-lg">
           <CardHeader className="pb-4">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-950/50 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <CardTitle className="text-2xl font-bold text-green-800">
+            <CardTitle className="text-2xl font-bold text-green-700 dark:text-green-400">
               Payment Successful!
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription>
               Welcome to PianoFi! Your subscription is now active.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="bg-green-50 p-4 rounded-lg">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
               <div className="flex items-center justify-center space-x-2 mb-2">
-                <Music className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-800">
+                <Music className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="font-semibold text-green-800 dark:text-green-300">
                   You're all set!
                 </span>
               </div>
-              <p className="text-sm text-green-700">
+              <p className="text-sm text-green-700 dark:text-green-400">
                 Start transcribing your favorite songs into piano sheet music
                 right away.
               </p>
             </div>
 
             {sessionId && (
-              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              <div className="rounded bg-muted p-2 text-xs text-muted-foreground">
                 <span className="font-mono">
                   Session: {sessionId.slice(0, 20)}...
                 </span>
@@ -85,7 +83,7 @@ function SuccessContent() {
             <div className="space-y-3">
               <Button
                 onClick={handleGoToDashboard}
-                className="w-full bg-green-600 hover:bg-green-700"
+                className="w-full"
                 size="lg"
               >
                 Go to Dashboard
@@ -101,14 +99,14 @@ function SuccessContent() {
               </Button>
             </div>
 
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               <p>
                 Need help? Contact us at{" "}
                 <a
-                  href="mailto:jonathan@pianofi.com"
-                  className="text-blue-600 hover:underline"
+                  href="mailto:jonathan@pianofi.ca"
+                  className="text-primary hover:underline"
                 >
-                  jonathan@pianofi.com
+                  jonathan@pianofi.ca
                 </a>
               </p>
             </div>

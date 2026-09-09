@@ -11,8 +11,18 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getStripe } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+
+/**
+ * Stripe price IDs are mode-specific: a price created in test mode does not
+ * exist in live mode (and vice versa). Keep it in the environment so each
+ * deployment supplies its own.
+ *
+ * The fallback is the LIVE price, so production keeps working even if the env
+ * var isn't set. Local/test environments override it in `frontend/.env.local`
+ * with the test-mode price.
+ */
+const LAUNCH_PRICE_ID =
+  process.env.NEXT_PUBLIC_LAUNCH_PRICE_ID || "price_1SQY6fBORHHlKrvYfRPevIWq";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -22,46 +32,14 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
   const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const supabase = createClient();
 
   if (!open) return null;
 
-  const handleCheckout = async (priceId: string) => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("No authentication token found");
-      }
-
-      // Call your backend to create Stripe session
-      const response = await fetch(`${backendUrl}/createCheckoutSession`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ priceId: priceId }),
-      });
-
-      const { sessionId, checkoutUrl } = await response.json();
-
-      // Redirect to Stripe
-      const stripe = await getStripe();
-
-      console.log(
-        "Redirecting to checkout with session ID:",
-        sessionId,
-        "URL:",
-        checkoutUrl
-      );
-      await stripe?.redirectToCheckout({ sessionId });
-    } catch (error) {
-      console.error("Checkout error:", error);
-    }
+  const handleCheckout = (priceId: string) => {
+    // Navigate to our themed in-app checkout page. The page itself creates the
+    // embedded Stripe Checkout session and renders it inside our own layout.
+    onOpenChange(false);
+    router.push(`/checkout?priceId=${encodeURIComponent(priceId)}`);
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -77,7 +55,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-lg p-4 max-w-2xl w-full"
+        className="bg-background text-foreground border border-border rounded-lg shadow-lg p-4 max-w-2xl w-full"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold mb-4 text-center">Choose Your Plan</h2>
@@ -108,7 +86,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
                 <li>• 100 transcriptions per month</li>
               </ul>
               <Button
-                onClick={() => handleCheckout("price_1SQY6fBORHHlKrvYfRPevIWq")}
+                onClick={() => handleCheckout(LAUNCH_PRICE_ID)}
                 className="w-full mt-6"
               >
                 Get Started
